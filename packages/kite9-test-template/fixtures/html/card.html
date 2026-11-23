@@ -19,33 +19,22 @@
 
     <div class="layout">
       <div id="mount">
-        <!--
-          Light-DOM scene: minimal exercise of every test-template tag.
-          col/row/width/height are layout hints for the grid fixtures
-          (ignored by createDiagram today).
-        -->
-        <kite9-diagram id="card" content-cols="3" content-rows="2" gutter="64">
-          <kite9-glyph
-            id="g1"
-            shape="CARD"
-            label="Glyph"
-            col="1"
-            row="1"
-            width="120"
-            height="80"
-          >
+        <!-- Light-DOM scene: minimal exercise of every test-template tag.
+             Layout comes from fixtures/grid/card.json via bootScene. -->
+        <kite9-diagram id="card">
+          <kite9-glyph id="g1" shape="CARD" label="Glyph">
             <kite9-port id="p1" direction="right"></kite9-port>
           </kite9-glyph>
 
-          <kite9-container id="c1" label="Context" col="3" row="1">
-            <kite9-glyph id="g2" label="Nested" col="3" row="1" width="100" height="72">
+          <kite9-container id="c1" label="Context">
+            <kite9-glyph id="g2" label="Nested">
               <kite9-socket id="s1" direction="left"></kite9-socket>
             </kite9-glyph>
           </kite9-container>
 
-          <kite9-arrow id="a1" label="Arrow" col="2" row="1" width="64" height="40"></kite9-arrow>
+          <kite9-arrow id="a1" label="Arrow"></kite9-arrow>
 
-          <kite9-key id="k1" col="1" row="2" width="100" height="56"></kite9-key>
+          <kite9-key id="k1" label="Key"></kite9-key>
 
           <kite9-link id="l1" shape="NORMAL" drawDirection="right">
             <from reference="g1"></from>

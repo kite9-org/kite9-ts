@@ -33,7 +33,7 @@ On each page:
 | `fixtures/grid/` | Placeholder layout (tracks, placements, routes) |
 | `fixtures/json/` | Expected `serializeDiagram` snapshots |
 | `src/templates/` | Per-tag chrome (`index.tsx` + `styles.css`) |
-| `src/pack.ts` | `testTemplatePack` — tag → type + `RenderChromeFn` |
+| `src/pack.ts` | `testTemplatePack` — tag → type + HTML / SVG / defs painters |
 | `src/apply-layout.ts` | `applyLayout` — paint grid + routes onto a scene |
 | `test/model-from-html.test.ts` | HTML light DOM → model JSON |
 | `test/shadow-layout.test.ts` | HTML + grid → shadow chrome + layout |

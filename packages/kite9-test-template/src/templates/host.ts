@@ -1,4 +1,4 @@
-/** Shared host → chrome prop helpers for {@link RenderChromeFn} implementations. */
+/** Shared host → chrome prop helpers for {@link RenderHtmlFn} implementations. */
 
 export function hostTitle(host: Element): string {
   return (

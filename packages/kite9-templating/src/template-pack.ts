@@ -1,27 +1,67 @@
 import { resolveDiagramElementType } from "@kite9/css";
-import type { DiagramElementType } from "@kite9/model";
+import type {
+  ConnectionRenderLayout,
+  DiagramElementType,
+  LabelRenderLayout,
+  TerminatorRenderLayout,
+} from "@kite9/model";
 
 /**
- * Common contract for template chrome (e.g. `renderContainerChrome`).
- * Implementations live in template packs; they read props from `host` and
- * paint into `shadow`.
+ * Paint into the HTML scene: host open shadow root
+ * (e.g. `renderContainerChrome`).
  */
-export type RenderChromeFn = (host: Element, shadow: ShadowRoot) => void;
+export type RenderHtmlFn = (host: Element, shadow: ShadowRoot) => void;
 
-/** @deprecated Use {@link RenderChromeFn}. */
-export type PaintFn = RenderChromeFn;
+/**
+ * Paint into the SVG scene under a link `<g>`
+ * (connection path, hit-boxes, etc.).
+ */
+export type RenderSvgFn = (
+  parent: SVGGElement,
+  layout: ConnectionRenderLayout,
+) => void;
 
+/**
+ * Paint into SVG `<defs>` on the links-layer
+ * (terminator markers, filters, etc.).
+ */
+export type RenderDefsFn = (
+  svg: SVGSVGElement,
+  layout: TerminatorRenderLayout,
+) => void;
+
+/**
+ * Paint a connection label into the SVG scene
+ * (`foreignObject` under the link `<g>`).
+ * `host` is the light-DOM label — source of text / chrome content.
+ */
+export type RenderSvgLabelFn = (
+  parent: SVGGElement,
+  layout: LabelRenderLayout,
+  host: Element,
+) => void;
+
+/**
+ * Per-tag template: model type + optional painters for the HTML scene,
+ * SVG scene, and/or SVG defs. Different tags can supply different templates.
+ */
 export type TemplateEntry = {
   /**
    * Pack default type when computed `--kite9-type` is unset
    * (e.g. tags with no chrome / no `:host` rule yet).
    */
   elementType: DiagramElementType;
-  /** Shadow-DOM chrome renderer (`renderContainerChrome`, etc.). */
-  render?: RenderChromeFn;
+  /** HTML scene — shadow-DOM host chrome. */
+  renderHtml?: RenderHtmlFn;
+  /** SVG scene — connection path / hit-boxes into the link `<g>`. */
+  renderSvg?: RenderSvgFn;
+  /** SVG defs — terminator markers (and similar shared defs). */
+  renderDefs?: RenderDefsFn;
+  /** SVG scene — label `foreignObject` into the link `<g>`. */
+  renderLabel?: RenderSvgLabelFn;
 };
 
-/** Maps light-DOM tag names (lowercase local names) to template chrome. */
+/** Maps light-DOM tag names (lowercase local names) to templates. */
 export type TemplatePack = {
   readonly name: string;
   resolve(tagName: string): TemplateEntry | null;
@@ -50,14 +90,14 @@ export function localTag(el: Element): string {
 
 /**
  * Paint template chrome into the host’s open shadow root.
- * No-op (returns null) when the pack entry has no `render`.
+ * No-op (returns null) when the pack entry has no `renderHtml`.
  */
 export function paintHost(
   host: Element,
   pack: TemplatePack,
 ): ShadowRoot | null {
   const entry = pack.resolve(localTag(host));
-  if (!entry?.render) return null;
+  if (!entry?.renderHtml) return null;
 
   const existing = (host as Element & { shadowRoot?: ShadowRoot | null })
     .shadowRoot;
@@ -65,7 +105,7 @@ export function paintHost(
     existing ??
     (host as HTMLElement).attachShadow({ mode: "open" });
 
-  entry.render(host, shadow);
+  entry.renderHtml(host, shadow);
   return shadow;
 }
 

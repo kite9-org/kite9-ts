@@ -1,6 +1,10 @@
 /** Shape of a completed diagram layout (grid tracks, element placements, link routes). */
 
+import type { End } from "@kite9/css";
+
 export type Size = { w: number; h: number };
+
+export type Point2D = { x: number; y: number };
 
 /** Where an element sits after layout — content-grid cell or edge anchor. */
 export type LayoutPlacement =
@@ -8,8 +12,8 @@ export type LayoutPlacement =
   | { anchor: string; side: string };
 
 export type RouteLayout = {
-  points: Array<{ x: number; y: number }>;
-  labels: Record<string, { x: number; y: number }>;
+  points: Point2D[];
+  labels: Record<string, Point2D>;
 };
 
 export type GridLayout = {
@@ -29,4 +33,29 @@ export type CompletedLayout = {
   grid: GridLayout;
   placements: Record<string, LayoutPlacement>;
   routes: Record<string, RouteLayout>;
+};
+
+/** Connection body geometry for SVG rendering. */
+export type ConnectionRenderLayout = {
+  id: string;
+  points: Point2D[];
+  /** Decoration style at the from end (`ARROW` / `NONE`) — drives `marker-start`. */
+  fromStyle: string;
+  /** Decoration style at the to end — drives `marker-end`. */
+  toStyle: string;
+};
+
+/** Terminator pose + decoration style at a link end (hit-box + marker def). */
+export type TerminatorRenderLayout = {
+  style: string;
+  end: End;
+  point: Point2D;
+};
+
+/** Connection label pose for SVG foreignObject (text comes from the label host/model). */
+export type LabelRenderLayout = {
+  id: string;
+  end: End;
+  point: Point2D;
+  size: Size;
 };

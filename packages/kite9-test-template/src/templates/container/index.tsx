@@ -1,4 +1,4 @@
-import type { RenderChromeFn } from "@kite9/templating";
+import type { RenderHtmlFn } from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
@@ -22,7 +22,7 @@ export function ContainerChrome({ title }: ContainerChromeProps) {
   );
 }
 
-/** {@link RenderChromeFn} for container / context chrome. */
-export const renderContainerChrome: RenderChromeFn = (host, shadow) => {
+/** {@link RenderHtmlFn} for container / context chrome. */
+export const renderContainerChrome: RenderHtmlFn = (host, shadow) => {
   render(<ContainerChrome title={hostTitle(host)} />, shadow);
 };

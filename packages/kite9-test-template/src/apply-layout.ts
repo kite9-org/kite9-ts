@@ -1,10 +1,16 @@
 /** Apply placeholder grid fixtures (arrangeGrid-style tracks + routes) to a painted scene. */
 
-import type {
-  CompletedLayout,
-  LayoutPlacement,
-  Size,
+import {
+  End,
+  type CompletedLayout,
+  type ConnectionRenderLayout,
+  type LabelRenderLayout,
+  type LayoutPlacement,
+  type Size,
+  type TerminatorRenderLayout,
 } from "@kite9/model";
+import { localTag, type TemplatePack } from "@kite9/templating";
+import { testTemplatePack } from "./pack.js";
 
 export type { CompletedLayout, LayoutPlacement, Size };
 
@@ -43,11 +49,31 @@ function hasCell(
   return "col" in p && "row" in p && "size" in p;
 }
 
+function decorationStyle(linkEl: Element, tag: string): string {
+  const el = Array.from(linkEl.children).find(
+    (c) => c.localName.toLowerCase() === tag.toLowerCase(),
+  );
+  return (el?.textContent ?? "").replace(/\s+/g, " ").trim() || "NONE";
+}
+
+function labelEndForId(linkEl: Element, labelId: string): End {
+  const el = linkEl.querySelector(`#${CSS.escape(labelId)}`);
+  if (!el) return End.FROM;
+  const tag = el.localName.toLowerCase();
+  if (tag === "kite9-to-label" || tag === "tolabel") return End.TO;
+  return End.FROM;
+}
+
 /**
  * Lay out painted `kite9-diagram` children using a completed layout:
- * CSS grid on the shadow objects-layer, SVG routes on the links-layer.
+ * CSS grid on the shadow objects-layer; SVG connection/terminator/label
+ * templates on the links-layer.
  */
-export function applyLayout(diagram: Element, layout: CompletedLayout): void {
+export function applyLayout(
+  diagram: Element,
+  layout: CompletedLayout,
+  pack: TemplatePack = testTemplatePack,
+): void {
   const shadow = diagram.shadowRoot;
   if (!shadow) throw new Error("diagram has no shadow root — run createDiagram first");
 
@@ -104,45 +130,54 @@ export function applyLayout(diagram: Element, layout: CompletedLayout): void {
 
   const NS = "http://www.w3.org/2000/svg";
   for (const [id, route] of Object.entries(layout.routes)) {
-    const g = document.createElementNS(NS, "g");
+    const g = document.createElementNS(NS, "g") as SVGGElement;
     g.setAttribute("data-link-id", id);
-    g.setAttribute("fill", "none");
-    g.setAttribute("stroke", "#64748b");
-    g.setAttribute("stroke-width", "2");
+    linksSvg.appendChild(g);
 
-    if (route.points.length >= 2) {
-      const d = route.points
-        .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-        .join(" ");
-      const path = document.createElementNS(NS, "path");
-      path.setAttribute("d", d);
-      g.appendChild(path);
+    const linkEl = diagram.querySelector(`#${CSS.escape(id)}`);
+    const linkEntry = linkEl ? pack.resolve(localTag(linkEl)) : null;
+
+    const fromStyle = linkEl ? decorationStyle(linkEl, "fromDecoration") : "NONE";
+    const toStyle = linkEl ? decorationStyle(linkEl, "toDecoration") : "NONE";
+
+    const connection: ConnectionRenderLayout = {
+      id,
+      points: route.points,
+      fromStyle,
+      toStyle,
+    };
+    linkEntry?.renderSvg?.(g, connection);
+
+    const points = route.points;
+    if (points.length >= 2) {
+      const first = points[0]!;
+      const last = points[points.length - 1]!;
+
+      const fromLayout: TerminatorRenderLayout = {
+        style: fromStyle,
+        end: End.FROM,
+        point: first,
+      };
+      const toLayout: TerminatorRenderLayout = {
+        style: toStyle,
+        end: End.TO,
+        point: last,
+      };
+      linkEntry?.renderDefs?.(linksSvg, fromLayout);
+      linkEntry?.renderDefs?.(linksSvg, toLayout);
     }
 
     for (const [labelId, pos] of Object.entries(route.labels)) {
-      const labelEl = diagram.querySelector(
-        `#${CSS.escape(labelId)}`,
-      ) as HTMLElement | null;
-      if (labelEl) {
-        labelEl.style.position = "absolute";
-        labelEl.style.left = `${pos.x}px`;
-        labelEl.style.top = `${pos.y}px`;
-        labelEl.style.display = "block";
-        labelEl.style.zIndex = "2";
-        if (labelEl.parentElement !== diagram) {
-          diagram.appendChild(labelEl);
-        }
-      } else {
-        const text = document.createElementNS(NS, "text");
-        text.setAttribute("x", String(pos.x));
-        text.setAttribute("y", String(pos.y));
-        text.setAttribute("fill", "#334155");
-        text.setAttribute("font-size", "11");
-        text.textContent = labelId;
-        g.appendChild(text);
-      }
+      const host = diagram.querySelector(`#${CSS.escape(labelId)}`);
+      if (!host) continue;
+      const end = linkEl ? labelEndForId(linkEl, labelId) : End.FROM;
+      const labelLayout: LabelRenderLayout = {
+        id: labelId,
+        end,
+        point: pos,
+        size: { w: 72, h: 20 },
+      };
+      pack.resolve(localTag(host))?.renderLabel?.(g, labelLayout, host);
     }
-
-    linksSvg.appendChild(g);
   }
 }

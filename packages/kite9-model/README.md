@@ -71,6 +71,14 @@ A finished arrangement of a diagram is a `CompletedLayout` (`src/layout.ts`): si
 | `placements` | `Record<id, LayoutPlacement>` | Per-element position: either a content-grid cell (`col` / `row` / optional span + `size`) or an edge anchor (`anchor` + `side`, e.g. ports). |
 | `routes` | `Record<id, RouteLayout>` | Per-connection polyline (`points`) and label positions in diagram coordinates. Drawn on the SVG links layer. |
 
+SVG layer render inputs (also in `layout.ts`) — what template packs paint under each link `<g>`:
+
+| Type | Role |
+| --- | --- |
+| `ConnectionRenderLayout` | Link id, polyline points, and `fromStyle` / `toStyle` for path `marker-start` / `marker-end` |
+| `TerminatorRenderLayout` | End style (`ARROW` / `NONE`) + `point` for hit-box and shared SVG marker def |
+| `LabelRenderLayout` | Label id/end, `point`, and `size` for an SVG `foreignObject` (text from the label host) |
+
 ```mermaid
 flowchart LR
   layout["CompletedLayout"]

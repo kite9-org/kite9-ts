@@ -14,7 +14,7 @@ describe("HTML + grid → shadow layout", () => {
     const root = mountScene("empty.html");
     createDiagram(root, testTemplatePack);
     const grid = loadGridFixture("empty.json");
-    applyLayout(root, grid);
+    applyLayout(root, grid, testTemplatePack);
 
     const shadow = root.shadowRoot!;
     expect(shadow.querySelector(".stage")).toBeTruthy();
@@ -24,11 +24,11 @@ describe("HTML + grid → shadow layout", () => {
     expect(shadow.querySelector(".links-layer")?.querySelectorAll("g").length).toBe(0);
   });
 
-  it("card.html paints chrome, places cells, and draws routes", () => {
+  it("card.html paints chrome, places cells, and draws SVG link layer", () => {
     const root = mountScene("card.html");
     createDiagram(root, testTemplatePack);
     const grid = loadGridFixture("card.json");
-    applyLayout(root, grid);
+    applyLayout(root, grid, testTemplatePack);
 
     // Template chrome in host shadows
     expect(root.shadowRoot?.querySelector(".stage")).toBeTruthy();
@@ -37,8 +37,8 @@ describe("HTML + grid → shadow layout", () => {
       document.querySelector("#c1")?.shadowRoot?.querySelector(".container-card"),
     ).toBeTruthy();
     expect(document.querySelector("#a1")?.shadowRoot?.querySelector(".card")).toBeTruthy();
-    expect(document.querySelector("#fl1")?.shadowRoot?.querySelector(".label")).toBeTruthy();
-    expect(document.querySelector("#tl1")?.shadowRoot?.querySelector(".label")).toBeTruthy();
+    expect(document.querySelector("#k1")?.shadowRoot?.querySelector(".key-card")).toBeTruthy();
+
 
     // Grid placements from fixture
     const g1 = document.querySelector("#g1") as HTMLElement;
@@ -58,14 +58,33 @@ describe("HTML + grid → shadow layout", () => {
 
     // Routes on the links SVG overlay; light-DOM links hidden
     const linksSvg = root.shadowRoot!.querySelector(".links-layer")!;
+    const l1 = linksSvg.querySelector('g[data-link-id="l1"]')!;
     expect(linksSvg.querySelectorAll("g[data-link-id]").length).toBe(3);
-    expect(linksSvg.querySelector('g[data-link-id="l1"] path')).toBeTruthy();
+    expect(l1.querySelector("path")).toBeTruthy();
     expect((document.querySelector("#l1") as HTMLElement).style.display).toBe("none");
 
-    // Label positions from route fixture
-    const fl1 = document.querySelector("#fl1") as HTMLElement;
-    expect(fl1.style.position).toBe("absolute");
-    expect(fl1.style.left).toBe("158px");
-    expect(fl1.style.top).toBe("68px");
+    // Terminators: hit-boxes on both ends; visual via shared SVG marker defs
+    const fromTerm = l1.querySelector('[data-terminator-end="from"]')!;
+    const toTerm = l1.querySelector('[data-terminator-end="to"]')!;
+    expect(fromTerm.querySelector("ellipse.terminator-hit")).toBeTruthy();
+    expect(toTerm.querySelector("ellipse.terminator-hit")).toBeTruthy();
+    expect(toTerm.getAttribute("data-terminator-style")?.toUpperCase()).toBe("ARROW");
+    expect(linksSvg.querySelector("#arrow-end-marker")).toBeTruthy();
+    expect(linksSvg.querySelector("#none-start-marker")).toBeTruthy();
+    const path = l1.querySelector("path[data-connection-path]")!;
+    expect(path.getAttribute("marker-end")).toBe("url(#arrow-end-marker)");
+    expect(path.getAttribute("marker-start")).toBe("url(#none-start-marker)");
+    expect(toTerm.querySelector("polygon")).toBeNull();
+
+    // Labels live in SVG foreignObject (not absolute HTML on the diagram)
+    const fl1Fo = l1.querySelector('foreignObject[data-label-id="fl1"]');
+    const tl1Fo = l1.querySelector('foreignObject[data-label-id="tl1"]');
+    expect(fl1Fo).toBeTruthy();
+    expect(tl1Fo).toBeTruthy();
+    expect(fl1Fo?.getAttribute("x")).toBe("158");
+    expect(fl1Fo?.getAttribute("y")).toBe("68");
+    expect((document.querySelector("#fl1") as HTMLElement).style.position).not.toBe(
+      "absolute",
+    );
   });
 });

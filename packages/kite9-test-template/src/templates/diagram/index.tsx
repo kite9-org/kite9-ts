@@ -1,4 +1,4 @@
-import type { RenderChromeFn } from "@kite9/templating";
+import type { RenderHtmlFn } from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
@@ -24,7 +24,7 @@ export function DiagramChrome({ label = "Kite9 diagram" }: DiagramChromeProps) {
   );
 }
 
-/** {@link RenderChromeFn} for diagram chrome. */
-export const renderDiagramChrome: RenderChromeFn = (host, shadow) => {
+/** {@link RenderHtmlFn} for diagram chrome. */
+export const renderDiagramChrome: RenderHtmlFn = (host, shadow) => {
   render(<DiagramChrome label={hostTitle(host)} />, shadow);
 };

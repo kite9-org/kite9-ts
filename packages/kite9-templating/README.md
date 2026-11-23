@@ -10,8 +10,11 @@ const diagram = createDiagram(rootElement, testTemplatePack);
 const json = serializeDiagram(diagram);
 ```
 
-- `TemplatePack` — maps tag names → default type + optional `render` (`RenderChromeFn`)
-- `RenderChromeFn` — common chrome contract: `(host, shadow) => void` (e.g. `renderContainerChrome`)
+- `TemplatePack` — maps tag names → default type + painters by destination
+- `RenderHtmlFn` — HTML scene (host shadow): `(host, shadow) => void`
+- `RenderSvgFn` — SVG scene under a link `<g>` (path / hit-boxes)
+- `RenderDefsFn` — SVG `<defs>` (terminator markers, etc.)
+- `RenderSvgLabelFn` — label `foreignObject` into the SVG scene
 - `createDiagram` — paints chrome, reads `--kite9-type` via `@kite9/css`, builds adapters
 - `serializeDiagram` — stable JSON tree for tests
 - `paintHost` / `resolveHostElementType` — shadow paint + cascade type resolution

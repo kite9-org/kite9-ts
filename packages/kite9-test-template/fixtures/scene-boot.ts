@@ -13,7 +13,7 @@ export function bootScene(layout: CompletedLayout): void {
   }
 
   const diagram = createDiagram(root, testTemplatePack);
-  applyLayout(root, layout);
+  applyLayout(root, layout, testTemplatePack);
 
   const jsonOut = document.querySelector("#json");
   if (jsonOut) {

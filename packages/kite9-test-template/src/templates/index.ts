@@ -20,11 +20,25 @@ export {
   LabelChrome,
   LABEL_STYLES,
   renderLabelChrome,
+  renderLabel,
   type LabelChromeProps,
 } from "./label/index.js";
+export {
+  KeyChrome,
+  KEY_STYLES,
+  renderKeyChrome,
+  type KeyChromeProps,
+} from "./key/index.js";
 export {
   LinkChrome,
   LINK_STYLES,
   renderLinkChrome,
+  renderSvg,
   type LinkChromeProps,
 } from "./link/index.js";
+export {
+  renderDefs,
+  markerId,
+  ensureMarkerDef,
+  TerminatorHit,
+} from "./terminator/index.js";
