@@ -1,0 +1,4 @@
+:host {
+  --kite9-type: connection;
+  font: 500 12px/1.35 Metropolis, system-ui, sans-serif;
+}

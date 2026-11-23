@@ -1,0 +1,21 @@
+:host {
+  --kite9-type: connected-rectangular;
+  display: block;
+  font: 500 12px/1.35 Metropolis, system-ui, sans-serif;
+  color: #0f172a;
+}
+
+.container-card {
+  box-sizing: border-box;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: #f8fafc;
+  min-height: 2rem;
+}
+
+.container-card header {
+  font-weight: 500;
+  font-size: 12px;
+  margin-bottom: 0.35rem;
+}

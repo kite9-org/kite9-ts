@@ -1,0 +1,30 @@
+:host {
+  --kite9-type: connected-rectangular;
+  display: block;
+  position: relative;
+  font: 500 12px/1.35 Metropolis, system-ui, sans-serif;
+  color: #0f172a;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #94a3b8;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card header {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.body {
+  flex: 1 1 auto;
+  color: #475569;
+}

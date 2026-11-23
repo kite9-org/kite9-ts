@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>empty — Kite9 fixture</title>
+    <link rel="stylesheet" href="../scene.css" />
+  </head>
+  <body>
+    <header>
+      <h1>empty</h1>
+      <nav class="scenes" aria-label="Scenes">
+        <a href="/preview/index.html">Index</a>
+        <a href="/fixtures/html/empty.html" aria-current="page">empty</a>
+        <a href="/fixtures/html/card.html">card</a>
+      </nav>
+      <span style="font-size: 0.85rem; color: #64748b">@kite9/test-template</span>
+    </header>
+
+    <div class="layout">
+      <div id="mount">
+        <!-- Light-DOM scene (empty diagram) -->
+        <kite9-diagram id="diagram"></kite9-diagram>
+      </div>
+      <aside>
+        <h2>serializeDiagram</h2>
+        <pre id="json"></pre>
+      </aside>
+    </div>
+
+    <script type="module">
+      import { bootScene } from "../scene-boot.ts";
+      import layout from "../grid/empty.json";
+      bootScene(layout);
+    </script>
+  </body>
+</html>

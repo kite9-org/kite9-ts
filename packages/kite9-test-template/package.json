@@ -1,0 +1,35 @@
+{
+  "name": "@kite9/test-template",
+  "version": "0.1.0",
+  "description": "Preview harness for Kite9 light-DOM scenes (templates, grid layout, model JSON)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "fixtures", "preview", "README.md"],
+  "scripts": {
+    "start": "vite --config vite.preview.config.ts",
+    "dev": "vite --config vite.preview.config.ts",
+    "preview": "vite --config vite.preview.config.ts",
+    "build": "vite build && tsc -b --force",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@kite9/css": "workspace:*",
+    "@kite9/model": "workspace:*",
+    "@kite9/templating": "workspace:*",
+    "preact": "^10.25.4"
+  },
+  "devDependencies": {
+    "happy-dom": "^17.1.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^3.0.5"
+  }
+}
