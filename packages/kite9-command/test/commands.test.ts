@@ -14,7 +14,7 @@ import {
   ReplaceText,
   PreserveChildElements,
   diagramRootFromHtml,
-  rootsStructurallyEqual,
+  LocalCommandContext,
 } from "../src/index.js";
 import {
   b64,
@@ -303,7 +303,7 @@ describe("extras", () => {
     const b = diagramRootFromHtml(
       `<!DOCTYPE html><html><body><g style="color:red"></g></body></html>`,
     );
-    expect(rootsStructurallyEqual(a, b)).toBeNull();
+    expect(new LocalCommandContext(a).twoElementsAreIdentical(a, b)).toBeNull();
   });
 
   it("ReplaceHtml updates getRootElement when replacing the diagram", () => {

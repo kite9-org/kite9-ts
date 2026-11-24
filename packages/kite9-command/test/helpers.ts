@@ -3,7 +3,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   diagramRootFromHtml,
-  rootsStructurallyEqual,
   TestLocalCommandContext,
   type Command,
 } from "../src/index.js";
@@ -59,14 +58,14 @@ export function testDoAndUndo(
 
   const expectedAfter = diagramRootFromHtml(loadFixture(`after_${name}.html`));
   expectNoMismatch(
-    rootsStructurallyEqual(ctx.getRootElement(), expectedAfter),
+    ctx.twoElementsAreIdentical(ctx.getRootElement(), expectedAfter),
     `${name} after compare`,
   );
 
   expectNoMismatch(cmd.undo(ctx), `${name} undo`);
 
   expectNoMismatch(
-    rootsStructurallyEqual(ctx.getRootElement(), originalRoot),
+    ctx.twoElementsAreIdentical(ctx.getRootElement(), originalRoot),
     `${name} undo compare`,
   );
 }

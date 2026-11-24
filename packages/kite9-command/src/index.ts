@@ -12,10 +12,7 @@ export {
   resolveAttributeXPath,
   serializeDiagramHtml,
 } from "./abstract-command-context.js";
-export {
-  LocalCommandContext,
-  rootsStructurallyEqual,
-} from "./local-command-context.js";
+export { LocalCommandContext } from "./local-command-context.js";
 export { TestLocalCommandContext } from "./test-local-command-context.js";
 
 export {

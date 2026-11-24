@@ -1,5 +1,4 @@
 import { AbstractCommandContext } from "./abstract-command-context.js";
-import type { Mismatch } from "./command.js";
 
 /**
  * In-memory CommandContext that supplies root and uri.
@@ -33,12 +32,4 @@ export class LocalCommandContext extends AbstractCommandContext {
       `parseDocument not configured for ${key}; use TestLocalCommandContext or override`,
     );
   }
-}
-
-/** Whitespace-insensitive HTML structural equality of two roots. */
-export function rootsStructurallyEqual(
-  a: Element,
-  b: Element,
-): Mismatch | null {
-  return new LocalCommandContext(a).twoElementsAreIdentical(a, b);
 }
