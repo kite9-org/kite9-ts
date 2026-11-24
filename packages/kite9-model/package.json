@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"no tests in @kite9/model\""
+    "test": "echo \"no tests in @kite9/model\"",
+    "test:coverage": "echo \"coverage via @kite9/test-template\""
   },
   "dependencies": {
     "@kite9/css": "workspace:*"

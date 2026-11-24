@@ -53,5 +53,7 @@ expect(serializeDiagram(diagram)).toEqual(/* fixtures/json/card.json */);
 
 ```bash
 pnpm --filter @kite9/test-template test
+pnpm --filter @kite9/test-template test:coverage   # includes templating/model/css src
+# open packages/kite9-test-template/coverage/index.html
 pnpm --filter @kite9/test-template build
 ```
