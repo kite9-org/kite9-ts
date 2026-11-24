@@ -18,6 +18,28 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(happy-dom@17.6.3)
 
+  packages/kite9-command:
+    dependencies:
+      '@kite9/css':
+        specifier: workspace:*
+        version: link:../kite9-css
+      '@kite9/model':
+        specifier: workspace:*
+        version: link:../kite9-model
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^3.0.5
+        version: 3.2.7(vitest@3.2.7(happy-dom@17.6.3))
+      happy-dom:
+        specifier: ^17.1.0
+        version: 17.6.3
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(happy-dom@17.6.3)
+
   packages/kite9-css:
     devDependencies:
       '@vitest/coverage-v8':

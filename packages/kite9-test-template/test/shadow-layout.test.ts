@@ -38,7 +38,7 @@ describe("HTML + grid → shadow layout", () => {
     ).toBeTruthy();
     expect(document.querySelector("#a1")?.shadowRoot?.querySelector(".card")).toBeTruthy();
     expect(document.querySelector("#k1")?.shadowRoot?.querySelector(".key-card")).toBeTruthy();
-
+    expect(document.querySelector("#s1")?.shadowRoot?.querySelector(".port")).toBeTruthy();
 
     // Grid placements from fixture
     const g1 = document.querySelector("#g1") as HTMLElement;
@@ -50,6 +50,17 @@ describe("HTML + grid → shadow layout", () => {
     expect(c1.style.gridColumn).toBeTruthy();
     expect(c1.style.width).toBe("140px");
 
+    // Socket mounted on g2's left edge; l2 route ends there
+    const s1 = document.querySelector("#s1") as HTMLElement;
+    expect(s1.style.position).toBe("absolute");
+    expect(s1.style.left).toBe("0px");
+    expect(s1.style.top).toBe("50%");
+    expect(s1.style.transform).toBe("translate(-50%, -50%)");
+    const l2 = root.shadowRoot!.querySelector(
+      '.links-layer g[data-link-id="l2"] path[data-connection-path]',
+    )!;
+    expect(l2.getAttribute("d")).toContain("380 87");
+
     const objects = root.shadowRoot!.querySelector(".objects-layer") as HTMLElement;
     expect(objects.style.display).toBe("grid");
     expect(objects.style.gridTemplateColumns.split(" ").length).toBe(
@@ -59,7 +70,7 @@ describe("HTML + grid → shadow layout", () => {
     // Routes on the links SVG overlay; light-DOM links hidden
     const linksSvg = root.shadowRoot!.querySelector(".links-layer")!;
     const l1 = linksSvg.querySelector('g[data-link-id="l1"]')!;
-    expect(linksSvg.querySelectorAll("g[data-link-id]").length).toBe(3);
+    expect(linksSvg.querySelectorAll("g[data-link-id]").length).toBe(2);
     expect(l1.querySelector("path")).toBeTruthy();
     expect((document.querySelector("#l1") as HTMLElement).style.display).toBe("none");
 

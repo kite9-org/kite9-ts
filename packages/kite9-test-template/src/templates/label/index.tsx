@@ -52,7 +52,7 @@ export function LabelSvg({ id, end, point, size, text }: LabelSvgProps) {
       height={size.h}
       overflow="visible"
     >
-      <div xmlns={XHTML_NS}>
+      <div {...{ xmlns: XHTML_NS }}>
         <style>{LABEL_STYLES}</style>
         <span class="label">{text}</span>
       </div>
