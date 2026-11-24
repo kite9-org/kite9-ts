@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>empty — Kite9 fixture</title>
+    <title>empty — Kite9 preview</title>
     <link rel="stylesheet" href="../scene.css" />
   </head>
   <body>
@@ -14,14 +14,11 @@
         <a href="/fixtures/html/empty.html" aria-current="page">empty</a>
         <a href="/fixtures/html/card.html">card</a>
       </nav>
-      <span style="font-size: 0.85rem; color: #64748b">@kite9/test-template</span>
+      <span style="font-size: 0.85rem; color: #64748b">@kite9/preview</span>
     </header>
 
     <div class="layout">
-      <div id="mount">
-        <!-- Light-DOM scene (empty diagram) -->
-        <kite9-diagram id="diagram"></kite9-diagram>
-      </div>
+      <div id="mount"></div>
       <aside>
         <h2>serializeDiagram</h2>
         <pre id="json"></pre>
@@ -29,8 +26,11 @@
     </div>
 
     <script type="module">
-      import { bootScene } from "../scene-boot.ts";
+      import { mountEmptyDiagram } from "@kite9/test-template";
+      import { bootScene } from "../../src/boot-scene.ts";
       import layout from "../grid/empty.json";
+
+      mountEmptyDiagram(document.getElementById("mount"));
       bootScene(layout);
     </script>
   </body>

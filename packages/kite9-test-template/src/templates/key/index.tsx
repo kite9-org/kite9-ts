@@ -1,8 +1,12 @@
-import type { RenderHtmlFn } from "@kite9/templating";
+import { DiagramElementType } from "@kite9/css";
+import {
+  applyHostCapabilities,
+  hostTitle,
+  type RenderHtmlFn,
+} from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
-import { hostTitle } from "../host.js";
 
 export const KEY_STYLES = METROPOLIS_FACE + styles;
 
@@ -24,7 +28,11 @@ export function KeyChrome({ title }: KeyChromeProps) {
   );
 }
 
-/** {@link RenderHtmlFn} for diagram key / legend chrome. */
+/** {@link RenderHtmlFn} for diagram key / legend chrome (view only). */
 export const renderKeyChrome: RenderHtmlFn = (host, shadow) => {
+  applyHostCapabilities(host, {
+    type: DiagramElementType.CONNECTED_RECTANGULAR,
+    ui: "selectable size",
+  });
   render(<KeyChrome title={hostTitle(host)} />, shadow);
 };

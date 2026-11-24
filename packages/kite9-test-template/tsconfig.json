@@ -10,6 +10,8 @@
   "references": [
     { "path": "../kite9-model" },
     { "path": "../kite9-css" },
-    { "path": "../kite9-templating" }
+    { "path": "../kite9-templating" },
+    { "path": "../kite9-command" },
+    { "path": "../kite9-ui" }
   ]
 }

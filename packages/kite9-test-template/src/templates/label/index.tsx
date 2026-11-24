@@ -1,9 +1,14 @@
+import { DiagramElementType } from "@kite9/css";
 import type { LabelRenderLayout } from "@kite9/model";
-import type { RenderHtmlFn, RenderSvgLabelFn } from "@kite9/templating";
+import {
+  applyHostCapabilities,
+  hostText,
+  type RenderHtmlFn,
+  type RenderSvgLabelFn,
+} from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
-import { hostText } from "../host.js";
 
 export const LABEL_STYLES = METROPOLIS_FACE + styles;
 
@@ -22,8 +27,12 @@ export function LabelChrome({ text }: LabelChromeProps) {
   );
 }
 
-/** {@link RenderHtmlFn} for fromLabel / toLabel host chrome. */
+/** {@link RenderHtmlFn} for fromLabel / toLabel host chrome (view only). */
 export const renderLabelChrome: RenderHtmlFn = (host, shadow) => {
+  applyHostCapabilities(host, {
+    type: DiagramElementType.LABEL,
+    ui: "selectable",
+  });
   render(<LabelChrome text={hostText(host)} />, shadow);
 };
 

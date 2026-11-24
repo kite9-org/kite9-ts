@@ -1,6 +1,9 @@
 :host {
   --kite9-type: connected-rectangular;
   display: block;
+  position: relative;
+  justify-self: center;
+  align-self: center;
   font: 500 12px/1.35 Metropolis, system-ui, sans-serif;
   color: #0f172a;
 }

@@ -1,0 +1,57 @@
+{
+  "name": "@kite9/ui-behaviours",
+  "version": "0.1.0",
+  "description": "Edit behaviours for Kite9 light/shadow diagrams (select, context menu, style, resize)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./selectable": {
+      "types": "./dist/selectable/index.d.ts",
+      "import": "./dist/selectable/index.js"
+    },
+    "./actionable": {
+      "types": "./dist/actionable/index.d.ts",
+      "import": "./dist/actionable/index.js"
+    },
+    "./styleable": {
+      "types": "./dist/styleable/index.d.ts",
+      "import": "./dist/styleable/index.js"
+    },
+    "./resizable": {
+      "types": "./dist/resizable/index.d.ts",
+      "import": "./dist/resizable/index.js"
+    }
+  },
+  "files": ["dist", "src", "icons", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
+  },
+  "dependencies": {
+    "@kite9/command": "workspace:*",
+    "@kite9/model": "workspace:*",
+    "@kite9/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "@kite9/test-template": "workspace:*"
+  },
+  "devDependencies": {
+    "@kite9/templating": "workspace:*",
+    "@kite9/test-template": "workspace:*",
+    "@playwright/test": "^1.51.0",
+    "@vitest/coverage-v8": "^3.0.5",
+    "happy-dom": "^17.1.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^3.0.5"
+  }
+}

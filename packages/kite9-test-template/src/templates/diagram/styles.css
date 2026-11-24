@@ -23,6 +23,25 @@
 .links-layer {
   grid-area: 1 / 1;
   z-index: 2;
+  /* Keep the SVG itself non-hit-testing so glyphs underneath receive clicks.
+     Paths are enabled in edit mode below — not the full viewport. */
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Hit only painted connection geometry (not the empty SVG box). */
+:host(.edit-mode) .links-layer [data-connection-path],
+:host(.edit-mode) .links-layer [data-link-id],
+:host([mode="edit"]) .links-layer [data-connection-path],
+:host([mode="edit"]) .links-layer [data-link-id] {
+  pointer-events: stroke;
+}
+
+.edit-overlay {
+  grid-area: 1 / 1;
+  z-index: 5;
+  position: relative;
   pointer-events: none;
   width: 100%;
   height: 100%;

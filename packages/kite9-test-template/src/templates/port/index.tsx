@@ -1,4 +1,8 @@
-import type { RenderHtmlFn } from "@kite9/templating";
+import { DiagramElementType } from "@kite9/css";
+import {
+  applyHostCapabilities,
+  type RenderHtmlFn,
+} from "@kite9/templating";
 import { render } from "preact";
 import styles from "./styles.css?inline";
 
@@ -13,7 +17,11 @@ export function PortChrome() {
   );
 }
 
-/** {@link RenderHtmlFn} for port / socket chrome. */
-export const renderPortChrome: RenderHtmlFn = (_host, shadow) => {
+/** {@link RenderHtmlFn} for port / socket chrome (view only). */
+export const renderPortChrome: RenderHtmlFn = (host, shadow) => {
+  applyHostCapabilities(host, {
+    type: DiagramElementType.PORT,
+    ui: "selectable",
+  });
   render(<PortChrome />, shadow);
 };

@@ -1,8 +1,12 @@
-import type { RenderHtmlFn } from "@kite9/templating";
+import { DiagramElementType } from "@kite9/css";
+import {
+  applyHostCapabilities,
+  hostTitle,
+  type RenderHtmlFn,
+} from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
-import { hostTitle } from "../host.js";
 
 export const CONTAINER_STYLES = METROPOLIS_FACE + styles;
 
@@ -22,7 +26,11 @@ export function ContainerChrome({ title }: ContainerChromeProps) {
   );
 }
 
-/** {@link RenderHtmlFn} for container / context chrome. */
+/** {@link RenderHtmlFn} for container chrome (view only). */
 export const renderContainerChrome: RenderHtmlFn = (host, shadow) => {
+  applyHostCapabilities(host, {
+    type: DiagramElementType.CONNECTED_RECTANGULAR,
+    ui: "selectable size",
+  });
   render(<ContainerChrome title={hostTitle(host)} />, shadow);
 };

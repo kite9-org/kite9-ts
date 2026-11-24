@@ -28,6 +28,8 @@ export default defineConfig({
         "@kite9/css",
         "@kite9/model",
         "@kite9/templating",
+        "@kite9/command",
+        "@kite9/ui",
       ],
       output: {
         preserveModules: true,

@@ -3,17 +3,21 @@
 import {
   Direction,
   End,
-  type CompletedLayout,
   type ConnectionRenderLayout,
   type LabelRenderLayout,
+  type LayoutData,
   type LayoutPlacement,
   type Size,
   type TerminatorRenderLayout,
 } from "@kite9/model";
+import type { AdjustableLayout } from "@kite9/ui";
 import { localTag, type TemplatePack } from "@kite9/templating";
 import { testTemplatePack } from "./pack.js";
 
-export type { CompletedLayout, LayoutPlacement, Size };
+export type { AdjustableLayout, LayoutData, LayoutPlacement, Size };
+
+/** Layout state applyLayout can paint — class instance or plain fixture data. */
+export type LayoutSource = AdjustableLayout | LayoutData;
 
 function pxTracks(sizes: readonly number[]): string {
   return sizes.map((n) => `${Math.round(n * 100) / 100}px`).join(" ");
@@ -94,6 +98,110 @@ function edgeGridPlacement(
   }
 }
 
+type StageBox = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+};
+
+function stageBox(el: Element, stage: Element): StageBox {
+  const er = el.getBoundingClientRect();
+  const sr = stage.getBoundingClientRect();
+  const left = er.left - sr.left;
+  const top = er.top - sr.top;
+  return {
+    left,
+    top,
+    right: left + er.width,
+    bottom: top + er.height,
+    cx: left + er.width / 2,
+    cy: top + er.height / 2,
+    w: er.width,
+    h: er.height,
+  };
+}
+
+/** Mid-point of the side of `box` that faces `other` (orthogonal preference). */
+function facingEdgeMid(
+  box: StageBox,
+  other: StageBox,
+): { x: number; y: number } {
+  const dx = other.cx - box.cx;
+  const dy = other.cy - box.cy;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0
+      ? { x: Math.round(box.right), y: Math.round(box.cy) }
+      : { x: Math.round(box.left), y: Math.round(box.cy) };
+  }
+  return dy >= 0
+    ? { x: Math.round(box.cx), y: Math.round(box.bottom) }
+    : { x: Math.round(box.cx), y: Math.round(box.top) };
+}
+
+/**
+ * Attachment point on `el` toward `other`. Small port/socket hosts use centre
+ * (already on an edge); rectangulars use the facing edge midpoint.
+ */
+function attachmentPoint(
+  el: Element,
+  other: Element,
+  stage: Element,
+): { x: number; y: number } {
+  const box = stageBox(el, stage);
+  const otherBox = stageBox(other, stage);
+  if (box.w <= ANCHOR_SIZE * 2 && box.h <= ANCHOR_SIZE * 2) {
+    return { x: Math.round(box.cx), y: Math.round(box.cy) };
+  }
+  return facingEdgeMid(box, otherBox);
+}
+
+/**
+ * Rewrite route endpoints (and label anchors) from current host boxes so SVG
+ * links follow rectangulars when content tracks change. Endpoints sit on
+ * facing edges (not centres); intermediate waypoints are preserved.
+ */
+export function syncLinkRoutesFromDom(
+  diagram: Element,
+  layout: LayoutSource,
+  stage: Element = diagram.shadowRoot?.querySelector(".stage") as Element,
+): void {
+  if (!stage) return;
+  // happy-dom / unmounted tests often report 0×0 — keep authored fixture routes.
+  const measured = stage.getBoundingClientRect();
+  if (measured.width < 1 || measured.height < 1) return;
+
+  for (const [linkId, route] of Object.entries(layout.routes)) {
+    const link = diagram.querySelector(`#${CSS.escape(linkId)}`);
+    if (!link || route.points.length < 2) continue;
+
+    const fromId = link.querySelector("from")?.getAttribute("reference");
+    const toId = link.querySelector("to")?.getAttribute("reference");
+    const fromEl = fromId
+      ? diagram.querySelector(`#${CSS.escape(fromId)}`)
+      : null;
+    const toEl = toId ? diagram.querySelector(`#${CSS.escape(toId)}`) : null;
+    if (!fromEl || !toEl) continue;
+
+    const from = attachmentPoint(fromEl, toEl, stage);
+    const to = attachmentPoint(toEl, fromEl, stage);
+    route.points[0] = from;
+    route.points[route.points.length - 1] = to;
+
+    for (const labelId of Object.keys(route.labels)) {
+      const end = labelEndForId(link, labelId);
+      route.labels[labelId] =
+        end === End.TO
+          ? { x: to.x - 20, y: to.y - 20 }
+          : { x: from.x + 6, y: from.y - 20 };
+    }
+  }
+}
+
 function placeSized(
   el: HTMLElement,
   place: { gridColumn: string; gridRow: string },
@@ -103,11 +211,12 @@ function placeSized(
   el.style.gridRow = place.gridRow;
   el.style.width = `${size.w}px`;
   el.style.height = `${size.h}px`;
-  el.style.justifySelf = "center";
-  el.style.alignSelf = "center";
+  // Alignment / margins are owned by style commands (e.g. Margins OK), not here.
   el.style.boxSizing = "border-box";
-  el.style.maxWidth = "100%";
-  el.style.maxHeight = "100%";
+  // Do not clamp with maxWidth/maxHeight — nested hosts must be able to grow
+  // past a parent cell; tracks / ancestor placements absorb the overflow.
+  el.style.maxWidth = "";
+  el.style.maxHeight = "";
   el.style.zIndex = el.localName === "kite9-container" ? "0" : "1";
 }
 
@@ -183,7 +292,7 @@ function labelEndForId(linkEl: Element, labelId: string): End {
  */
 export function applyLayout(
   diagram: Element,
-  layout: CompletedLayout,
+  layout: LayoutSource,
   pack: TemplatePack = testTemplatePack,
 ): void {
   const shadow = diagram.shadowRoot;
@@ -235,6 +344,9 @@ export function applyLayout(
       placeOnAnchor(el, placement, diagram);
     }
   }
+
+  // Keep link geometry attached to hosts after grid track changes (e.g. resize).
+  syncLinkRoutesFromDom(diagram, layout, stage);
 
   linksSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   linksSvg.style.width = "100%";

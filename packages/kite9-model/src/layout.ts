@@ -1,4 +1,4 @@
-/** Shape of a completed diagram layout (grid tracks, element placements, link routes). */
+/** Layout snapshot types (grid tracks, element placements, link routes). */
 
 import type { End } from "@kite9/css";
 import type { Direction } from "./position/Direction.js";
@@ -7,9 +7,25 @@ export type Size = { w: number; h: number };
 
 export type Point2D = { x: number; y: number };
 
+/** CSS-box insets (e.g. `--kite9-margin-*`) outside the content `size`. */
+export type BoxInsets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 /** Where an element sits after layout — content cell, edge track, or host-side anchor. */
 export type LayoutPlacement =
-  | { col: number; row: number; colEnd?: number; rowEnd?: number; size: Size }
+  | {
+      col: number;
+      row: number;
+      colEnd?: number;
+      rowEnd?: number;
+      size: Size;
+      /** Outside content `size`; included in track occupancy. */
+      margin?: BoxInsets;
+    }
   /** Port/socket on the start/end of a content row (`LEFT`/`RIGHT`) or column (`UP`/`DOWN`). `along` is 1-based. */
   | { edge: Direction; along: number; size: Size }
   | { anchor: string; side: Direction };
@@ -31,8 +47,8 @@ export type GridLayout = {
   rowSizes: number[];
 };
 
-/** Completed layout: sized grid, element placements, and connection routes. */
-export type CompletedLayout = {
+/** Serializable layout snapshot: sized grid, element placements, and connection routes. */
+export type LayoutData = {
   grid: GridLayout;
   placements: Record<string, LayoutPlacement>;
   routes: Record<string, RouteLayout>;

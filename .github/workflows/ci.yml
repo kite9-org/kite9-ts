@@ -37,6 +37,12 @@ jobs:
       - name: Test with coverage
         run: pnpm test:coverage
 
+      - name: Install Playwright Chromium
+        run: pnpm --filter @kite9/ui-behaviours exec playwright install --with-deps chromium
+
+      - name: Behaviour Playwright
+        run: pnpm --filter @kite9/ui-behaviours test:e2e
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -55,5 +61,6 @@ jobs:
           path: |
             packages/kite9-css/coverage/
             packages/kite9-test-template/coverage/
+            packages/kite9-ui/coverage/
           if-no-files-found: warn
           retention-days: 14

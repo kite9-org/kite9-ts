@@ -1,8 +1,8 @@
 # `@kite9/model`
 
-Logical diagram model for Kite9 — the algorithm- and authoring-facing graph of elements, independent of DOM, CSS, and templates.
+Logical diagram model for Kite9 — element interfaces, position/geometry types, and serializable **layout snapshots**. No DOM, no templates, no edit mutation.
 
-This package is **interfaces and geometry/position types**. Style/CSS enums (`DiagramElementType`, alignment, sizing, …) are declared in `@kite9/css` and re-exported from here. Concrete instances are built by `@kite9/templating` from light DOM.
+Style/CSS enums (`DiagramElementType`, alignment, sizing, …) live in `@kite9/css` and are re-exported here. Concrete element instances are built by `@kite9/templating` from light DOM. Edit-time layout changes use **`AdjustableLayout` in `@kite9/ui`**.
 
 ## Type hierarchy
 
@@ -25,33 +25,31 @@ DiagramElement
 
 `Rectangular` is the container: `getContents()`, `getLayout()`, `getGridColumns()` / `getGridRows()`, traversal rules.
 
-Every `DiagramElement` exposes `getType(): DiagramElementType` — one of the six kinds below.
-
-Element kind is determined by the computed CSS custom property `--kite9-type` after templating (see `@kite9/css`). Tag names only select chrome; author styles on the host beat template `:host` defaults via the normal cascade.
+Every `DiagramElement` exposes `getType(): DiagramElementType` — one of the six kinds below. Kind comes from computed `--kite9-type` after templating (see `@kite9/css`).
 
 ## Render layers
 
 | Layer | `DiagramElementType` | Model | HTML/SVG | Render layer |
 | --- | --- | --- | --- | --- |
-| 0 | `DIAGRAM` | `Diagram` | HTML | Host custom element (e.g. `<kite9-diagram id="diagram-a" theme="designer" mode="edit">`) |
-| 1 | `CONNECTED_RECTANGULAR` | `ConnectedRectangular` (containers / glyphs) | HTML | Nested HTML from templates; hierarchy mirrors `Rectangular.getContents()` |
+| 0 | `DIAGRAM` | `Diagram` | HTML | Host custom element (e.g. `<kite9-diagram>`) |
+| 1 | `CONNECTED_RECTANGULAR` | `ConnectedRectangular` | HTML | Nested hosts; hierarchy mirrors `Rectangular.getContents()` |
 | 1 | `PORT` | `Port` | HTML | On container edges |
-| 2 | `CONNECTION` | `Connection` | SVG | SVG layer above the HTML objects layer |
-| 2 | `TERMINATOR` | `Terminator` | SVG | Markers at connection ends in the SVG layer |
-| 2 | `LABEL` | `Label` (connection label) | SVG | `foreignObject` nodes inside that SVG layer |
+| 2 | `CONNECTION` | `Connection` | SVG | Links layer above objects |
+| 2 | `TERMINATOR` | `Terminator` | SVG | Markers at connection ends |
+| 2 | `LABEL` | `Label` | SVG | `foreignObject` in the links layer |
 
-`Label` is only a connection endpoint label (`fromLabel` / `toLabel`). Glyph/container titles are template/chrome concerns, not model `Label`s.
+`Label` is only a connection endpoint label (`fromLabel` / `toLabel`). Glyph/container titles are chrome, not model `Label`s.
 
 ```mermaid
 flowchart TB
-  host["kite9-diagram host — DIAGRAM"]
+  host["kite9-diagram — DIAGRAM"]
   shadow["shadow root"]
-  stage["stage div"]
+  stage["stage"]
   objects["HTML objects layer"]
   svg["SVG links layer"]
   containers["CONNECTED_RECTANGULAR + PORT"]
   links["CONNECTION + TERMINATOR"]
-  linkLabels["LABEL as foreignObject"]
+  linkLabels["LABEL foreignObject"]
 
   host --> shadow --> stage
   stage --> objects
@@ -61,39 +59,34 @@ flowchart TB
   svg --> linkLabels
 ```
 
-## Completed layout
+## Layout data (`src/layout.ts`)
 
-A finished arrangement of a diagram is a `CompletedLayout` (`src/layout.ts`): sized grid tracks, where each element sits, and where each connection is drawn. It is pure data — no DOM — and is what layout algorithms produce and what renderers (e.g. `@kite9/test-template`’s `applyLayout`) consume.
+**`LayoutData`** is the serializable arrangement of a diagram: grid tracks, element placements, and link routes. Fixtures and layout algorithms produce it; renderers (e.g. `@kite9/test-template` `applyLayout`) consume it.
 
 | Field | Type | Role |
 | --- | --- | --- |
-| `grid` | `GridLayout` | Content grid size plus physical track sizes (`colSizes` / `rowSizes`, including gutters). Drives the HTML objects layer. |
-| `placements` | `Record<id, LayoutPlacement>` | Per-element position: content-grid cell (`col` / `row` + `size`), diagram edge (`edge: Direction` + `along` + `size` for row/column starts/ends), or host-side anchor (`anchor` + `side: Direction`). |
-| `routes` | `Record<id, RouteLayout>` | Per-connection polyline (`points`) and label positions in diagram coordinates. Drawn on the SVG links layer. |
+| `grid` | `GridLayout` | Content counts, mins, gutters, `content*Sizes`, physical `colSizes` / `rowSizes` |
+| `placements` | `Record<id, LayoutPlacement>` | Cell (`col`/`row`/`size`, optional `margin`), edge (`edge`/`along`/`size`), or anchor (`anchor`/`side`) |
+| `routes` | `Record<id, RouteLayout>` | Connection polylines + label points in diagram coords |
 
-SVG layer render inputs (also in `layout.ts`) — what template packs paint under each link `<g>`:
+Related paint inputs (same file): `ConnectionRenderLayout`, `TerminatorRenderLayout`, `LabelRenderLayout`.
 
-| Type | Role |
-| --- | --- |
-| `ConnectionRenderLayout` | Link id, polyline points, and `fromStyle` / `toStyle` for path `marker-start` / `marker-end` |
-| `TerminatorRenderLayout` | End style (`ARROW` / `NONE`) + `point` for hit-box and shared SVG marker def |
-| `LabelRenderLayout` | Label id/end, `point`, and `size` for an SVG `foreignObject` (text from the label host) |
+Mutation (resize, margins, track recompute) is **not** in this package — use `AdjustableLayout` from `@kite9/ui`, which deep-clones `LayoutData` for an edit session.
 
 ```mermaid
 flowchart LR
-  layout["CompletedLayout"]
-  grid["grid → objects layer tracks"]
-  place["placements → element cells / anchors"]
-  routes["routes → SVG paths + labels"]
+  data["LayoutData in model"]
+  adj["AdjustableLayout in ui"]
+  paint["applyLayout"]
 
-  layout --> grid
-  layout --> place
-  layout --> routes
+  data -->|"from"| adj
+  data --> paint
+  adj --> paint
 ```
 
-## Light DOM (templated) diagram
+## Light DOM (templated)
 
-A diagram can therefore be described as something like this (see the kite9-templating package):
+See `@kite9/templating`. Example shape:
 
 ```xml
 <diagram id="pipeline">

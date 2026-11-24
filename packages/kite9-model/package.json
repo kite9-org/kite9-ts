@@ -14,13 +14,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"no tests in @kite9/model\"",
-    "test:coverage": "echo \"coverage via @kite9/test-template\""
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "@kite9/css": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "@vitest/coverage-v8": "^3.0.5",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
   }
 }

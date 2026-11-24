@@ -1,0 +1,109 @@
+{
+  "type": "diagram",
+  "id": "card",
+  "contents": [
+    {
+      "type": "connected-rectangular",
+      "id": "g1",
+      "tag": "kite9-glyph",
+      "shape": "CARD",
+      "layout": null,
+      "contents": []
+    },
+    {
+      "type": "connected-rectangular",
+      "id": "c1",
+      "tag": "kite9-container",
+      "shape": null,
+      "layout": null,
+      "contents": [
+        {
+          "type": "connected-rectangular",
+          "id": "g2",
+          "tag": "kite9-glyph",
+          "shape": null,
+          "layout": null,
+          "contents": [
+            {
+              "type": "port",
+              "id": "s1",
+              "direction": "left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "connected-rectangular",
+      "id": "a1",
+      "tag": "kite9-arrow",
+      "shape": null,
+      "layout": null,
+      "contents": []
+    },
+    {
+      "type": "connected-rectangular",
+      "id": "k1",
+      "tag": "kite9-key",
+      "shape": null,
+      "layout": null,
+      "contents": []
+    }
+  ],
+  "connections": [
+    {
+      "type": "connection",
+      "id": "l1",
+      "from": "g1",
+      "to": "a1",
+      "shape": "NORMAL",
+      "drawDirection": "right",
+      "fromDecoration": {
+        "type": "terminator",
+        "id": "l1:fromDecoration",
+        "end": "from",
+        "style": "NONE"
+      },
+      "toDecoration": {
+        "type": "terminator",
+        "id": "l1:toDecoration",
+        "end": "to",
+        "style": "ARROW"
+      },
+      "fromLabel": {
+        "type": "label",
+        "id": "fl1",
+        "text": "from",
+        "end": "from"
+      },
+      "toLabel": {
+        "type": "label",
+        "id": "tl1",
+        "text": "to",
+        "end": "to"
+      }
+    },
+    {
+      "type": "connection",
+      "id": "l2",
+      "from": "a1",
+      "to": "s1",
+      "shape": "NORMAL",
+      "drawDirection": null,
+      "fromDecoration": {
+        "type": "terminator",
+        "id": "l2:fromDecoration",
+        "end": "from",
+        "style": "NONE"
+      },
+      "toDecoration": {
+        "type": "terminator",
+        "id": "l2:toDecoration",
+        "end": "to",
+        "style": "ARROW"
+      },
+      "fromLabel": null,
+      "toLabel": null
+    }
+  ]
+}

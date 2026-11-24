@@ -1,0 +1,39 @@
+{
+  "name": "@kite9/preview",
+  "version": "0.1.0",
+  "description": "Compose TemplatePack + BehaviourPack for Kite9 scene demos",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "fixtures", "preview", "README.md"],
+  "scripts": {
+    "start": "vite --config vite.preview.config.ts",
+    "dev": "vite --config vite.preview.config.ts",
+    "preview": "vite --config vite.preview.config.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@kite9/command": "workspace:*",
+    "@kite9/model": "workspace:*",
+    "@kite9/templating": "workspace:*",
+    "@kite9/test-template": "workspace:*",
+    "@kite9/ui": "workspace:*",
+    "@kite9/ui-behaviours": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.5",
+    "happy-dom": "^17.1.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^3.0.5"
+  }
+}

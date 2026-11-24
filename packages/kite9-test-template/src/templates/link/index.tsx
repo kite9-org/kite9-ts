@@ -1,5 +1,10 @@
+import { DiagramElementType } from "@kite9/css";
 import { End, type ConnectionRenderLayout, type Point2D } from "@kite9/model";
-import type { RenderHtmlFn, RenderSvgFn } from "@kite9/templating";
+import {
+  applyHostCapabilities,
+  type RenderHtmlFn,
+  type RenderSvgFn,
+} from "@kite9/templating";
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
@@ -23,8 +28,12 @@ export function LinkChrome({ id }: LinkChromeProps) {
   );
 }
 
-/** {@link RenderHtmlFn} for link host chrome (type CSS on `:host`). */
+/** {@link RenderHtmlFn} for link host chrome (view only). */
 export const renderLinkChrome: RenderHtmlFn = (host, shadow) => {
+  applyHostCapabilities(host, {
+    type: DiagramElementType.CONNECTION,
+    ui: "selectable",
+  });
   render(
     <LinkChrome id={host.getAttribute("id") || "link"} />,
     shadow,
