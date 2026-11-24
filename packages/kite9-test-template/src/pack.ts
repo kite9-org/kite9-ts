@@ -6,6 +6,7 @@ import { renderGlyphChrome } from "./templates/glyph/index.js";
 import { renderKeyChrome } from "./templates/key/index.js";
 import { renderLabel, renderLabelChrome } from "./templates/label/index.js";
 import { renderLinkChrome, renderSvg } from "./templates/link/index.js";
+import { renderPortChrome } from "./templates/port/index.js";
 import { renderDefs } from "./templates/terminator/index.js";
 
 /**
@@ -46,11 +47,9 @@ export const testTemplatePack: TemplatePack = createTemplatePack("test", {
     renderHtml: renderLabelChrome,
     renderLabel,
   },
-  "kite9-port": {
-    elementType: DiagramElementType.PORT,
-  },
   "kite9-socket": {
     elementType: DiagramElementType.PORT,
+    renderHtml: renderPortChrome,
   },
   "kite9-key": {
     elementType: DiagramElementType.CONNECTED_RECTANGULAR,

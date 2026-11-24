@@ -29,6 +29,7 @@ export {
   renderKeyChrome,
   type KeyChromeProps,
 } from "./key/index.js";
+export { PortChrome, PORT_STYLES, renderPortChrome } from "./port/index.js";
 export {
   LinkChrome,
   LINK_STYLES,

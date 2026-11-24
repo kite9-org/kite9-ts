@@ -8,13 +8,7 @@
       "tag": "kite9-glyph",
       "shape": "CARD",
       "layout": null,
-      "contents": [
-        {
-          "type": "port",
-          "id": "p1",
-          "direction": "right"
-        }
-      ]
+      "contents": []
     },
     {
       "type": "connected-rectangular",
@@ -93,7 +87,7 @@
       "type": "connection",
       "id": "l2",
       "from": "a1",
-      "to": "g2",
+      "to": "s1",
       "shape": "NORMAL",
       "drawDirection": null,
       "fromDecoration": {
@@ -106,29 +100,7 @@
         "type": "terminator",
         "id": "l2:toDecoration",
         "end": "to",
-        "style": "NONE"
-      },
-      "fromLabel": null,
-      "toLabel": null
-    },
-    {
-      "type": "connection",
-      "id": "l3",
-      "from": "p1",
-      "to": "s1",
-      "shape": "NORMAL",
-      "drawDirection": null,
-      "fromDecoration": {
-        "type": "terminator",
-        "id": "l3:fromDecoration",
-        "end": "from",
-        "style": "NONE"
-      },
-      "toDecoration": {
-        "type": "terminator",
-        "id": "l3:toDecoration",
-        "end": "to",
-        "style": "NONE"
+        "style": "ARROW"
       },
       "fromLabel": null,
       "toLabel": null

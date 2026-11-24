@@ -68,7 +68,7 @@ A finished arrangement of a diagram is a `CompletedLayout` (`src/layout.ts`): si
 | Field | Type | Role |
 | --- | --- | --- |
 | `grid` | `GridLayout` | Content grid size plus physical track sizes (`colSizes` / `rowSizes`, including gutters). Drives the HTML objects layer. |
-| `placements` | `Record<id, LayoutPlacement>` | Per-element position: either a content-grid cell (`col` / `row` / optional span + `size`) or an edge anchor (`anchor` + `side`, e.g. ports). |
+| `placements` | `Record<id, LayoutPlacement>` | Per-element position: content-grid cell (`col` / `row` + `size`), diagram edge (`edge: Direction` + `along` + `size` for row/column starts/ends), or host-side anchor (`anchor` + `side: Direction`). |
 | `routes` | `Record<id, RouteLayout>` | Per-connection polyline (`points`) and label positions in diagram coordinates. Drawn on the SVG links layer. |
 
 SVG layer render inputs (also in `layout.ts`) — what template packs paint under each link `<g>`:

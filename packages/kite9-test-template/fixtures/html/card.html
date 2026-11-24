@@ -22,9 +22,7 @@
         <!-- Light-DOM scene: minimal exercise of every test-template tag.
              Layout comes from fixtures/grid/card.json via bootScene. -->
         <kite9-diagram id="card">
-          <kite9-glyph id="g1" shape="CARD" label="Glyph">
-            <kite9-port id="p1" direction="right"></kite9-port>
-          </kite9-glyph>
+          <kite9-glyph id="g1" shape="CARD" label="Glyph"></kite9-glyph>
 
           <kite9-container id="c1" label="Context">
             <kite9-glyph id="g2" label="Nested">
@@ -47,16 +45,9 @@
 
           <kite9-link id="l2" shape="NORMAL">
             <from reference="a1"></from>
-            <to reference="g2"></to>
-            <fromDecoration>NONE</fromDecoration>
-            <toDecoration>NONE</toDecoration>
-          </kite9-link>
-
-          <kite9-link id="l3" shape="NORMAL">
-            <from reference="p1"></from>
             <to reference="s1"></to>
             <fromDecoration>NONE</fromDecoration>
-            <toDecoration>NONE</toDecoration>
+            <toDecoration>ARROW</toDecoration>
           </kite9-link>
         </kite9-diagram>
       </div>

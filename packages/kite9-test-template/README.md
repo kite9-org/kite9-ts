@@ -38,7 +38,7 @@ On each page:
 | `test/model-from-html.test.ts` | HTML light DOM → model JSON |
 | `test/shadow-layout.test.ts` | HTML + grid → shadow chrome + layout |
 
-Tag coverage (`card`): `kite9-diagram`, `kite9-glyph`, `kite9-container`, `kite9-arrow`, `kite9-key`, `kite9-link`, `kite9-from-label` / `kite9-to-label`, `kite9-port` / `kite9-socket`. Host `label` attributes are chrome-only, not model `Label`s.
+Tag coverage (`card`): `kite9-diagram`, `kite9-glyph`, `kite9-container`, `kite9-arrow`, `kite9-key`, `kite9-link`, `kite9-from-label` / `kite9-to-label`, `kite9-socket`. Host `label` attributes are chrome-only, not model `Label`s.
 
 ## Library use / tests
 

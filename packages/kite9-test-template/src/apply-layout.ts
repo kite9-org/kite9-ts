@@ -1,6 +1,7 @@
 /** Apply placeholder grid fixtures (arrangeGrid-style tracks + routes) to a painted scene. */
 
 import {
+  Direction,
   End,
   type CompletedLayout,
   type ConnectionRenderLayout,
@@ -47,6 +48,117 @@ function hasCell(
   p: LayoutPlacement,
 ): p is { col: number; row: number; colEnd?: number; rowEnd?: number; size: Size } {
   return "col" in p && "row" in p && "size" in p;
+}
+
+function hasEdge(
+  p: LayoutPlacement,
+): p is { edge: Direction; along: number; size: Size } {
+  return "edge" in p && "along" in p && "size" in p;
+}
+
+function hasAnchor(
+  p: LayoutPlacement,
+): p is { anchor: string; side: Direction } {
+  return "anchor" in p && "side" in p;
+}
+
+/** Default socket/port size when mounted on a host edge. */
+const ANCHOR_SIZE = 12;
+
+/** Place a port/socket on the start/end track of a content row or column. */
+function edgeGridPlacement(
+  p: { edge: Direction; along: number },
+  trackCounts: { cols: number; rows: number },
+): { gridColumn: string; gridRow: string } {
+  switch (p.edge) {
+    case Direction.LEFT:
+      return {
+        gridColumn: "1 / 2",
+        gridRow: `${contentRowTrack(p.along)} / ${contentRowTrack(p.along) + 1}`,
+      };
+    case Direction.RIGHT:
+      return {
+        gridColumn: `${trackCounts.cols} / ${trackCounts.cols + 1}`,
+        gridRow: `${contentRowTrack(p.along)} / ${contentRowTrack(p.along) + 1}`,
+      };
+    case Direction.UP:
+      return {
+        gridColumn: `${contentColTrack(p.along)} / ${contentColTrack(p.along) + 1}`,
+        gridRow: "1 / 2",
+      };
+    case Direction.DOWN:
+      return {
+        gridColumn: `${contentColTrack(p.along)} / ${contentColTrack(p.along) + 1}`,
+        gridRow: `${trackCounts.rows} / ${trackCounts.rows + 1}`,
+      };
+  }
+}
+
+function placeSized(
+  el: HTMLElement,
+  place: { gridColumn: string; gridRow: string },
+  size: Size,
+): void {
+  el.style.gridColumn = place.gridColumn;
+  el.style.gridRow = place.gridRow;
+  el.style.width = `${size.w}px`;
+  el.style.height = `${size.h}px`;
+  el.style.justifySelf = "center";
+  el.style.alignSelf = "center";
+  el.style.boxSizing = "border-box";
+  el.style.maxWidth = "100%";
+  el.style.maxHeight = "100%";
+  el.style.zIndex = el.localName === "kite9-container" ? "0" : "1";
+}
+
+/** Mount a port/socket on the mid-edge of its anchor host. */
+function placeOnAnchor(
+  el: HTMLElement,
+  placement: { anchor: string; side: Direction },
+  diagram: Element,
+): void {
+  const host = diagram.querySelector(
+    `#${CSS.escape(placement.anchor)}`,
+  ) as HTMLElement | null;
+  if (!host) return;
+
+  if (getComputedStyle(host).position === "static") {
+    host.style.position = "relative";
+  }
+
+  el.style.position = "absolute";
+  el.style.width = `${ANCHOR_SIZE}px`;
+  el.style.height = `${ANCHOR_SIZE}px`;
+  el.style.boxSizing = "border-box";
+  el.style.zIndex = "2";
+  el.style.margin = "0";
+  el.style.left = "";
+  el.style.right = "";
+  el.style.top = "";
+  el.style.bottom = "";
+
+  switch (placement.side) {
+    case Direction.LEFT:
+      el.style.left = "0";
+      el.style.top = "50%";
+      el.style.transform = "translate(-50%, -50%)";
+      break;
+    case Direction.RIGHT:
+      el.style.right = "0";
+      el.style.top = "50%";
+      el.style.transform = "translate(50%, -50%)";
+      break;
+    case Direction.UP:
+      el.style.top = "0";
+      el.style.left = "50%";
+      el.style.transform = "translate(-50%, -50%)";
+      break;
+    case Direction.DOWN:
+      el.style.bottom = "0";
+      el.style.left = "50%";
+      el.style.transform = "translate(-50%, 50%)";
+      break;
+  }
 }
 
 function decorationStyle(linkEl: Element, tag: string): string {
@@ -106,21 +218,22 @@ export function applyLayout(
     (link as HTMLElement).style.display = "none";
   }
 
+  const trackCounts = {
+    cols: colSizes.length,
+    rows: rowSizes.length,
+  };
+
   for (const [id, placement] of Object.entries(layout.placements)) {
     const el = diagram.querySelector(`#${CSS.escape(id)}`) as HTMLElement | null;
-    if (!el || !hasCell(placement)) continue;
+    if (!el) continue;
 
-    const place = contentGridPlacement(placement);
-    el.style.gridColumn = place.gridColumn;
-    el.style.gridRow = place.gridRow;
-    el.style.width = `${placement.size.w}px`;
-    el.style.height = `${placement.size.h}px`;
-    el.style.justifySelf = "center";
-    el.style.alignSelf = "center";
-    el.style.boxSizing = "border-box";
-    el.style.maxWidth = "100%";
-    el.style.maxHeight = "100%";
-    el.style.zIndex = el.localName === "kite9-container" ? "0" : "1";
+    if (hasCell(placement)) {
+      placeSized(el, contentGridPlacement(placement), placement.size);
+    } else if (hasEdge(placement)) {
+      placeSized(el, edgeGridPlacement(placement, trackCounts), placement.size);
+    } else if (hasAnchor(placement)) {
+      placeOnAnchor(el, placement, diagram);
+    }
   }
 
   linksSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
