@@ -9,7 +9,7 @@ export class LocalCommandContext extends AbstractCommandContext {
   private root: Element;
   private readonly uri: string | undefined;
 
-  constructor(root: Element, uri: string) {
+  constructor(root: Element, uri?: string) {
     super();
     this.root = root;
     this.uri = uri;
