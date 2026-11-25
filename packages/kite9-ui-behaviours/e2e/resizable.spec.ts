@@ -269,7 +269,7 @@ test.describe("resizable", () => {
 });
 
 test.describe("styleable margins", () => {
-  test("Styles → Margins → overlay → OK sets margin var and grows track", async ({
+  test("Styles → Margins → overlay → OK sets margin and grows track", async ({
     page,
   }) => {
     await openWithBehaviours(

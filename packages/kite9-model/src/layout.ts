@@ -7,7 +7,7 @@ export type Size = { w: number; h: number };
 
 export type Point2D = { x: number; y: number };
 
-/** CSS-box insets (e.g. `--kite9-margin-*`) outside the content `size`. */
+/** CSS-box insets (`margin-top` / …) outside the content `size`. */
 export type BoxInsets = {
   top: number;
   right: number;

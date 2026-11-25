@@ -33,4 +33,4 @@ Subpath imports: `./selectable`, `./actionable`, `./styleable`, `./resizable`.
 
 `size` enables chrome handles and Styles → Margins. Margin overlay arrows appear only after choosing Margins — not on select.
 
-Chrome resize updates `AdjustableLayout` live, then commits `width`/`height` via `ReplaceStyle` on pointer up. Styles → Margins updates `AdjustableLayout` live while dragging (track preview); `ReplaceStyle` for `--kite9-margin-*` / CSS margins / alignment runs only on OK. Cancel restores the prior layout margins.
+Chrome resize updates `AdjustableLayout` live, then commits `width`/`height` via `ReplaceStyle` on pointer up. Styles → Margins updates `AdjustableLayout` live while dragging (track preview); `ReplaceStyle` for `margin-*` / `justify-self` / `align-self` runs only on OK. Cancel restores the prior layout margins.

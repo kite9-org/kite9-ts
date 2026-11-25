@@ -17,22 +17,15 @@ function readCssPx(el: Element, name: string, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** Standard CSS margin longhands — light-DOM hosts use the browser box model. */
 const MARGIN_PROPS = [
-  "--kite9-margin-top",
-  "--kite9-margin-right",
-  "--kite9-margin-bottom",
-  "--kite9-margin-left",
-] as const;
-
-type MarginProp = (typeof MARGIN_PROPS)[number];
-
-/** CSS box properties written alongside the kite9 margin vars on OK. */
-const CSS_MARGIN_PROPS = [
   "margin-top",
   "margin-right",
   "margin-bottom",
   "margin-left",
 ] as const;
+
+type MarginProp = (typeof MARGIN_PROPS)[number];
 
 export const marginsIconUrl = new URL(
   "../../icons/margins.svg",
@@ -59,10 +52,10 @@ function lastSizedRectangular(root: Element): Element | null {
 
 function pendingToInsets(pending: Record<MarginProp, number>): BoxInsets {
   return {
-    top: Math.round(pending["--kite9-margin-top"]),
-    right: Math.round(pending["--kite9-margin-right"]),
-    bottom: Math.round(pending["--kite9-margin-bottom"]),
-    left: Math.round(pending["--kite9-margin-left"]),
+    top: Math.round(pending["margin-top"]),
+    right: Math.round(pending["margin-right"]),
+    bottom: Math.round(pending["margin-bottom"]),
+    left: Math.round(pending["margin-left"]),
   };
 }
 
@@ -131,22 +124,21 @@ function openMarginsEditor(
       : undefined;
 
   const pending: Record<MarginProp, number> = {
-    "--kite9-margin-top":
-      originalMargin?.top ?? readCssPx(selected, "--kite9-margin-top", 0),
-    "--kite9-margin-right":
-      originalMargin?.right ?? readCssPx(selected, "--kite9-margin-right", 0),
-    "--kite9-margin-bottom":
-      originalMargin?.bottom ??
-      readCssPx(selected, "--kite9-margin-bottom", 0),
-    "--kite9-margin-left":
-      originalMargin?.left ?? readCssPx(selected, "--kite9-margin-left", 0),
+    "margin-top":
+      originalMargin?.top ?? readCssPx(selected, "margin-top", 0),
+    "margin-right":
+      originalMargin?.right ?? readCssPx(selected, "margin-right", 0),
+    "margin-bottom":
+      originalMargin?.bottom ?? readCssPx(selected, "margin-bottom", 0),
+    "margin-left":
+      originalMargin?.left ?? readCssPx(selected, "margin-left", 0),
   };
 
   const bbox = getElementDiagramBBox(selected, ctx.root);
-  const top = pending["--kite9-margin-top"];
-  const right = pending["--kite9-margin-right"];
-  const bottom = pending["--kite9-margin-bottom"];
-  const left = pending["--kite9-margin-left"];
+  const top = pending["margin-top"];
+  const right = pending["margin-right"];
+  const bottom = pending["margin-bottom"];
+  const left = pending["margin-left"];
 
   const [moveTop, moveRight, moveBottom, moveLeft] = overlay.createSizingRect(
     bbox.x,
@@ -173,7 +165,7 @@ function openMarginsEditor(
     top,
     false,
     true,
-    onChange("--kite9-margin-top", moveTop),
+    onChange("margin-top", moveTop),
   );
   overlay.createSizingArrow(
     bbox.x + bbox.width,
@@ -181,7 +173,7 @@ function openMarginsEditor(
     right,
     true,
     false,
-    onChange("--kite9-margin-right", moveRight),
+    onChange("margin-right", moveRight),
   );
   overlay.createSizingArrow(
     bbox.x + bbox.width / 2,
@@ -189,7 +181,7 @@ function openMarginsEditor(
     bottom,
     false,
     false,
-    onChange("--kite9-margin-bottom", moveBottom),
+    onChange("margin-bottom", moveBottom),
   );
   overlay.createSizingArrow(
     bbox.x,
@@ -197,7 +189,7 @@ function openMarginsEditor(
     left,
     true,
     true,
-    onChange("--kite9-margin-left", moveLeft),
+    onChange("margin-left", moveLeft),
   );
 
   const rect = selected.getBoundingClientRect();
@@ -219,9 +211,7 @@ function openMarginsEditor(
         insets.left,
       ];
       for (let i = 0; i < MARGIN_PROPS.length; i++) {
-        const px = `${cssMargins[i]}px`;
-        replaceStyle(ctx, id, selected, MARGIN_PROPS[i]!, px);
-        replaceStyle(ctx, id, selected, CSS_MARGIN_PROPS[i]!, px);
+        replaceStyle(ctx, id, selected, MARGIN_PROPS[i]!, `${cssMargins[i]}px`);
       }
       // Asymmetric insets need start alignment in the grid cell.
       const any = cssMargins.some((n) => n > 0);
@@ -234,7 +224,6 @@ function openMarginsEditor(
       );
       replaceStyle(ctx, id, selected, "align-self", any ? "start" : "center");
 
-      // Layout already matches pending from drag; re-apply in case of no-drag OK.
       applyMarginsToLayout(ctx, id, insets);
       cm.destroy();
       overlay.destroy();

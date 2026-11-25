@@ -54,12 +54,6 @@ export function kite9PropertyDefs(): CSSPropertyDef[] {
     { name: C.PADDING_BOTTOM_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
     { name: C.PADDING_TOP_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
 
-    { name: C.MARGIN_PROPERTY, syntax: "<length>", initialValue: "0px", inherits: false },
-    { name: C.MARGIN_LEFT_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
-    { name: C.MARGIN_RIGHT_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
-    { name: C.MARGIN_TOP_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
-    { name: C.MARGIN_BOTTOM_PROPERTY, syntax: "<length> | none", initialValue: "none", inherits: false },
-
     {
       name: C.ELEMENT_TYPE_PROPERTY,
       syntax: typeSyntax,
