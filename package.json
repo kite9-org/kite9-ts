@@ -9,13 +9,16 @@
     "test:e2e": "pnpm --filter @kite9/ui-behaviours test:e2e",
     "test:report": "open packages/kite9-test-template/coverage/index.html",
     "typecheck": "pnpm -r run typecheck",
-    "start": "pnpm --filter @kite9/preview start"
+    "start": "pnpm --filter @kite9/preview start",
+    "playwright:install": "playwright install chromium"
   },
   "devDependencies": {
+    "@playwright/test": "catalog:",
     "@vitest/coverage-v8": "^3.0.5",
     "typescript": "^5.7.2",
     "vitest": "^3.0.5"
   },
+
   "packageManager": "pnpm@10.31.0",
   "engines": {
     "node": ">=20"

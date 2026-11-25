@@ -1,0 +1,39 @@
+{
+  "name": "@kite9/layout",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run && playwright test",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:functional": "playwright test",
+    "test:results": "vite --config vite.outputs.config.ts"
+  },
+  "dependencies": {
+    "@kite9/css": "workspace:*",
+    "@kite9/model": "workspace:*"
+  },
+  "devDependencies": {
+    "@kite9/templating": "workspace:*",
+    "@kite9/test-template": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/node": "^22.10.0",
+    "@vitest/coverage-v8": "^3.0.5",
+    "happy-dom": "^17.1.0",
+    "preact": "^10.25.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^3.0.5"
+  }
+}

@@ -1,2 +1,5 @@
 packages:
   - "packages/*"
+
+catalog:
+  "@playwright/test": "1.65.1"

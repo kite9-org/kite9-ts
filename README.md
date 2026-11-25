@@ -8,6 +8,7 @@ Pure TypeScript monorepo port of [kite9-a-different-approach](../kite9-a-differe
 | --- | --- | --- |
 | `packages/kite9-css` | `@kite9/css` | Style enums, `--kite9-*` properties, cascade readers (no deps) |
 | `packages/kite9-model` | `@kite9/model` | Diagram model interfaces (depends on `@kite9/css`) |
+| `packages/kite9-layout` | `@kite9/layout` | RHD planarization + compaction → `LayoutData` |
 | `packages/kite9-command` | `@kite9/command` | OT-oriented commands for collaborative HTML light-DOM editing |
 | `packages/kite9-ui` | `@kite9/ui` | Behaviour contract + shared UI (overlay, dragger, screen, api) |
 | `packages/kite9-templating` | `@kite9/templating` | Light DOM → model + shadow paint |

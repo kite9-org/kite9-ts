@@ -1,0 +1,4 @@
+dist/
+coverage/
+outputs/
+node_modules/

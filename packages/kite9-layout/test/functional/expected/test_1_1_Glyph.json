@@ -1,0 +1,40 @@
+{
+  "grid": {
+    "contentCols": 1,
+    "contentRows": 1,
+    "gutter": 16,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      100
+    ],
+    "contentRowSizes": [
+      45
+    ],
+    "colSizes": [
+      16,
+      16,
+      100,
+      197,
+      197
+    ],
+    "rowSizes": [
+      16,
+      16,
+      45,
+      102,
+      102
+    ]
+  },
+  "placements": {
+    "g1": {
+      "col": 1,
+      "row": 1,
+      "size": {
+        "w": 100,
+        "h": 45
+      }
+    }
+  },
+  "routes": {}
+}

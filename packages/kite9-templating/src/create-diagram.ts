@@ -268,6 +268,63 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
   getLinkInset(): number {
     return 0;
   }
+
+  /** CSS margin on the light-DOM host (px). */
+  getMargin(d: Direction): number {
+    const cs = getComputedStyle(this.el as Element);
+    switch (d) {
+      case Direction.UP:
+        return parseFloat(cs.marginTop) || 0;
+      case Direction.DOWN:
+        return parseFloat(cs.marginBottom) || 0;
+      case Direction.LEFT:
+        return parseFloat(cs.marginLeft) || 0;
+      case Direction.RIGHT:
+        return parseFloat(cs.marginRight) || 0;
+    }
+  }
+
+  /** CSS padding / `--kite9-padding-*` on the host (px). */
+  getPadding(d: Direction): number {
+    const el = this.el as HTMLElement;
+    const cs = getComputedStyle(el);
+    const custom = (name: string) => {
+      const v = el.style.getPropertyValue(name) || cs.getPropertyValue(name);
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : NaN;
+    };
+    switch (d) {
+      case Direction.UP: {
+        const c = custom("--kite9-padding-top");
+        return Number.isFinite(c) ? c : parseFloat(cs.paddingTop) || 0;
+      }
+      case Direction.DOWN: {
+        const c = custom("--kite9-padding-bottom");
+        return Number.isFinite(c) ? c : parseFloat(cs.paddingBottom) || 0;
+      }
+      case Direction.LEFT: {
+        const c = custom("--kite9-padding-left");
+        return Number.isFinite(c) ? c : parseFloat(cs.paddingLeft) || 0;
+      }
+      case Direction.RIGHT: {
+        const c = custom("--kite9-padding-right");
+        return Number.isFinite(c) ? c : parseFloat(cs.paddingRight) || 0;
+      }
+    }
+  }
+
+  /** Measured content box of the painted host. */
+  getMinimumSize() {
+    const r = (this.el as Element).getBoundingClientRect();
+    const w = r.width || parseFloat((this.el as HTMLElement).style.width) || 80;
+    const h =
+      r.height || parseFloat((this.el as HTMLElement).style.height) || 40;
+    return new StubDimension2D(w, h);
+  }
+
+  getSizing(_horiz: boolean): DiagramElementSizing {
+    return DiagramElementSizing.MINIMIZE;
+  }
 }
 
 /** Glyph / context / container with fixed `CONNECTED_RECTANGULAR` type. */
