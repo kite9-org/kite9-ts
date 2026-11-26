@@ -6,6 +6,9 @@ type ResultRow = {
   status: string;
   at: string;
   error?: string;
+  failKind?: string;
+  failSummary?: string;
+  failDetail?: string;
   viewUrl: string;
   previewUrl?: string;
   positionsUrl?: string;
@@ -15,7 +18,7 @@ type ResultRow = {
 };
 
 const STORAGE_KEY = "kite9-layout-results-sort";
-const allowed = new Set(["name", "status", "at"]);
+const allowed = new Set(["name", "status", "at", "failSummary"]);
 
 const ICON_DIAGRAM =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="5" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 5h3v5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
@@ -174,6 +177,9 @@ async function acceptRow(row: ResultRow, btn: HTMLButtonElement): Promise<void> 
     row.canAccept = false;
     row.status = "passed";
     delete row.error;
+    delete row.failKind;
+    delete row.failSummary;
+    delete row.failDetail;
     row.at = new Date().toISOString();
     render();
   } catch (e) {
@@ -209,6 +215,14 @@ function viewIcon(
   return `<a class="view-icon" href="${esc(href)}" title="${esc(title)}" aria-label="${esc(title)}"${previewAttr}>${icon}</a>`;
 }
 
+function reasonCell(r: ResultRow): string {
+  if (r.status !== "failed" || !r.failSummary) {
+    return `<span class="reason reason-empty">—</span>`;
+  }
+  const tip = r.failDetail ? ` title="${esc(r.failDetail)}"` : "";
+  return `<span class="reason" data-kind="${esc(r.failKind ?? "error")}"${tip}>${esc(r.failSummary)}</span>`;
+}
+
 function render(): void {
   if (rows.length === 0) {
     emptyEl.hidden = false;
@@ -222,7 +236,12 @@ function render(): void {
   list.innerHTML = sorted
     .map((r) => {
       const when = new Date(r.at).toLocaleString();
-      const err = r.error ? `<div class="err">${esc(r.error)}</div>` : "";
+      const err =
+        r.status === "failed" && r.failDetail
+          ? `<div class="err">${esc(r.failDetail)}</div>`
+          : r.error
+            ? `<div class="err">${esc(r.error)}</div>`
+            : "";
       const action = r.canAccept
         ? `<button type="button" class="accept" data-suite="${esc(r.suite)}" data-name="${esc(r.name)}">Accept</button>`
         : `<span class="accept-slot"></span>`;
@@ -235,12 +254,14 @@ function render(): void {
   ${viewIcon(r.compactionUrl, r.compactionUrl, "Compaction", ICON_COMPACTION)}
   ${viewIcon(r.sourceUrl, sourcePreview, "Source HTML", ICON_SOURCE, "code")}
 </span>`;
+      const nameCell = r.viewUrl
+        ? `<a class="name" href="${esc(r.viewUrl)}"><strong>${esc(r.name)}</strong></a>`
+        : `<span class="name missing"><strong>${esc(r.name)}</strong></span>`;
       return `<li class="row cols ${esc(r.status)}">
-  <div class="name-cell">
-    <a class="name" href="${esc(r.viewUrl)}"><strong>${esc(r.name)}</strong></a>
-    ${views}
-  </div>
+  ${nameCell}
+  ${views}
   <span class="status">${esc(r.status)}</span>
+  ${reasonCell(r)}
   <time datetime="${esc(r.at)}">${esc(when)}</time>
   ${action}
   ${err}

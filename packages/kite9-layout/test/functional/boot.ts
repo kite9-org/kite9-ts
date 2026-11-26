@@ -40,16 +40,23 @@ window.__runFunctionalLayout = (
   const result = layout(diagram, new DomElementSizer());
   applyLayout(root, result.layout, testTemplatePack);
 
-  testDiagram(diagram, result.layout, {
-    ...defaultLayoutChecks(),
-    ...checks,
-  });
-
-  return {
+  const run: FunctionalLayoutRun = {
     layout: result.layout,
     positionsPngBase64: drawPositionsPng(result.grouping, result.routable),
     compactionPngBase64: drawCompactionPng(result.compaction),
   };
+
+  // Layout + paint always; constraint failures are reported without blocking artifacts.
+  try {
+    testDiagram(diagram, result.layout, {
+      ...defaultLayoutChecks(),
+      ...checks,
+    });
+  } catch (e) {
+    run.checkError = e instanceof Error ? e.message : String(e);
+  }
+
+  return run;
 };
 
 window.__kite9Ready = true;

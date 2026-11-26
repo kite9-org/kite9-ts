@@ -10,6 +10,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
+import { classifyTestError } from "./results/fail-reason.js";
 import {
   renderResultsIndex,
   renderSourceText,
@@ -29,6 +30,12 @@ type ResultRow = {
   status: string;
   at: string;
   error?: string;
+  /** Classified failure: constraint | mismatch | missing-expected | error */
+  failKind?: string;
+  /** Short failure label for the table. */
+  failSummary?: string;
+  /** Single-line failure detail. */
+  failDetail?: string;
   viewUrl: string;
   /** Screenshot of the rendered diagram (SVG/HTML view), when present. */
   previewUrl?: string;
@@ -81,12 +88,15 @@ function scanResults(): ResultRow[] {
       const dir = path.join(suiteDir, name);
       if (!statSync(dir).isDirectory()) continue;
       const html = path.join(dir, `${name}.html`);
-      if (!existsSync(html)) continue;
+      const metaFile = path.join(dir, "result.json");
+      // Include runs that failed before artifacts (result.json only), e.g. layout constraints.
+      if (!existsSync(html) && !existsSync(metaFile)) continue;
 
       let status = "unknown";
-      let at = statSync(html).mtime.toISOString();
+      let at = existsSync(html)
+        ? statSync(html).mtime.toISOString()
+        : statSync(metaFile).mtime.toISOString();
       let error: string | undefined;
-      const metaFile = path.join(dir, "result.json");
       if (existsSync(metaFile)) {
         try {
           const meta = JSON.parse(readFileSync(metaFile, "utf8")) as {
@@ -107,13 +117,18 @@ function scanResults(): ResultRow[] {
       const positions = path.join(dir, `${name}-positions.png`);
       const compaction = path.join(dir, `${name}-compaction.png`);
       const inputHtml = path.join(dir, `${name}-input.html`);
+      const classified =
+        status === "failed" ? classifyTestError(error) : undefined;
       rows.push({
         suite,
         name,
         status,
         at,
         error,
-        viewUrl: `${base}.html`,
+        failKind: classified?.kind,
+        failSummary: classified?.summary,
+        failDetail: classified?.detail,
+        viewUrl: existsSync(html) ? `${base}.html` : "",
         previewUrl: existsSync(png) ? `${base}.png` : undefined,
         positionsUrl: existsSync(positions) ? `${base}-positions.png` : undefined,
         compactionUrl: existsSync(compaction)

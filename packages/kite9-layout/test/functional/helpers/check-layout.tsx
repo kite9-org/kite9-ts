@@ -98,6 +98,13 @@ async function runInBrowser(
   );
 }
 
+function writeInputOnly(suite: string, name: string, inputHtml: string): string {
+  const dir = outputsDir(suite, name);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, `${name}-input.html`), inputHtml, "utf8");
+  return dir;
+}
+
 /**
  * Register a Playwright `test` that lays out `diagram` in Chromium, runs
  * {@link LayoutChecks}, writes artifacts under `outputs/`, and asserts against
@@ -120,8 +127,9 @@ export function checkLayout(
 
   test(name, async ({ page }) => {
     let dir: string | undefined;
+    let inputHtml = "";
     try {
-      const inputHtml = htmlFromJsx(diagram);
+      inputHtml = htmlFromJsx(diagram);
       const run = await runInBrowser(page, inputHtml, checks);
       const layoutData = run.layout;
       dir = writeLayoutArtifacts(suite, name, inputHtml, layoutData);
@@ -138,6 +146,11 @@ export function checkLayout(
       await page.locator("#mount").screenshot({
         path: path.join(dir, `${name}.png`),
       });
+
+      // Constraint failures still get reviewable outputs; fail after writing.
+      if (run.checkError) {
+        throw new Error(run.checkError);
+      }
 
       if (UPDATE_EXPECTED) {
         mkdirSync(EXPECTED_DIR, { recursive: true });
@@ -157,7 +170,7 @@ export function checkLayout(
       }
       writeTestResult(dir, suite, name, "passed");
     } catch (e) {
-      const failDir = dir ?? outputsDir(suite, name);
+      const failDir = dir ?? (inputHtml ? writeInputOnly(suite, name, inputHtml) : outputsDir(suite, name));
       writeTestResult(
         failDir,
         suite,
