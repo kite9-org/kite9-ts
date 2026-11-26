@@ -16,6 +16,10 @@
   background: #f8fafc;
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+:host(:has(> *)) .key-card {
   gap: 0.35rem;
 }
 
@@ -28,7 +32,12 @@
 }
 
 .body {
-  flex: 1 1 auto;
+  display: none;
   color: #475569;
   font-size: 12px;
+}
+
+:host(:has(> *)) .body {
+  display: block;
+  flex: 1 1 auto;
 }

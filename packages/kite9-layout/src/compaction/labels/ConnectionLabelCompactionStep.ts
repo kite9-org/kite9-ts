@@ -329,7 +329,7 @@ export class ConnectionLabelCompactionStep extends AbstractBuilderCompactionStep
           toAnchors.length > 0
             ? Math.max(
                 ...toAnchors.map((ta) =>
-                  Math.trunc(this.getMinimumDistanceBetween(fa.e, fa.s, ta.e, ta.s, d, null, true)),
+                  Math.ceil(this.getMinimumDistanceBetween(fa.e, fa.s, ta.e, ta.s, d, null, true)),
                 ),
               )
             : 0,
@@ -341,7 +341,7 @@ export class ConnectionLabelCompactionStep extends AbstractBuilderCompactionStep
   }
 
   private ensureDistance(from: Positioned, to: Positioned, d: Dimension, so: SlackOptimisation): void {
-    const ld = Math.trunc(this.getMinimumDistanceBetween(from, Side.END, to, Side.START, d, null, true));
+    const ld = Math.ceil(this.getMinimumDistanceBetween(from, Side.END, to, Side.START, d, null, true));
     const fromSS = so.getSlideablesFor(from)!;
     const toSS = so.getSlideablesFor(to)!;
     so.ensureMinimumDistance(fromSS.r, toSS.l, ld);

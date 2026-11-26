@@ -18,6 +18,11 @@
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+/* Body only exists when the host has light-DOM children for the slot. */
+:host(:has(> *)) .card {
   gap: 0.35rem;
 }
 
@@ -27,6 +32,11 @@
 }
 
 .body {
-  flex: 1 1 auto;
+  display: none;
   color: #475569;
+}
+
+:host(:has(> *)) .body {
+  display: block;
+  flex: 1 1 auto;
 }

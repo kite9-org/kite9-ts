@@ -95,7 +95,7 @@ export abstract class AbstractContainerCompactionStep extends AbstractBuilderCom
       dir = d === Dimension.H ? Direction.RIGHT : Direction.DOWN;
     }
 
-    return isSizedRectangular(c) ? Math.trunc(c.getPadding(dir) / 2.0) : 1;
+    return isSizedRectangular(c) ? Math.ceil(c.getPadding(dir) / 2.0) : 1;
   }
 
   applyContainerEdge(

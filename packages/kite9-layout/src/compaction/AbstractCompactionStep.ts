@@ -21,9 +21,10 @@ function isSizedRectangular(r: Rectangular): r is SizedRectangular {
 /** Kotlin `AbstractC2CompactionStep.getPadding` (companion): start/end padding along `d`. */
 export function getPadding(d: Dimension, r: Rectangular): [number, number] {
   if (isSizedRectangular(r)) {
+    // Ceil fractional CSS lengths so minimum gaps never undersize.
     return d === Dimension.H
-      ? [Math.trunc(r.getPadding(Direction.LEFT)), Math.trunc(r.getPadding(Direction.RIGHT))]
-      : [Math.trunc(r.getPadding(Direction.UP)), Math.trunc(r.getPadding(Direction.DOWN))];
+      ? [Math.ceil(r.getPadding(Direction.LEFT)), Math.ceil(r.getPadding(Direction.RIGHT))]
+      : [Math.ceil(r.getPadding(Direction.UP)), Math.ceil(r.getPadding(Direction.DOWN))];
   }
   return [2, 2];
 }
@@ -32,8 +33,8 @@ export function getPadding(d: Dimension, r: Rectangular): [number, number] {
 export function getMargin(d: Dimension, r: Rectangular): [number, number] {
   if (isSizedRectangular(r)) {
     return d === Dimension.H
-      ? [Math.trunc(r.getMargin(Direction.LEFT)), Math.trunc(r.getMargin(Direction.RIGHT))]
-      : [Math.trunc(r.getMargin(Direction.UP)), Math.trunc(r.getMargin(Direction.DOWN))];
+      ? [Math.ceil(r.getMargin(Direction.LEFT)), Math.ceil(r.getMargin(Direction.RIGHT))]
+      : [Math.ceil(r.getMargin(Direction.UP)), Math.ceil(r.getMargin(Direction.DOWN))];
   }
   return [2, 2];
 }
@@ -142,7 +143,7 @@ export abstract class AbstractCompactionStep implements CompactionStep, Logable 
     const set2 = cso.getRectangularsOnSide(bSide, b);
     for (const l of set1) {
       for (const r of set2) {
-        cso.ensureMinimumDistance(l, r, Math.trunc(dist));
+        cso.ensureMinimumDistance(l, r, Math.ceil(dist));
       }
     }
   }

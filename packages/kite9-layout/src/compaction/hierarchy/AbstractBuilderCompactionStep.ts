@@ -159,7 +159,8 @@ export abstract class AbstractBuilderCompactionStep extends AbstractCompactionSt
       this.ensureCentreSlideablePosition(cso, created, cExisting, position);
       cso.add(de, created);
 
-      cso.ensureMinimumDistance(l, r, Math.trunc(ms));
+      // Ceil DOM measures — truncating undersizes and wraps text (e.g. test_1_1).
+      cso.ensureMinimumDistance(l, r, Math.ceil(ms));
 
       this.checkCreateElementContentItems(cso, de, d, de.getLayout(), created, topGroup);
 

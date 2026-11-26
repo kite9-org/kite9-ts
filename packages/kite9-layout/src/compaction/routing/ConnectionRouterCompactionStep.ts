@@ -324,9 +324,9 @@ export class ConnectionRouterCompactionStep extends AbstractBuilderCompactionSte
     length += c.getMinimumLength();
 
     if (SlideableSSP.isIncreasing(start.d)) {
-      from.so.ensureMinimumDistance(to, from, Math.trunc(length));
+      from.so.ensureMinimumDistance(to, from, Math.ceil(length));
     } else {
-      from.so.ensureMinimumDistance(from, to, Math.trunc(length));
+      from.so.ensureMinimumDistance(from, to, Math.ceil(length));
     }
 
     // handle connection margins
@@ -337,11 +337,11 @@ export class ConnectionRouterCompactionStep extends AbstractBuilderCompactionSte
 
     const along = start.getAlong();
     for (const it of along.getForwardSlideables<S>(true)) {
-      along.so.ensureMinimumDistance(along, it, Math.trunc(margin));
+      along.so.ensureMinimumDistance(along, it, Math.ceil(margin));
     }
 
     for (const it of along.getForwardSlideables<S>(false)) {
-      along.so.ensureMinimumDistance(it, along, Math.trunc(margin));
+      along.so.ensureMinimumDistance(it, along, Math.ceil(margin));
     }
 
     // continue

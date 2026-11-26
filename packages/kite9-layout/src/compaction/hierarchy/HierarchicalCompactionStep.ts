@@ -306,7 +306,7 @@ export class HierarchicalCompactionStep extends AbstractContainerCompactionStep 
 
         for (const aS of startRects) {
           for (const bS of endRects) {
-            so.ensureMinimumDistance(aS, bS, Math.trunc(distance));
+            so.ensureMinimumDistance(aS, bS, Math.ceil(distance));
           }
         }
       } else if (startS != null) {

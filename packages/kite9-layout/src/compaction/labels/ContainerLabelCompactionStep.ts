@@ -195,7 +195,7 @@ export class ContainerLabelCompactionStep extends AbstractBuilderCompactionStep 
         if (b == null) continue;
         const deB = b.e;
         const dist = this.getMinimumDistanceBetween(deA, Side.END, deB, Side.START, d, null, true);
-        cso.ensureMinimumDistance(a.r, b.l, Math.trunc(dist));
+        cso.ensureMinimumDistance(a.r, b.l, Math.ceil(dist));
       }
     }
   }
@@ -213,8 +213,8 @@ export class ContainerLabelCompactionStep extends AbstractBuilderCompactionStep 
       const deIn = i.e;
       const distUp = this.getMinimumDistanceBetween(deOut, Side.START, deIn, Side.START, d, null, true);
       const distDown = this.getMinimumDistanceBetween(deIn, Side.END, deOut, Side.END, d, null, true);
-      cso.ensureMinimumDistance(o.l, i.l, Math.trunc(distUp));
-      cso.ensureMinimumDistance(i.r, o.r, Math.trunc(distDown));
+      cso.ensureMinimumDistance(o.l, i.l, Math.ceil(distUp));
+      cso.ensureMinimumDistance(i.r, o.r, Math.ceil(distDown));
     }
   }
 
@@ -244,7 +244,7 @@ export class ContainerLabelCompactionStep extends AbstractBuilderCompactionStep 
     cso: SlackOptimisation,
   ): void {
     const dist = this.getMinimumDistanceBetween(left.e, Side.END, right.e, Side.START, d, null, false);
-    cso.ensureMinimumDistance(left.r, right.l, Math.trunc(dist));
+    cso.ensureMinimumDistance(left.r, right.l, Math.ceil(dist));
   }
 
   private separateInternalStart(
@@ -254,7 +254,7 @@ export class ContainerLabelCompactionStep extends AbstractBuilderCompactionStep 
     cso: SlackOptimisation,
   ): void {
     const dist = this.getMinimumDistanceBetween(outer.e, Side.START, inner.e, Side.START, d, null, true);
-    cso.ensureMinimumDistance(outer.l, inner.l, Math.trunc(dist));
+    cso.ensureMinimumDistance(outer.l, inner.l, Math.ceil(dist));
   }
 
   private separateInternalEnd(
@@ -264,6 +264,6 @@ export class ContainerLabelCompactionStep extends AbstractBuilderCompactionStep 
     cso: SlackOptimisation,
   ): void {
     const dist = this.getMinimumDistanceBetween(inner.e, Side.END, outer.e, Side.START, d, null, true);
-    cso.ensureMinimumDistance(inner.r, outer.r, Math.trunc(dist));
+    cso.ensureMinimumDistance(inner.r, outer.r, Math.ceil(dist));
   }
 }
