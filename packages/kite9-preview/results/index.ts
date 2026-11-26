@@ -34,6 +34,8 @@ const tableWrap = document.getElementById("table-wrap")!;
 const buttons = [...document.querySelectorAll<HTMLButtonElement>("[data-sort]")];
 const preview = document.getElementById("preview")!;
 const previewImg = preview.querySelector("img")!;
+const previewCode = preview.querySelector<HTMLPreElement>(".preview-code")!;
+let previewSeq = 0;
 
 function loadSort(): { sortKey: string; sortDir: number } {
   try {
@@ -88,8 +90,51 @@ function placePreview(clientX: number, clientY: number): void {
 }
 
 function hidePreview(): void {
+  previewSeq += 1;
   preview.style.display = "none";
+  previewImg.hidden = true;
   previewImg.removeAttribute("src");
+  previewCode.hidden = true;
+  previewCode.textContent = "";
+}
+
+function showImagePreview(url: string, clientX: number, clientY: number): void {
+  const seq = ++previewSeq;
+  previewCode.hidden = true;
+  previewCode.textContent = "";
+  previewImg.hidden = true;
+  previewImg.onload = () => {
+    if (seq !== previewSeq) return;
+    previewImg.hidden = false;
+    preview.style.display = "block";
+    placePreview(clientX, clientY);
+  };
+  previewImg.onerror = () => {
+    if (seq === previewSeq) hidePreview();
+  };
+  previewImg.src = url;
+}
+
+async function showCodePreview(
+  url: string,
+  clientX: number,
+  clientY: number,
+): Promise<void> {
+  const seq = ++previewSeq;
+  previewImg.hidden = true;
+  previewImg.removeAttribute("src");
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.statusText);
+    const text = await res.text();
+    if (seq !== previewSeq) return;
+    previewCode.textContent = text;
+    previewCode.hidden = false;
+    preview.style.display = "block";
+    placePreview(clientX, clientY);
+  } catch {
+    if (seq === previewSeq) hidePreview();
+  }
 }
 
 function bindPreview(): void {
@@ -98,12 +143,12 @@ function bindPreview(): void {
       const url = a.getAttribute("data-preview");
       if (!url) return;
       const me = e as MouseEvent;
-      previewImg.onload = () => {
-        preview.style.display = "block";
-        placePreview(me.clientX, me.clientY);
-      };
-      previewImg.onerror = hidePreview;
-      previewImg.src = url;
+      const kind = a.getAttribute("data-preview-kind") ?? "image";
+      if (kind === "code") {
+        void showCodePreview(url, me.clientX, me.clientY);
+      } else {
+        showImagePreview(url, me.clientX, me.clientY);
+      }
     });
     a.addEventListener("mousemove", (e) => {
       if (preview.style.display === "block") {
@@ -153,12 +198,13 @@ function viewIcon(
   previewUrl: string | undefined,
   title: string,
   icon: string,
+  previewKind: "image" | "code" = "image",
 ): string {
   if (!href) {
     return `<span class="view-icon" aria-disabled="true" title="${esc(title)} (missing)">${icon}</span>`;
   }
   const previewAttr = previewUrl
-    ? ` data-preview="${esc(previewUrl)}"`
+    ? ` data-preview="${esc(previewUrl)}" data-preview-kind="${previewKind}"`
     : "";
   return `<a class="view-icon" href="${esc(href)}" title="${esc(title)}" aria-label="${esc(title)}"${previewAttr}>${icon}</a>`;
 }
@@ -180,11 +226,14 @@ function render(): void {
       const action = r.canAccept
         ? `<button type="button" class="accept" data-suite="${esc(r.suite)}" data-name="${esc(r.name)}">Accept</button>`
         : `<span class="accept-slot"></span>`;
+      const sourcePreview = r.sourceUrl
+        ? `${r.sourceUrl}?format=text`
+        : undefined;
       const views = `<span class="views">
   ${viewIcon(r.viewUrl, r.previewUrl, "Diagram", ICON_DIAGRAM)}
   ${viewIcon(r.positionsUrl, r.positionsUrl, "Positions", ICON_POSITIONS)}
   ${viewIcon(r.compactionUrl, r.compactionUrl, "Compaction", ICON_COMPACTION)}
-  ${viewIcon(r.sourceUrl, undefined, "Source HTML", ICON_SOURCE)}
+  ${viewIcon(r.sourceUrl, sourcePreview, "Source HTML", ICON_SOURCE, "code")}
 </span>`;
       return `<li class="row cols ${esc(r.status)}">
   <div class="name-cell">

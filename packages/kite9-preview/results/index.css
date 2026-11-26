@@ -79,7 +79,7 @@ time { color: #475569; font-size: 0.9rem; }
 .accept-slot { justify-self: end; min-height: 1.75rem; }
 #preview {
   position: fixed; z-index: 50; display: none; pointer-events: none;
-  max-width: min(420px, 75vw); max-height: min(320px, 55vh);
+  max-width: min(480px, 80vw); max-height: min(360px, 60vh);
   padding: 0.4rem; background: #fff;
   border: 1px solid #cbd5e1; border-radius: 8px;
   box-shadow: 0 10px 30px rgb(15 23 42 / 18%);
@@ -88,5 +88,14 @@ time { color: #475569; font-size: 0.9rem; }
   display: block; max-width: 100%; max-height: min(300px, 50vh);
   width: auto; height: auto; background: #f8fafc;
 }
-#preview.empty-preview { display: none !important; }
+#preview img[hidden],
+#preview .preview-code[hidden] { display: none !important; }
+#preview .preview-code {
+  display: block; margin: 0; padding: 0.55rem 0.65rem;
+  max-width: min(460px, 78vw); max-height: min(320px, 55vh);
+  overflow: auto;
+  background: #0f172a; color: #e2e8f0;
+  border-radius: 6px; font-size: 0.72rem; line-height: 1.4;
+  white-space: pre;
+}
 #table-wrap[hidden] { display: none; }

@@ -8,7 +8,7 @@
   </head>
   <body>
     <h1>Layout test results</h1>
-    <p class="lead">Functional outputs under <code>outputs/</code>. Icons open diagram / positions / compaction / source HTML (hover PNG icons to preview). Click a column header to sort. Use <strong>Accept</strong> when actual differs from expected to promote the new baseline.</p>
+    <p class="lead">Functional outputs under <code>outputs/</code>. Icons open diagram / positions / compaction / source HTML (hover icons to preview). Click a column header to sort. Use <strong>Accept</strong> when actual differs from expected to promote the new baseline.</p>
     <p class="empty" id="empty" hidden>No outputs yet. Run <code>pnpm test</code> first.</p>
     <div id="table-wrap" hidden>
       <div class="cols head" role="row">
@@ -19,7 +19,10 @@
       </div>
       <ul id="results"></ul>
     </div>
-    <div id="preview" aria-hidden="true"><img alt="" /></div>
+    <div id="preview" aria-hidden="true">
+      <img alt="" hidden />
+      <pre class="preview-code" hidden></pre>
+    </div>
     <script type="application/json" id="results-data">__RESULTS_DATA__</script>
     <script type="module" src="__RESULTS_CLIENT__"></script>
   </body>

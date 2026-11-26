@@ -10,7 +10,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
-import { renderResultsIndex, renderSourceView } from "./results/pages.js";
+import {
+  renderResultsIndex,
+  renderSourceText,
+  renderSourceView,
+} from "./results/pages.js";
 
 const previewRoot = path.dirname(fileURLToPath(import.meta.url));
 const packages = path.resolve(previewRoot, "..");
@@ -195,7 +199,9 @@ function resultsIndexPlugin(): Plugin {
     name: "kite9-preview-results-index",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const url = req.url?.split("?")[0];
+        const rawUrl = req.url ?? "";
+        const url = rawUrl.split("?")[0];
+        const qs = new URL(rawUrl, "http://local").searchParams;
 
         const sourceMatch = url?.match(/^\/source\/([^/]+)\/([^/]+)\/?$/);
         if (sourceMatch) {
@@ -217,8 +223,14 @@ function resultsIndexPlugin(): Plugin {
             res.end("Input HTML missing");
             return;
           }
+          const fragment = readFileSync(inputPath, "utf8");
+          if (qs.get("format") === "text") {
+            res.setHeader("Content-Type", "text/plain; charset=utf-8");
+            res.end(renderSourceText(fragment));
+            return;
+          }
           res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.end(renderSourceView(suite, name, readFileSync(inputPath, "utf8")));
+          res.end(renderSourceView(suite, name, fragment));
           return;
         }
 
