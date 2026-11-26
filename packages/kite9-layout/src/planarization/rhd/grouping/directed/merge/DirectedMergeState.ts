@@ -1,9 +1,9 @@
 import { Direction } from "@kite9/model";
+import type { Rectangular } from "@kite9/model";
 import type { ContradictionHandler } from "../../../links/ContradictionHandler.js";
 import type { LinkDetail } from "../../../links/LinkManager.js";
 import type { Group } from "../../basic/group/Group.js";
-import { BasicMergeState } from "../../basic/merge/BasicMergeState.js";
-import { Containers } from "../../basic/merge/Containers.js";
+import { BasicMergeState, type GroupContainerState } from "../../basic/merge/BasicMergeState.js";
 import { ContainerMergeType } from "../ContainerMergeType.js";
 import { DirectedGroupAxis } from "../group/DirectedGroupAxis.js";
 import { DirectedLinkManager } from "../group/DirectedLinkManager.js";
@@ -38,8 +38,8 @@ export class DirectedMergeState extends BasicMergeState {
   }
 
   getContainerMergeType(a: Group, b: Group): ContainerMergeType {
-    const common = Containers.hasCommonLiveContainer(this, a, b);
-    const increases = Containers.increasesContainers(this, a, b);
+    const common = this.hasCommonLiveContainer(a, b);
+    const increases = this.increasesContainers(a, b);
     if (common) {
       return increases
         ? ContainerMergeType.JOINING_EXTRA_CONTAINERS
@@ -47,6 +47,26 @@ export class DirectedMergeState extends BasicMergeState {
     } else {
       return ContainerMergeType.NO_LIVE_CONTAINER;
     }
+  }
+
+  private hasCommonLiveContainer(a: Group, b: Group): boolean {
+    const ac = this.getContainersFor(a)!.keys();
+    const bc = [...this.getContainersFor(b)!.keys()];
+    const bcSet = new Set(bc);
+    for (const container of ac) {
+      if (bcSet.has(container) && this.isContainerLive(container)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * If the resulting group is going to end up with more live containers than a or b individually,
+   * return true.
+   */
+  increasesContainers(a: Group | null, b: Group | null): boolean {
+    const ac = this.getContainersFor(a);
+    const bc = this.getContainersFor(b);
+    return hasDifferentContainers(ac, bc) && hasDifferentContainers(bc, ac);
   }
 
   completedDirectionalMerge(combined: Group): boolean {
@@ -89,4 +109,16 @@ export class DirectedMergeState extends BasicMergeState {
       }
     }
   }
+}
+
+function hasDifferentContainers(
+  ac: ReadonlyMap<Rectangular, GroupContainerState | null> | null,
+  bc: ReadonlyMap<Rectangular, GroupContainerState | null> | null,
+): boolean {
+  for (const container of ac!.keys()) {
+    if (bc!.get(container) == null) {
+      return true;
+    }
+  }
+  return false;
 }

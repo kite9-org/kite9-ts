@@ -13,16 +13,38 @@ import type { MergeOption } from "./MergeOption.js";
 
 /** Kotlin `BasicMergeState.GroupContainerState`. */
 export class GroupContainerState {
-  static readonly COMPLETE = new GroupContainerState("COMPLETE", true);
-  static readonly INCOMPLETE = new GroupContainerState("INCOMPLETE", false);
+  static readonly HAS_CONTENT = new GroupContainerState("HAS_CONTENT", true, false);
+  static readonly COMPLETE_WITH_CONTENT = new GroupContainerState(
+    "COMPLETE_WITH_CONTENT",
+    true,
+    true,
+  );
+  static readonly NO_CONTENT = new GroupContainerState("NO_CONTENT", false, false);
+  static readonly COMPLETE_NO_CONTENT = new GroupContainerState(
+    "COMPLETE_NO_CONTENT",
+    false,
+    true,
+  );
 
   private constructor(
     readonly name: string,
+    private readonly hc: boolean,
     readonly isComplete: boolean,
   ) {}
 
-  static get(isComplete: boolean): GroupContainerState {
-    return isComplete ? GroupContainerState.COMPLETE : GroupContainerState.INCOMPLETE;
+  hasContent(): boolean {
+    return this.hc;
+  }
+
+  static get(contained: boolean, isComplete: boolean): GroupContainerState {
+    if (contained) {
+      return isComplete
+        ? GroupContainerState.COMPLETE_WITH_CONTENT
+        : GroupContainerState.HAS_CONTENT;
+    }
+    return isComplete
+      ? GroupContainerState.COMPLETE_NO_CONTENT
+      : GroupContainerState.NO_CONTENT;
   }
 
   toString(): string {
@@ -166,7 +188,7 @@ export class BasicMergeState extends GroupResult implements Logable {
     if (isLeafGroup(a)) {
       let out = this.groupContainers.get(a);
       if (out == null) {
-        out = new Map([[a.container, GroupContainerState.INCOMPLETE]]);
+        out = new Map([[a.container, GroupContainerState.HAS_CONTENT]]);
         this.groupContainers.set(a, out);
       }
       return out;

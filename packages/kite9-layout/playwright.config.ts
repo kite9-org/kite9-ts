@@ -1,5 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
+/**
+ * Projects mirror Java functional suites:
+ * - display + layout → CI / `pnpm test`
+ * - thorough + performance → local-only scripts
+ */
 export default defineConfig({
   testDir: "./test/functional",
   testMatch: "**/*.spec.tsx",
@@ -17,4 +22,14 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
+  projects: [
+    { name: "display", testMatch: "display/**/*.spec.tsx" },
+    { name: "layout", testMatch: "layout/**/*.spec.tsx" },
+    { name: "thorough", testMatch: "thorough/**/*.spec.tsx" },
+    {
+      name: "performance",
+      testMatch: "performance/**/*.spec.tsx",
+      timeout: 180_000,
+    },
+  ],
 });

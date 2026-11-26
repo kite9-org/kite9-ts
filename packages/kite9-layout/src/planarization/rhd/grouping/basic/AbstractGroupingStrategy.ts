@@ -74,10 +74,13 @@ export abstract class AbstractGroupingStrategy extends GroupPhase implements Gro
     for (const container of combined) {
       const aContained = containersA.get(container);
       const bContained = containersB.get(container);
+      const contained =
+        (aContained != null && aContained.hasContent()) ||
+        (bContained != null && bContained.hasContent());
       const isComplete =
         (aContained != null && aContained.isComplete) ||
         (bContained != null && bContained.isComplete);
-      const out = GroupContainerState.get(isComplete);
+      const out = GroupContainerState.get(contained, isComplete);
       ms.addGroupContainerMapping(group, container, out);
     }
   }
@@ -188,7 +191,7 @@ export abstract class AbstractGroupingStrategy extends GroupPhase implements Gro
   ): boolean {
     this.log.send("Moving group: " + g.groupOrdinal + " from " + c + " to " + cc);
     ms.removeGroupContainerMapping(g, c);
-    ms.addGroupContainerMapping(g, cc, GroupContainerState.INCOMPLETE);
+    ms.addGroupContainerMapping(g, cc, GroupContainerState.HAS_CONTENT);
     return true;
   }
 
@@ -197,7 +200,11 @@ export abstract class AbstractGroupingStrategy extends GroupPhase implements Gro
   protected initContained(ms: BasicMergeState, leaves: LeafGroup[], toAdd: LeafGroup): void {
     // set up container details
     const c2 = toAdd.container;
-    ms.addGroupContainerMapping(toAdd, c2, GroupContainerState.INCOMPLETE);
+    ms.addGroupContainerMapping(
+      toAdd,
+      c2,
+      toAdd.occupiesSpace() ? GroupContainerState.HAS_CONTENT : GroupContainerState.NO_CONTENT,
+    );
     leaves.push(toAdd);
   }
 

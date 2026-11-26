@@ -9,6 +9,8 @@ export interface LeafGroup extends Group {
   readonly connected: GroupLinkNode;
   readonly container: Rectangular;
 
+  occupiesSpace(): boolean;
+
   sortLink(
     d: Direction | null,
     otherGroup: Group,

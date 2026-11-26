@@ -17,7 +17,7 @@ export class DirectedCompoundGroup extends AbstractCompoundGroup {
   constructor(
     a: Group,
     b: Group,
-    completeMerge: boolean,
+    treatAsLeaf: boolean,
     groupNumber: number,
     size: number,
     hc: number,
@@ -25,7 +25,7 @@ export class DirectedCompoundGroup extends AbstractCompoundGroup {
     log: Kite9Log,
     alignedDirection: Direction | null,
   ) {
-    super(a, b, completeMerge, groupNumber, size, hc);
+    super(a, b, treatAsLeaf, groupNumber, size, hc);
     this.axis = this.buildCompoundAxis(a, b, alignedDirection, log);
     this.linkManager = new DirectedLinkManager(bs, this);
     this.internalLinkA = this.fileLinks(a, b);
@@ -60,13 +60,13 @@ export class DirectedCompoundGroup extends AbstractCompoundGroup {
     switch (axis) {
       case MergePlane.X_FIRST_MERGE:
         used.state = MergePlane.X_FIRST_MERGE;
-        used.isHorizontal = true;
-        used.isVertical = false;
+        used.isHorizontal = false;
+        used.isVertical = true;
         break;
       case MergePlane.Y_FIRST_MERGE:
         used.state = MergePlane.Y_FIRST_MERGE;
-        used.isHorizontal = false;
-        used.isVertical = true;
+        used.isHorizontal = true;
+        used.isVertical = false;
         break;
       default:
         used.state = MergePlane.UNKNOWN;

@@ -1,6 +1,9 @@
 /** Client script for the functional results index page. */
 
+type FunctionalKind = "display" | "layout" | "thorough" | "performance";
+
 type ResultRow = {
+  kind: FunctionalKind;
   suite: string;
   name: string;
   status: string;
@@ -15,9 +18,21 @@ type ResultRow = {
   compactionUrl?: string;
   sourceUrl?: string;
   canAccept: boolean;
+  metrics?: {
+    totalMs?: number;
+    connecteds?: number;
+    connections?: number;
+  };
 };
 
 const STORAGE_KEY = "kite9-layout-results-sort";
+const KIND_KEY = "kite9-layout-results-kind";
+const KINDS: FunctionalKind[] = [
+  "display",
+  "layout",
+  "thorough",
+  "performance",
+];
 const allowed = new Set(["name", "status", "at", "failSummary"]);
 
 const ICON_DIAGRAM =
@@ -35,10 +50,36 @@ const list = document.getElementById("results")!;
 const emptyEl = document.getElementById("empty")!;
 const tableWrap = document.getElementById("table-wrap")!;
 const buttons = [...document.querySelectorAll<HTMLButtonElement>("[data-sort]")];
+const tabButtons = [
+  ...document.querySelectorAll<HTMLButtonElement>("#tabs [data-kind]"),
+];
 const preview = document.getElementById("preview")!;
 const previewImg = preview.querySelector("img")!;
 const previewCode = preview.querySelector<HTMLPreElement>(".preview-code")!;
 let previewSeq = 0;
+
+function kindFromUrl(): FunctionalKind | undefined {
+  const k = new URL(location.href).searchParams.get("kind");
+  return KINDS.includes(k as FunctionalKind)
+    ? (k as FunctionalKind)
+    : undefined;
+}
+
+function loadKind(): FunctionalKind {
+  return (
+    kindFromUrl() ??
+    (KINDS.includes(localStorage.getItem(KIND_KEY) as FunctionalKind)
+      ? (localStorage.getItem(KIND_KEY) as FunctionalKind)
+      : "display")
+  );
+}
+
+function saveKind(kind: FunctionalKind): void {
+  localStorage.setItem(KIND_KEY, kind);
+  const url = new URL(location.href);
+  url.searchParams.set("kind", kind);
+  history.replaceState(null, "", url);
+}
 
 function loadSort(): { sortKey: string; sortDir: number } {
   try {
@@ -58,6 +99,7 @@ function saveSort(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ sortKey, sortDir }));
 }
 
+let kind = loadKind();
 let { sortKey, sortDir } = loadSort();
 
 function esc(s: string): string {
@@ -146,8 +188,8 @@ function bindPreview(): void {
       const url = a.getAttribute("data-preview");
       if (!url) return;
       const me = e as MouseEvent;
-      const kind = a.getAttribute("data-preview-kind") ?? "image";
-      if (kind === "code") {
+      const previewKind = a.getAttribute("data-preview-kind") ?? "image";
+      if (previewKind === "code") {
         void showCodePreview(url, me.clientX, me.clientY);
       } else {
         showImagePreview(url, me.clientX, me.clientY);
@@ -168,7 +210,11 @@ async function acceptRow(row: ResultRow, btn: HTMLButtonElement): Promise<void> 
     const res = await fetch("/api/accept", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ suite: row.suite, name: row.name }),
+      body: JSON.stringify({
+        kind: row.kind,
+        suite: row.suite,
+        name: row.name,
+      }),
     });
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     if (!res.ok || body.error) {
@@ -193,7 +239,10 @@ function bindAccept(): void {
     btn.addEventListener("click", () => {
       const suite = btn.getAttribute("data-suite");
       const name = btn.getAttribute("data-name");
-      const row = rows.find((r) => r.suite === suite && r.name === name);
+      const rowKind = btn.getAttribute("data-kind") as FunctionalKind;
+      const row = rows.find(
+        (r) => r.kind === rowKind && r.suite === suite && r.name === name,
+      );
       if (row) void acceptRow(row, btn);
     });
   }
@@ -223,16 +272,33 @@ function reasonCell(r: ResultRow): string {
   return `<span class="reason" data-kind="${esc(r.failKind ?? "error")}"${tip}>${esc(r.failSummary)}</span>`;
 }
 
+function metricsCell(r: ResultRow): string {
+  if (!r.metrics) return "";
+  const parts: string[] = [];
+  if (r.metrics.totalMs != null) parts.push(`${r.metrics.totalMs} ms`);
+  if (r.metrics.connecteds != null) parts.push(`${r.metrics.connecteds} nodes`);
+  if (r.metrics.connections != null)
+    parts.push(`${r.metrics.connections} links`);
+  if (parts.length === 0) return "";
+  return `<div class="metrics">${esc(parts.join(" · "))}</div>`;
+}
+
 function render(): void {
-  if (rows.length === 0) {
+  for (const btn of tabButtons) {
+    btn.classList.toggle("active", btn.dataset.kind === kind);
+  }
+
+  const filtered = rows.filter((r) => r.kind === kind);
+  if (filtered.length === 0) {
     emptyEl.hidden = false;
     tableWrap.hidden = true;
+    list.innerHTML = "";
     return;
   }
   emptyEl.hidden = true;
   tableWrap.hidden = false;
 
-  const sorted = [...rows].sort(cmp);
+  const sorted = [...filtered].sort(cmp);
   list.innerHTML = sorted
     .map((r) => {
       const when = new Date(r.at).toLocaleString();
@@ -243,7 +309,7 @@ function render(): void {
             ? `<div class="err">${esc(r.error)}</div>`
             : "";
       const action = r.canAccept
-        ? `<button type="button" class="accept" data-suite="${esc(r.suite)}" data-name="${esc(r.name)}">Accept</button>`
+        ? `<button type="button" class="accept" data-kind="${esc(r.kind)}" data-suite="${esc(r.suite)}" data-name="${esc(r.name)}">Accept</button>`
         : `<span class="accept-slot"></span>`;
       const sourcePreview = r.sourceUrl
         ? `${r.sourceUrl}?format=text`
@@ -264,6 +330,7 @@ function render(): void {
   ${reasonCell(r)}
   <time datetime="${esc(r.at)}">${esc(when)}</time>
   ${action}
+  ${metricsCell(r)}
   ${err}
 </li>`;
     })
@@ -294,4 +361,15 @@ for (const btn of buttons) {
   });
 }
 
+for (const btn of tabButtons) {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.kind as FunctionalKind;
+    if (!KINDS.includes(next)) return;
+    kind = next;
+    saveKind(kind);
+    render();
+  });
+}
+
+saveKind(kind);
 render();

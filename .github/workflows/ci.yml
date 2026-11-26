@@ -38,7 +38,10 @@ jobs:
         run: pnpm test:coverage
 
       - name: Install Playwright Chromium
-        run: pnpm --filter @kite9/ui-behaviours exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Layout functional (display + layout)
+        run: pnpm --filter @kite9/layout test:functional
 
       - name: Behaviour Playwright
         run: pnpm --filter @kite9/ui-behaviours test:e2e

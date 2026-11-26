@@ -1,7 +1,32 @@
 :root { color-scheme: light; font-family: system-ui, sans-serif; color: #0f172a; }
 body { margin: 0; padding: 1.5rem; background: #f8fafc; }
 h1 { margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 600; }
-p.lead { margin: 0 0 1.25rem; color: #64748b; font-size: 0.95rem; }
+p.lead { margin: 0 0 1rem; color: #64748b; font-size: 0.95rem; }
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 0.35rem;
+  margin: 0 0 1.25rem;
+}
+.tabs button {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tabs button:hover { border-color: #94a3b8; color: #0f172a; }
+.tabs button.active {
+  background: #1d4ed8; border-color: #1d4ed8; color: #fff;
+}
+.metrics {
+  grid-column: 1 / -1;
+  color: #475569;
+  font-size: 0.8rem;
+}
 .cols {
   display: grid;
   grid-template-columns:

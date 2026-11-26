@@ -21,6 +21,12 @@ export interface GroupAxis {
   readonly isVertical: boolean;
 
   /**
+   * Whether layout (side placement) is required for this group.
+   * False when there is no common live container and no established layout.
+   */
+  isLayoutRequired: boolean;
+
+  /**
    * Figures out where the group is, and returns routing info for it.
    * Set temp during the layout strategy phase to evaluate a layout before committing to it.
    */

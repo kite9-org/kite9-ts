@@ -11,12 +11,26 @@ const result: LayoutResult = layout(diagram, new DomElementSizer());
 // result.layout — serializable LayoutData
 ```
 
+## Functional suites
+
+| Suite | Path | CI / `pnpm test` | Notes |
+| --- | --- | --- | --- |
+| **display** | `test/functional/display/` | yes | Constraints + expected JSON baselines |
+| **layout** | `test/functional/layout/` | yes | Constraints only (no baselines) |
+| **thorough** | `test/functional/thorough/` | local | ADL XML fixtures → HTML |
+| **performance** | `test/functional/performance/` | local | Timed generators + metrics in `result.json` |
+
 ```bash
-pnpm playwright:install                               # once (workspace Chromium for Playwright 1.65)
-pnpm --filter @kite9/layout test                      # unit (vitest) + functional (Playwright)
+pnpm playwright:install                               # once (workspace Chromium)
+pnpm --filter @kite9/layout test                      # unit + display + layout
 pnpm --filter @kite9/layout test:unit                 # vitest only
-pnpm --filter @kite9/layout test:functional           # Chromium layout + expected JSON
-pnpm --filter @kite9/layout test:results              # browse outputs/ (via @kite9/preview, edit/resize)
+pnpm --filter @kite9/layout test:functional           # display + layout
+pnpm --filter @kite9/layout test:display
+pnpm --filter @kite9/layout test:layout
+pnpm --filter @kite9/layout test:thorough             # local
+pnpm --filter @kite9/layout test:performance          # local
+pnpm --filter @kite9/layout test:functional:all       # all four projects
+pnpm --filter @kite9/layout test:results              # browse outputs/ (tabs per suite)
 ```
 
-Functional specs (`*.spec.tsx`) call `checkLayout(name, jsx)` which runs layout in Chromium, applies `LayoutChecks` (Java `TestingEngine` / `AbstractLayoutFunctionalTest` defaults), then compares against `expected/<name>.json`. Override flags via `checkLayout(name, jsx, { checks: { … } })`. Changing the diagram or label will fail until you update that expected file (Accept from the results page, or copy from `outputs/.../*-layout.json`). Artifacts land under `outputs/` (`*-layout.json`, `*.html`, screenshot `*.png`, plus Java-style `*-positions.png` / `*-compaction.png` debug drawings); each `*.html` viewer boots via `@kite9/preview` `bootScene` in edit mode.
+Artifacts: `outputs/{display|layout|thorough|performance}/{suite}/{name}/`. The results UI has four tabs matching those suites; **Accept** only applies on Display baselines.

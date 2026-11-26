@@ -47,8 +47,8 @@ export abstract class AbstractTopDownLayoutStrategy implements LayoutStrategy, L
     this.rh.clearTempPositions(false);
     const gt = gg.axis;
     const ld = gg.layout;
-    const canBeHoriz = gt.isHorizontal;
-    const canBeVert = gt.isVertical;
+    const canBeHoriz = gt.isHorizontal && gt.isLayoutRequired;
+    const canBeVert = gt.isVertical && gt.isLayoutRequired;
     const horizLayoutUnknown = (ld == null || ld === Layout.HORIZONTAL) && canBeHoriz;
     const vertLayoutUnknown = (ld == null || ld === Layout.VERTICAL) && canBeVert;
     const canDecideLayout = horizLayoutUnknown || vertLayoutUnknown;

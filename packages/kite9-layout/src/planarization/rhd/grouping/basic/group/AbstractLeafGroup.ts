@@ -1,5 +1,5 @@
 import type { BiDirectional, Connected, Direction, Layout, Rectangular } from "@kite9/model";
-import { isDiagram } from "../../../../../common/elements/TypeGuards.js";
+import { isDiagram, isRectangular } from "../../../../../common/elements/TypeGuards.js";
 import type { Hints } from "../../../../../common/hints/DistanceFunctions.js";
 import type { LinkProcessor } from "../../../links/LinkManager.js";
 import type { GroupLinkNode } from "../../GroupLinkNode.js";
@@ -30,12 +30,17 @@ export abstract class AbstractLeafGroup extends AbstractGroup implements LeafGro
     this.layout = getAxisLayout(container.getContainer());
   }
 
+  occupiesSpace(): boolean {
+    return isRectangular(this.connected);
+  }
+
   toString(): string {
     return (
       "[" +
       this.groupNumber +
       this.connected +
       "(" +
+      (this.occupiesSpace() ? "*" : ".") +
       (isDiagram(this.container) ? "" : ` c: ${this.container}`) +
       "," +
       this.axis +

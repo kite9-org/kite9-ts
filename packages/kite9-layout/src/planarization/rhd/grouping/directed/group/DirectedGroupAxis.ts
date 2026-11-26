@@ -15,6 +15,8 @@ export class DirectedGroupAxis implements GroupAxis {
 
   active = true;
 
+  isLayoutRequired = true;
+
   isHorizontal = false;
   isVertical = false;
 
@@ -51,7 +53,7 @@ export class DirectedGroupAxis implements GroupAxis {
       let out: Bounds;
       const parent: Group | null = horiz ? this.horizParentGroup : this.vertParentGroup;
       if (parent != null) {
-        if (parent.axis.isHorizontal || parent.axis.isVertical) {
+        if (parent.axis.isLayoutRequired) {
           const l = DirectedGroupAxis.getLayoutFor(parent, g);
           out = rh.narrow(
             l,

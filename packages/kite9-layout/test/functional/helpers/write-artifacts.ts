@@ -4,21 +4,30 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { LayoutData } from "@kite9/model";
+import type { FunctionalKind } from "./functional-kind.js";
 
 const PKG_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../..",
 );
 
-export function outputsDir(suite: string, name: string): string {
-  return path.join(PKG_ROOT, "outputs", suite, name);
+export function outputsDir(
+  kind: FunctionalKind,
+  suite: string,
+  name: string,
+): string {
+  return path.join(PKG_ROOT, "outputs", kind, suite, name);
 }
 
 /**
  * Browser viewer: light-DOM + `@kite9/preview` bootScene (edit/resize).
  * Served by `pnpm test:results` (preview vite.results.config).
  */
-export function buildViewHtml(name: string, inputHtml: string): string {
+export function buildViewHtml(
+  name: string,
+  inputHtml: string,
+  kind: FunctionalKind,
+): string {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -33,7 +42,7 @@ export function buildViewHtml(name: string, inputHtml: string): string {
     </style>
   </head>
   <body>
-    <a class="back" href="/">← all results</a>
+    <a class="back" href="/?kind=${kind}">← all results</a>
     <h1>${name}</h1>
     <div id="mount">
 ${inputHtml}
@@ -53,12 +62,13 @@ ${inputHtml}
 }
 
 export function writeLayoutArtifacts(
+  kind: FunctionalKind,
   suite: string,
   name: string,
   inputHtml: string,
   layoutData: LayoutData,
 ): string {
-  const dir = outputsDir(suite, name);
+  const dir = outputsDir(kind, suite, name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(path.join(dir, `${name}-input.html`), inputHtml, "utf8");
   writeFileSync(
@@ -68,7 +78,7 @@ export function writeLayoutArtifacts(
   );
   writeFileSync(
     path.join(dir, `${name}.html`),
-    buildViewHtml(name, inputHtml),
+    buildViewHtml(name, inputHtml, kind),
     "utf8",
   );
   return dir;

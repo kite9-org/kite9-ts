@@ -26,7 +26,7 @@ export abstract class AbstractCompoundGroup extends AbstractGroup implements Com
     readonly a: Group,
     readonly b: Group,
     /** true if non-axis merge */
-    private readonly completeMerge: boolean,
+    private readonly treatAsLeaf: boolean,
     groupNumber: number,
     readonly size: number,
     hc: number,
@@ -37,7 +37,7 @@ export abstract class AbstractCompoundGroup extends AbstractGroup implements Com
   }
 
   addLeafGroupOrdinalsToSet(s: Set<number>): void {
-    if (this.completeMerge) {
+    if (this.treatAsLeaf) {
       s.add(this.groupNumber);
     } else {
       this.a.addLeafGroupOrdinalsToSet(s);

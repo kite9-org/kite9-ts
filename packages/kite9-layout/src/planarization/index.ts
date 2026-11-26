@@ -18,7 +18,6 @@ export * from "./rhd/grouping/basic/group/CompoundGroup.js";
 export * from "./rhd/grouping/basic/group/Group.js";
 export * from "./rhd/grouping/basic/group/LeafGroup.js";
 export * from "./rhd/grouping/basic/merge/BasicMergeState.js";
-export * from "./rhd/grouping/basic/merge/Containers.js";
 export * from "./rhd/grouping/basic/merge/MergeKey.js";
 export * from "./rhd/grouping/basic/merge/MergeOption.js";
 export * from "./rhd/grouping/basic/merge/MergeType.js";

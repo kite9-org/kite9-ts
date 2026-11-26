@@ -11,7 +11,6 @@ import type { CompoundGroup } from "../basic/group/CompoundGroup.js";
 import type { Group } from "../basic/group/Group.js";
 import type { LeafGroup } from "../basic/group/LeafGroup.js";
 import type { BasicMergeState } from "../basic/merge/BasicMergeState.js";
-import { Containers } from "../basic/merge/Containers.js";
 import type { MergeOption } from "../basic/merge/MergeOption.js";
 import { AbstractRuleBasedGroupingStrategy } from "./AbstractRuleBasedGroupingStrategy.js";
 import { MergePlane } from "./MergePlane.js";
@@ -153,8 +152,8 @@ export abstract class AxisHandlingGroupingStrategy extends AbstractRuleBasedGrou
   }
 
   identifyGroupDirection(out: CompoundGroup, ms: BasicMergeState): void {
-    const c = Containers.getCommonContainers(ms, out.a, out.b);
-    const layoutDirection = this.getAxisLayoutForContainers(c);
+    const c = this.getCommonContainer(out, ms);
+    const layoutDirection = this.getAxisLayoutForContainer(c);
     const lda = out.internalLinkA;
     const ldb = out.internalLinkB;
     this.checkForInternalContradictions(out, out.internalLinkA, out.internalLinkB, ms);
@@ -182,7 +181,10 @@ export abstract class AxisHandlingGroupingStrategy extends AbstractRuleBasedGrou
     // we may be able to establish a layout from one or more of the
     // containers that the groups are in.  Layout will be horizontal or vertical,
     // unless there is a contradiction.
-    if (out.layout == null) {
+    const layoutNeeded = c != null;
+    if (!layoutNeeded && out.layout == null) {
+      DirectedGroupAxis.getType(out).isLayoutRequired = false;
+    } else if (out.layout == null) {
       out.layout = layoutDirection;
     } else if (out.layout === Layout.UP || out.layout === Layout.DOWN) {
       if (layoutDirection === Layout.HORIZONTAL) {
@@ -197,30 +199,44 @@ export abstract class AxisHandlingGroupingStrategy extends AbstractRuleBasedGrou
     }
   }
 
-  private getAxisLayoutForContainers(cc: Set<Rectangular>): Layout | null {
-    if (cc.size === 0) return null;
+  private getAxisLayoutForContainer(c: Rectangular | null): Layout | null {
+    if (c == null) return null;
+    let layoutDirection = c.getLayout();
 
-    const layoutDirections = [...cc].map((c) => {
-      // sanitize to a single axis
-      const layoutDirection = c.getLayout();
+    // sanitize to a single axis
+    if (layoutDirection != null) {
       switch (layoutDirection) {
         case Layout.LEFT:
         case Layout.RIGHT:
-          return Layout.HORIZONTAL;
+          layoutDirection = Layout.HORIZONTAL;
+          break;
         case Layout.UP:
         case Layout.DOWN:
-          return Layout.VERTICAL;
-        default:
-          return layoutDirection;
+          layoutDirection = Layout.VERTICAL;
+          break;
       }
-    });
-
-    // ok, so we should have either nulls, horizontals or verticals only.
-    if (layoutDirections.includes(Layout.HORIZONTAL) && layoutDirections.includes(Layout.VERTICAL)) {
-      throw new LogicException("Two live containers with conflicting layouts - not handled yet");
     }
+    return layoutDirection;
+  }
 
-    return layoutDirections.find((it) => it != null) ?? null;
+  /**
+   * Attempts to find a container shared by both a and b, in which both a and b actually have contents.
+   */
+  private getCommonContainer(out: CompoundGroup, ms: BasicMergeState): Rectangular | null {
+    const a2cs = ms.getContainersFor(out.a)!;
+    const commonContainers = ms.getContainersFor(out.b)!;
+    let common: Rectangular | null = null;
+    for (const [container, value] of a2cs) {
+      if (value.hasContent() && ms.isContainerLive(container)) {
+        const bContained = commonContainers.get(container);
+        if (bContained != null && bContained.hasContent()) {
+          if (common?.getLayout() == null) {
+            common = container;
+          }
+        }
+      }
+    }
+    return common;
   }
 
   private writeGroup(g: CompoundGroup, mo: MergeOption): void {
@@ -347,19 +363,19 @@ export abstract class AxisHandlingGroupingStrategy extends AbstractRuleBasedGrou
   override createCompoundGroup(
     a: Group,
     b: Group,
-    treatAsComplete: boolean,
+    treatAsLeaf: boolean,
     mo: MergeOption | null,
     size: number = a.size + b.size,
   ): CompoundGroup {
     // this is done so that a different compound group containing the same leaves can
     // occupy the same position in a hashmap
-    const hashCode = !treatAsComplete
+    const hashCode = !treatAsLeaf
       ? (a.hashCode() + b.hashCode()) | 0
       : this.nextHashCode();
     const out = new DirectedCompoundGroup(
       a,
       b,
-      treatAsComplete,
+      treatAsLeaf,
       this.groupCount,
       size,
       hashCode,

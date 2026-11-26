@@ -14,10 +14,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run && playwright test",
+    "test": "vitest run && playwright test --project=display --project=layout",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:functional": "playwright test",
+    "test:functional": "playwright test --project=display --project=layout",
+    "test:display": "playwright test --project=display",
+    "test:layout": "playwright test --project=layout",
+    "test:thorough": "playwright test --project=thorough",
+    "test:performance": "playwright test --project=performance",
+    "test:functional:all": "playwright test",
     "test:results": "pnpm --filter @kite9/preview test:results"
   },
   "dependencies": {
