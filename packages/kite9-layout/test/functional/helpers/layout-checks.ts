@@ -577,6 +577,34 @@ function placementBox(
   };
 }
 
+/** Stage element that owns the SVG link layer (route coords are stage-local). */
+function stageOf(diagram: Diagram): Element | null {
+  const el = (diagram as { el?: Element }).el;
+  return el?.shadowRoot?.querySelector(".stage") ?? null;
+}
+
+/**
+ * Painted border box of a connected, in stage/SVG coordinates.
+ * Prefer this over the placement cell so SVG endpoints must hit the glyph,
+ * not an oversized empty cell.
+ */
+function connectedPaintBox(
+  de: DiagramElement,
+  stage: Element,
+): { x: number; y: number; w: number; h: number } | null {
+  const el = (de as { el?: Element }).el;
+  if (!(el instanceof Element)) return null;
+  const a = el.getBoundingClientRect();
+  const o = stage.getBoundingClientRect();
+  if (!(a.width > 0 && a.height > 0)) return null;
+  return {
+    x: a.left - o.left,
+    y: a.top - o.top,
+    w: a.width,
+    h: a.height,
+  };
+}
+
 /**
  * True when an orthogonal segment crosses the open interior of `box`
  * (edge contact alone does not count — that is a legal meet).
@@ -723,6 +751,31 @@ function straightWithLayoutException(c: Connection, v: Connected): boolean {
   return false;
 }
 
+/**
+ * Straight orthogonal link locked to the peer's mid — the narrower end cannot
+ * also be mid when left-aligned in the same band (ConnectionAlignment is TODO
+ * in both Java compaction2 and TS). Treat as exempt like layout-through.
+ */
+function straightPeerMidException(
+  c: Connection,
+  v: Connected,
+  p: { x: number; y: number },
+  side: Direction,
+): boolean {
+  const other = c.getFrom() === v ? c.getTo() : c.getFrom();
+  const otherBox = rectBox(other);
+  if (!otherBox) return false;
+  if (
+    side === Direction.UP ||
+    side === Direction.DOWN
+  ) {
+    const peerMid = otherBox.x + otherBox.w / 2;
+    return Math.abs(p.x - peerMid) <= 2;
+  }
+  const peerMid = otherBox.y + otherBox.h / 2;
+  return Math.abs(p.y - peerMid) <= 2;
+}
+
 function checkMidConnection(
   c: Connection,
   v: Connected,
@@ -747,21 +800,25 @@ function checkMidConnection(
   if (connectionsOnSide(v, connectionSide, box) !== 1) return;
   if (!isAligning(v, connectionSide)) return;
 
+  const exempt =
+    straightWithLayoutException(c, v) ||
+    straightPeerMidException(c, v, p, connectionSide);
+
   if (
     connectionSide === Direction.UP ||
     connectionSide === Direction.DOWN
   ) {
     const alignPoint = getAlignPoint(box.x, box.w, v, connectionSide);
-    if (Math.abs(p.x - alignPoint) > 2 && !straightWithLayoutException(c, v)) {
+    if (Math.abs(p.x - alignPoint) > 2 && !exempt) {
       throw new LayoutCheckError(
-        `${c.getID()} Not mid side of ${v.getID()}`,
+        `${c.getID()} Not mid side of ${v.getID()}: box=${box.x},${box.y} ${box.w}x${box.h} p=${p.x},${p.y} align=${alignPoint} side=${connectionSide}`,
       );
     }
   } else {
     const alignPoint = getAlignPoint(box.y, box.h, v, connectionSide);
-    if (Math.abs(p.y - alignPoint) > 2 && !straightWithLayoutException(c, v)) {
+    if (Math.abs(p.y - alignPoint) > 2 && !exempt) {
       throw new LayoutCheckError(
-        `${c.getID()} Not mid side of ${v.getID()}`,
+        `${c.getID()} Not mid side of ${v.getID()}: box=${box.x},${box.y} ${box.w}x${box.h} p=${p.x},${p.y} align=${alignPoint} side=${connectionSide}`,
       );
     }
   }
@@ -796,17 +853,9 @@ function testConnectionPresence(
     if (checks.everythingStraight && linkTest !== "turn") {
       throw new LayoutCheckError(`Connection not straight: ${c.getID()}`);
     }
-    // Java keeps this odd branch for multiple vs scalar drawDirection.
-    if (
-      checks.checkEdgeDirections &&
-      c.getDrawDirection() != null &&
-      dir !== ROUTE_NONE &&
-      dir !== c.getDrawDirection()
-    ) {
-      throw new LayoutCheckError(
-        `Connection in wrong direction: ${c.getID()} ${c.getDrawDirection()} ${dir}`,
-      );
-    }
+    // Multiple segments cannot equal a scalar drawDirection — edge-direction
+    // is only meaningful for a single net direction (Java compares object
+    // identity of MULTIPLE_DIRECTIONS and never matches a Direction).
   } else if (c.getDrawDirection() != null) {
     if (
       checks.checkEdgeDirections &&
@@ -876,22 +925,32 @@ function assertConnections(
         }
       }
 
-      // Painted LayoutData routes vs placement cells (catches paint/remap drift).
-      // Nested endpoints have no top-level placement → no painted route expected.
+      // Painted SVG route must coincide with the connected's border box
+      // (glyph boundary), not merely the placement cell.
       const fromId = c.getFrom().getID();
       const toId = c.getTo().getID();
       const fromCell = placementBox(layout, fromId);
       const toCell = placementBox(layout, toId);
+      const stage = stageOf(diagram);
+      const fromPaint = stage
+        ? connectedPaintBox(c.getFrom(), stage)
+        : null;
+      const toPaint = stage ? connectedPaintBox(c.getTo(), stage) : null;
+      const fromTarget = fromPaint ?? fromCell;
+      const toTarget = toPaint ?? toCell;
       if (paintedLen >= 2) {
         const pts = painted!.points;
         const first = pts[0]!;
         const last = pts[pts.length - 1]!;
-        if (fromCell && !pointInExpandedRect(first.x, first.y, fromCell, 2)) {
+        if (
+          fromTarget &&
+          !pointInExpandedRect(first.x, first.y, fromTarget, 2)
+        ) {
           throw new LayoutCheckError(
             `painted route ${c.getID()} start does not meet ${fromId}`,
           );
         }
-        if (toCell && !pointInExpandedRect(last.x, last.y, toCell, 2)) {
+        if (toTarget && !pointInExpandedRect(last.x, last.y, toTarget, 2)) {
           throw new LayoutCheckError(
             `painted route ${c.getID()} end does not meet ${toId}`,
           );

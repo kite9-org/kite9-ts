@@ -30,6 +30,10 @@ function asAdjustable(layout: LayoutSource): AdjustableLayout {
     : AdjustableLayout.from(layout);
 }
 
+function layoutDataSink(layout: LayoutSource): LayoutData | undefined {
+  return layout instanceof AdjustableLayout ? undefined : layout;
+}
+
 function pxTracks(sizes: readonly number[]): string {
   return sizes.map((n) => `${Math.round(n * 100) / 100}px`).join(" ");
 }
@@ -124,16 +128,20 @@ function placeSized(
 ): void {
   el.style.gridColumn = place.gridColumn;
   el.style.gridRow = place.gridRow;
-  // Only force box size when LayoutData carries authored CSS size.
+  // Fill the content cell so the painted border box == cell == route terminal
+  // (Java: terminals sit on rect-edge slideables; CSS margin is layout-only and
+  // already encoded in gutters — clear it for paint).
+  el.style.margin = "0";
+  el.style.justifySelf = "stretch";
+  el.style.alignSelf = "stretch";
+  el.style.boxSizing = "border-box";
   if (size) {
     el.style.width = `${size.w}px`;
     el.style.height = `${size.h}px`;
   } else {
-    el.style.width = "";
-    el.style.height = "";
+    el.style.width = "100%";
+    el.style.height = "100%";
   }
-  // Alignment / margins are owned by style commands (e.g. Margins OK), not here.
-  el.style.boxSizing = "border-box";
   // Do not clamp with maxWidth/maxHeight — nested hosts must be able to grow
   // past a parent cell; tracks / ancestor placements absorb the overflow.
   el.style.maxWidth = "";
@@ -196,6 +204,95 @@ function decorationStyle(linkEl: Element, tag: string): string {
     (c) => c.localName.toLowerCase() === tag.toLowerCase(),
   );
   return (el?.textContent ?? "").replace(/\s+/g, " ").trim() || "NONE";
+}
+
+type StageBox = { x: number; y: number; w: number; h: number };
+
+function stageBox(el: Element, stage: Element): StageBox {
+  const a = el.getBoundingClientRect();
+  const o = stage.getBoundingClientRect();
+  return {
+    x: a.left - o.left,
+    y: a.top - o.top,
+    w: a.width,
+    h: a.height,
+  };
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, n));
+}
+
+/**
+ * Project a route terminal onto the connected's border box.
+ * Side is chosen by the first/last segment direction (glyph → buffer/gutter);
+ * the along-edge coordinate is kept from `p` (Java rect-edge slideable).
+ */
+function projectOntoBorder(
+  p: { x: number; y: number },
+  toward: { x: number; y: number },
+  box: StageBox,
+): { x: number; y: number } {
+  const dx = toward.x - p.x;
+  const dy = toward.y - p.y;
+  if (Math.abs(dy) >= Math.abs(dx)) {
+    const y = dy < 0 ? box.y : box.y + box.h;
+    return { x: clamp(p.x, box.x, box.x + box.w), y };
+  }
+  const x = dx < 0 ? box.x : box.x + box.w;
+  return { x, y: clamp(p.y, box.y, box.y + box.h) };
+}
+
+function linkEndRef(linkEl: Element, end: "from" | "to"): string | null {
+  const child = Array.from(linkEl.children).find(
+    (c) => c.localName.toLowerCase() === end,
+  );
+  return child?.getAttribute("reference") ?? null;
+}
+
+/**
+ * Snap route terminals onto painted connected borders (Java: terminals on
+ * rect-edge slideables). Writes back into `adj.routes` and optional `sink`.
+ */
+function attachRoutesToConnectedBorders(
+  diagram: Element,
+  stage: Element,
+  adj: AdjustableLayout,
+  sink?: LayoutData,
+): void {
+  for (const [id, route] of Object.entries(adj.routes)) {
+    const pts = route.points;
+    if (!pts || pts.length < 2) continue;
+    const linkEl = diagram.querySelector(`#${CSS.escape(id)}`);
+    if (!linkEl) continue;
+    const fromId = linkEndRef(linkEl, "from");
+    const toId = linkEndRef(linkEl, "to");
+    const fromEl = fromId
+      ? (diagram.querySelector(`#${CSS.escape(fromId)}`) as HTMLElement | null)
+      : null;
+    const toEl = toId
+      ? (diagram.querySelector(`#${CSS.escape(toId)}`) as HTMLElement | null)
+      : null;
+    const next = pts.map((p) => ({ ...p }));
+    if (fromEl && fromEl.getBoundingClientRect().width > 0) {
+      next[0] = projectOntoBorder(
+        next[0]!,
+        next[1]!,
+        stageBox(fromEl, stage),
+      );
+    }
+    if (toEl && toEl.getBoundingClientRect().width > 0) {
+      const last = next.length - 1;
+      next[last] = projectOntoBorder(
+        next[last]!,
+        next[last - 1]!,
+        stageBox(toEl, stage),
+      );
+    }
+    const updated = { ...route, points: next };
+    adj.routes[id] = updated;
+    if (sink) sink.routes[id] = updated;
+  }
 }
 
 function labelEndForId(linkEl: Element, labelId: string): End {
@@ -270,6 +367,15 @@ export function applyLayout(
       placeOnAnchor(el, placement, diagram);
     }
   }
+
+  // Attach terminals to painted glyph borders (cell may differ by subpixels;
+  // Java keeps terminals on rect-edge slideables / RI box edges).
+  attachRoutesToConnectedBorders(
+    diagram,
+    stage,
+    adj,
+    layoutDataSink(layout),
+  );
 
   linksSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   linksSvg.style.width = "100%";

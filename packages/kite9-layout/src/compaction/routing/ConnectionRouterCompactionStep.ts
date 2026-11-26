@@ -116,13 +116,21 @@ export class ConnectionRouterCompactionStep extends AbstractBuilderCompactionSte
       this.allowed(arriving, drawDirection, side)
         ? [...c2.getLocationsOn(edge)]
             .filter((it) => it.getIntersectingElements().has(d))
-            .map((it) => new RoutePoint(it, edge, arriving ? arrivingDir : leavingDir))
+            .map(
+              (it) =>
+                new RoutePoint(it, edge, arriving ? arrivingDir : leavingDir),
+            )
         : [];
 
     const up = pointsOn(Direction.UP, vss.l, Direction.DOWN, Direction.UP);
     const down = pointsOn(Direction.DOWN, vss.r, Direction.UP, Direction.DOWN);
     const left = pointsOn(Direction.LEFT, hss.l, Direction.RIGHT, Direction.LEFT);
-    const right = pointsOn(Direction.RIGHT, hss.r, Direction.LEFT, Direction.RIGHT);
+    const right = pointsOn(
+      Direction.RIGHT,
+      hss.r,
+      Direction.LEFT,
+      Direction.RIGHT,
+    );
 
     return pointSet([...up, ...down, ...left, ...right]);
   }
