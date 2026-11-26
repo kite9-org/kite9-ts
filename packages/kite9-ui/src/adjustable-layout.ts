@@ -9,13 +9,10 @@ import type {
   Size,
 } from "@kite9/model";
 
-type CellPlacement = Extract<
-  LayoutPlacement,
-  { col: number; row: number; size: Size }
->;
+type CellPlacement = Extract<LayoutPlacement, { col: number; row: number }>;
 
 function isCellPlacement(p: LayoutPlacement): p is CellPlacement {
-  return "col" in p && "row" in p && "size" in p;
+  return "col" in p && "row" in p;
 }
 
 function colSpan(p: CellPlacement): { start: number; end: number; count: number } {
@@ -92,12 +89,13 @@ export class AdjustableLayout {
   }
 
   /** Content size plus margins — track occupancy for a cell placement. */
-  static occupiedSize(p: { size: Size; margin?: BoxInsets }): Size {
+  static occupiedSize(p: { size?: Size; margin?: BoxInsets }): Size {
+    const s = p.size ?? { w: 0, h: 0 };
     const m = p.margin;
-    if (!m) return { w: p.size.w, h: p.size.h };
+    if (!m) return { w: s.w, h: s.h };
     return {
-      w: p.size.w + m.left + m.right,
-      h: p.size.h + m.top + m.bottom,
+      w: s.w + m.left + m.right,
+      h: s.h + m.top + m.bottom,
     };
   }
 
@@ -146,11 +144,12 @@ export class AdjustableLayout {
   growToFit(id: string, min: Size): boolean {
     const placement = this.placements[id];
     if (!placement || !isCellPlacement(placement)) return false;
+    const cur = placement.size ?? { w: 0, h: 0 };
     const next = {
-      w: Math.max(placement.size.w, min.w),
-      h: Math.max(placement.size.h, min.h),
+      w: Math.max(cur.w, min.w),
+      h: Math.max(cur.h, min.h),
     };
-    if (next.w === placement.size.w && next.h === placement.size.h) return true;
+    if (placement.size && next.w === cur.w && next.h === cur.h) return true;
     return this.resizeElement(id, next);
   }
 
@@ -165,7 +164,7 @@ export class AdjustableLayout {
   private maxWidthInContentCol(col: number): number {
     let max = this.grid.minCol;
     for (const p of Object.values(this.placements)) {
-      if (!isCellPlacement(p)) continue;
+      if (!isCellPlacement(p) || !p.size) continue;
       const cs = colSpan(p);
       if (cs.count === 1 && cs.start === col) {
         max = Math.max(max, AdjustableLayout.occupiedSize(p).w);
@@ -177,7 +176,7 @@ export class AdjustableLayout {
   private maxHeightInContentRow(row: number): number {
     let max = this.grid.minRow;
     for (const p of Object.values(this.placements)) {
-      if (!isCellPlacement(p)) continue;
+      if (!isCellPlacement(p) || !p.size) continue;
       const rs = rowSpan(p);
       if (rs.count === 1 && rs.start === row) {
         max = Math.max(max, AdjustableLayout.occupiedSize(p).h);
@@ -189,8 +188,11 @@ export class AdjustableLayout {
   /**
    * Update tracks spanned by a cell placement from current placement sizes.
    * Preserves gutter / outer pad tracks already in `colSizes` / `rowSizes`.
+   * Content-sized placements (no `size`) leave measured tracks alone.
    */
   private recomputeTracksForPlacement(placement: CellPlacement): void {
+    if (!placement.size) return;
+
     const { grid } = this;
     const cs = colSpan(placement);
     const rs = rowSpan(placement);

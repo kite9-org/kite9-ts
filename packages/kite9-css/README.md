@@ -8,7 +8,7 @@ CSS vocabulary and bridge for Kite9 diagrams. **No package dependencies** — `@
 - Lowercase kebab-case enum wire format
 - Type resolution via `getComputedStyle` (normal cascade — **no style copying**)
 
-Light-DOM hosts use the **browser box model** for size and spacing. Prefer standard `width` / `height` / `margin-*` (edited via `@kite9/command` `ReplaceStyle`). Custom `--kite9-margin-*` props are **not** part of this model.
+Light-DOM hosts use the **browser box model** for size and spacing. 
 
 ## Type resolution
 
@@ -50,11 +50,6 @@ Registered by `kite9PropertyDefs()` / `registerKite9Properties()`. Soft-skipped 
 
 | Property | Syntax | Initial | Inherits | Role |
 | --- | --- | --- | --- | --- |
-| `--kite9-padding` | `<length>` | `0px` | no | Container chrome padding (shorthand) |
-| `--kite9-padding-top` | `<length> \| none` | `none` | no | |
-| `--kite9-padding-right` | `<length> \| none` | `none` | no | |
-| `--kite9-padding-bottom` | `<length> \| none` | `none` | no | |
-| `--kite9-padding-left` | `<length> \| none` | `none` | no | |
 | `--kite9-type` | enum + `none` | `none` | no | Diagram element kind |
 | `--kite9-usage` | enum | `regular` | no | Rectangular usage |
 | `--kite9-layout` | enum + `none` | `none` | no | Container layout mode |
@@ -107,8 +102,13 @@ Used directly on light-DOM hosts — **not** registered as custom properties. Ed
 | `margin-right` | |
 | `margin-bottom` | |
 | `margin-left` | |
+| `padding` | Shorthand spacing inside the content box |
+| `padding-top` | Container inset for compaction / chrome |
+| `padding-right` | |
+| `padding-bottom` | |
+| `padding-left` | |
 | `justify-self` | Grid-cell alignment (`start` when margins are asymmetric) |
 | `align-self` | Grid-cell alignment |
 | `text-align` | Text alignment inside labels / bodies |
 
-Occupancy in `AdjustableLayout` is content `width`/`height` plus `margin-*`. Templates and `applyLayout` do not invent a parallel margin vocabulary.
+Occupancy in `AdjustableLayout` is content `width`/`height` plus `margin-*`. Templates and `applyLayout` do not invent a parallel margin/padding vocabulary.

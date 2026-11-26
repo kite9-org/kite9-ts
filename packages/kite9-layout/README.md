@@ -19,4 +19,4 @@ pnpm --filter @kite9/layout test:functional           # Chromium layout + expect
 pnpm --filter @kite9/layout test:results              # browse outputs/
 ```
 
-Functional specs (`*.spec.tsx`) call `checkLayout(name, jsx)` and compare against `expected/<name>.json`. Changing the diagram or label will fail until you update that file (copy from the written `outputs/.../*-layout.json`). Artifacts land under `outputs/`; each `*.html` viewer applies the sibling `*-layout.json`.
+Functional specs (`*.spec.tsx`) call `checkLayout(name, jsx)` which runs layout in Chromium, applies `LayoutChecks` (Java `TestingEngine` / `AbstractLayoutFunctionalTest` defaults), then compares against `expected/<name>.json`. Override flags via `checkLayout(name, jsx, { checks: { … } })`. Changing the diagram or label will fail until you update that expected file (copy from `outputs/.../*-layout.json`). Artifacts land under `outputs/`; each `*.html` viewer applies the sibling `*-layout.json`.

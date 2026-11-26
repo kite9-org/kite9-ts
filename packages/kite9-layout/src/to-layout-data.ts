@@ -47,6 +47,38 @@ function positionOf(r: Rectangular): { x: number; y: number } {
   return { x: p.x(), y: p.y() };
 }
 
+function hostOf(r: Rectangular): HTMLElement | null {
+  const e = r as { el?: unknown; host?: unknown };
+  const h = e.el ?? e.host;
+  return h instanceof HTMLElement ? h : null;
+}
+
+/** Parse an authored (non-`auto`) length; percentages resolve via used style. */
+function authoredCssPx(el: HTMLElement, prop: "width" | "height"): number | undefined {
+  const specified = el.style.getPropertyValue(prop).trim();
+  if (!specified || specified === "auto") return undefined;
+  if (specified.endsWith("px")) {
+    const n = parseFloat(specified);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  const used = parseFloat(getComputedStyle(el).getPropertyValue(prop));
+  return Number.isFinite(used) ? used : undefined;
+}
+
+/**
+ * Placement `size` only when the host authors CSS `width`/`height`.
+ * Content-sized (minimize) elements omit it — track sizes carry the measure.
+ */
+function authoredCssSize(r: Rectangular): Size | undefined {
+  const host = hostOf(r);
+  if (!host) return undefined;
+  const w = authoredCssPx(host, "width");
+  const h = authoredCssPx(host, "height");
+  if (w === undefined && h === undefined) return undefined;
+  const measured = sizeOf(r);
+  return { w: w ?? measured.w, h: h ?? measured.h };
+}
+
 /**
  * Build {@link LayoutData} from post-compaction rendering information.
  * Single-glyph / simple scenes map to a 1×N or N×1 content grid with outer pads
@@ -102,10 +134,11 @@ export function toLayoutData(diagram: Diagram): LayoutData {
       const sz = sizeOf(leaf);
       contentColSizes.push(Math.max(DEFAULT_MIN, sz.w));
       maxH = Math.max(maxH, sz.h);
+      const cssSize = authoredCssSize(leaf);
       placements[leaf.getID()] = {
         col: i + 1,
         row: 1,
-        size: { w: sz.w, h: sz.h },
+        ...(cssSize ? { size: cssSize } : {}),
       };
     }
     contentRowSizes.push(maxH);
@@ -116,10 +149,11 @@ export function toLayoutData(diagram: Diagram): LayoutData {
       const sz = sizeOf(leaf);
       contentRowSizes.push(Math.max(DEFAULT_MIN, sz.h));
       maxW = Math.max(maxW, sz.w);
+      const cssSize = authoredCssSize(leaf);
       placements[leaf.getID()] = {
         col: 1,
         row: i + 1,
-        size: { w: sz.w, h: sz.h },
+        ...(cssSize ? { size: cssSize } : {}),
       };
     }
     contentColSizes.push(maxW);

@@ -284,32 +284,18 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
     }
   }
 
-  /** CSS padding / `--kite9-padding-*` on the host (px). */
+  /** CSS padding on the light-DOM host (px). */
   getPadding(d: Direction): number {
-    const el = this.el as HTMLElement;
-    const cs = getComputedStyle(el);
-    const custom = (name: string) => {
-      const v = el.style.getPropertyValue(name) || cs.getPropertyValue(name);
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : NaN;
-    };
+    const cs = getComputedStyle(this.el as Element);
     switch (d) {
-      case Direction.UP: {
-        const c = custom("--kite9-padding-top");
-        return Number.isFinite(c) ? c : parseFloat(cs.paddingTop) || 0;
-      }
-      case Direction.DOWN: {
-        const c = custom("--kite9-padding-bottom");
-        return Number.isFinite(c) ? c : parseFloat(cs.paddingBottom) || 0;
-      }
-      case Direction.LEFT: {
-        const c = custom("--kite9-padding-left");
-        return Number.isFinite(c) ? c : parseFloat(cs.paddingLeft) || 0;
-      }
-      case Direction.RIGHT: {
-        const c = custom("--kite9-padding-right");
-        return Number.isFinite(c) ? c : parseFloat(cs.paddingRight) || 0;
-      }
+      case Direction.UP:
+        return parseFloat(cs.paddingTop) || 0;
+      case Direction.DOWN:
+        return parseFloat(cs.paddingBottom) || 0;
+      case Direction.LEFT:
+        return parseFloat(cs.paddingLeft) || 0;
+      case Direction.RIGHT:
+        return parseFloat(cs.paddingRight) || 0;
     }
   }
 

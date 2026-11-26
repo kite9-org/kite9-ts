@@ -4,18 +4,29 @@ import type { LayoutData } from "@kite9/model";
 import { createDiagram } from "@kite9/templating";
 import { applyLayout, testTemplatePack } from "@kite9/test-template";
 import { DomElementSizer, layout } from "@kite9/layout";
+import {
+  defaultLayoutChecks,
+  testDiagram,
+  type LayoutChecks,
+} from "./helpers/layout-checks.js";
 
 declare global {
   interface Window {
     __kite9Ready?: boolean;
-    __runFunctionalLayout?: (html: string) => LayoutData;
+    __runFunctionalLayout?: (
+      html: string,
+      checks?: Partial<LayoutChecks>,
+    ) => LayoutData;
   }
 }
 
 const mount = document.getElementById("mount");
 if (!mount) throw new Error("No #mount");
 
-window.__runFunctionalLayout = (html: string): LayoutData => {
+window.__runFunctionalLayout = (
+  html: string,
+  checks?: Partial<LayoutChecks>,
+): LayoutData => {
   mount.replaceChildren();
   mount.innerHTML = html;
   const root = mount.querySelector("kite9-diagram");
@@ -24,6 +35,12 @@ window.__runFunctionalLayout = (html: string): LayoutData => {
   const diagram = createDiagram(root, testTemplatePack);
   const result = layout(diagram, new DomElementSizer());
   applyLayout(root, result.layout, testTemplatePack);
+
+  testDiagram(diagram, result.layout, {
+    ...defaultLayoutChecks(),
+    ...checks,
+  });
+
   return result.layout;
 };
 

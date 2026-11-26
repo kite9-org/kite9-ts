@@ -22,12 +22,16 @@ export type LayoutPlacement =
       row: number;
       colEnd?: number;
       rowEnd?: number;
-      size: Size;
+      /**
+       * Only when the element authors CSS `width` / `height` (not content-sized).
+       * Track sizes live on {@link GridLayout}; omit for minimize/auto boxes.
+       */
+      size?: Size;
       /** Outside content `size`; included in track occupancy. */
       margin?: BoxInsets;
     }
   /** Port/socket on the start/end of a content row (`LEFT`/`RIGHT`) or column (`UP`/`DOWN`). `along` is 1-based. */
-  | { edge: Direction; along: number; size: Size }
+  | { edge: Direction; along: number; size?: Size }
   | { anchor: string; side: Direction };
 
 export type RouteLayout = {

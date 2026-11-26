@@ -50,14 +50,20 @@ function contentGridPlacement(p: {
 
 function hasCell(
   p: LayoutPlacement,
-): p is { col: number; row: number; colEnd?: number; rowEnd?: number; size: Size } {
-  return "col" in p && "row" in p && "size" in p;
+): p is {
+  col: number;
+  row: number;
+  colEnd?: number;
+  rowEnd?: number;
+  size?: Size;
+} {
+  return "col" in p && "row" in p;
 }
 
 function hasEdge(
   p: LayoutPlacement,
-): p is { edge: Direction; along: number; size: Size } {
-  return "edge" in p && "along" in p && "size" in p;
+): p is { edge: Direction; along: number; size?: Size } {
+  return "edge" in p && "along" in p;
 }
 
 function hasAnchor(
@@ -205,12 +211,18 @@ export function syncLinkRoutesFromDom(
 function placeSized(
   el: HTMLElement,
   place: { gridColumn: string; gridRow: string },
-  size: Size,
+  size?: Size,
 ): void {
   el.style.gridColumn = place.gridColumn;
   el.style.gridRow = place.gridRow;
-  el.style.width = `${size.w}px`;
-  el.style.height = `${size.h}px`;
+  // Only force box size when LayoutData carries authored CSS size.
+  if (size) {
+    el.style.width = `${size.w}px`;
+    el.style.height = `${size.h}px`;
+  } else {
+    el.style.width = "";
+    el.style.height = "";
+  }
   // Alignment / margins are owned by style commands (e.g. Margins OK), not here.
   el.style.boxSizing = "border-box";
   // Do not clamp with maxWidth/maxHeight — nested hosts must be able to grow

@@ -7,6 +7,10 @@ import type { LayoutData } from "@kite9/model";
 import { expect, test, type Page } from "@playwright/test";
 import { Window } from "happy-dom";
 import { render, type ComponentChild } from "preact";
+import {
+  defaultLayoutChecks,
+  type LayoutChecks,
+} from "./layout-checks.js";
 import { writeTestResult } from "./test-result.js";
 import { outputsDir, writeLayoutArtifacts } from "./write-artifacts.js";
 
@@ -16,12 +20,17 @@ const EXPECTED_DIR = path.resolve(HELPERS_DIR, "../expected");
 export type CheckLayoutOptions = {
   /** Override suite folder under `outputs/` (default: calling `*.spec.tsx` basename). */
   suite?: string;
+  /** Override {@link LayoutChecks} defaults from AbstractLayoutFunctionalTest. */
+  checks?: Partial<LayoutChecks>;
 };
 
 declare global {
   interface Window {
     __kite9Ready?: boolean;
-    __runFunctionalLayout?: (html: string) => LayoutData;
+    __runFunctionalLayout?: (
+      html: string,
+      checks?: Partial<LayoutChecks>,
+    ) => LayoutData;
   }
 }
 
@@ -67,19 +76,27 @@ function loadExpected(file: string): LayoutData {
   return JSON.parse(readFileSync(full, "utf8")) as LayoutData;
 }
 
-async function runInBrowser(page: Page, inputHtml: string): Promise<LayoutData> {
+async function runInBrowser(
+  page: Page,
+  inputHtml: string,
+  checks: Partial<LayoutChecks>,
+): Promise<LayoutData> {
   await page.goto("/functional");
   await page.waitForFunction(() => window.__kite9Ready === true);
-  return page.evaluate((html) => {
-    const run = window.__runFunctionalLayout;
-    if (!run) throw new Error("__runFunctionalLayout missing — boot failed");
-    return run(html);
-  }, inputHtml);
+  return page.evaluate(
+    ({ html, checks: c }) => {
+      const run = window.__runFunctionalLayout;
+      if (!run) throw new Error("__runFunctionalLayout missing — boot failed");
+      return run(html, c);
+    },
+    { html: inputHtml, checks },
+  );
 }
 
 /**
- * Register a Playwright `test` that lays out `diagram` in Chromium, writes
- * artifacts under `outputs/`, and asserts against `expected/<name>.json`.
+ * Register a Playwright `test` that lays out `diagram` in Chromium, runs
+ * {@link LayoutChecks}, writes artifacts under `outputs/`, and asserts against
+ * `expected/<name>.json`.
  */
 export function checkLayout(
   name: string,
@@ -87,12 +104,13 @@ export function checkLayout(
   options: CheckLayoutOptions = {},
 ): void {
   const suite = options.suite ?? suiteFromCaller();
+  const checks = { ...defaultLayoutChecks(), ...options.checks };
 
   test(name, async ({ page }) => {
     let dir: string | undefined;
     try {
       const inputHtml = htmlFromJsx(diagram);
-      const layoutData = await runInBrowser(page, inputHtml);
+      const layoutData = await runInBrowser(page, inputHtml, checks);
       dir = writeLayoutArtifacts(suite, name, inputHtml, layoutData);
 
       await page.locator("#mount").screenshot({
