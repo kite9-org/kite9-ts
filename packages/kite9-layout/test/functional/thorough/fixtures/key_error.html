@@ -1,0 +1,33 @@
+<kite9-diagram id="9" name="Some bobbins Name">
+  <kite9-container id="id_16" layout="RIGHT" bordered="true">
+    <label id="id_17">
+      <text>Left-To-Right
+Container</text>
+    </label>
+  </kite9-container>
+  <kite9-arrow id="id_8" label="New Connection Body"></kite9-arrow>
+  <kite9-glyph id="id_20" shape="umlACTOR" label="Actor"></kite9-glyph>
+  <kite9-glyph id="id_11" shape="umlCOMPONENT" label="New Part c"></kite9-glyph>
+  <kite9-link id="id_24" shape="NORMAL">
+    <from reference="id_16"></from>
+    <to reference="id_11"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="id_21" shape="NORMAL" drawDirection="DOWN">
+    <from reference="id_8"></from>
+    <to reference="id_20"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>DIAMOND OPEN</todecoration>
+  </kite9-link>
+  <kite9-link id="id_25" shape="NORMAL">
+    <from reference="id_11"></from>
+    <to reference="id_8"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>DIAMOND OPEN</todecoration>
+  </kite9-link>
+  <kite9-link id="id_23" shape="INVISIBLE" drawDirection="DOWN">
+    <from reference="id_20"></from>
+    <to reference="id_11"></to>
+  </kite9-link>
+</kite9-diagram>

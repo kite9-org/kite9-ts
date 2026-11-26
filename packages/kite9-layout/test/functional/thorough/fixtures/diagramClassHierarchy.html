@@ -1,0 +1,784 @@
+<kite9-diagram id="project_java_class:org.kite9.diagram.Diagrams/diagramClassHierarchy()">
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.LinkBody" stereotype="class" label="Arrow"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Context" stereotype="class" label="Context"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Diagram" stereotype="class" label="Diagram"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Glyph" stereotype="class" label="Glyph"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Key" stereotype="class" label="Key"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.KeyHelper" stereotype="class" label="KeyHelper"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey" stereotype="class" label="UsedKey"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Link" stereotype="class" label="Link"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.LinkEndStyle" stereotype="enum" label="LinkEndStyle"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.LinkLineStyle" stereotype="enum" label="LinkLineStyle"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Symbol" stereotype="class" label="Symbol"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape" stereotype="enum" label="SymbolShape"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.adl.TextLine" stereotype="class" label="TextLine"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional" stereotype="class" label="AbstractBiDirectional"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained" stereotype="class" label="AbstractConnectedContained"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer" stereotype="class" label="AbstractConnectedContainer"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractConnection" stereotype="class" label="AbstractConnection"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement" stereotype="class" label="AbstractIdentifiableDiagramElement"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.AbstractLabel" stereotype="class" label="AbstractLabel"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.BiDirectional" stereotype="interface" label="BiDirectional"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement" stereotype="interface" label="CompositionalDiagramElement"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Connected" stereotype="interface" label="Connected"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Connection" stereotype="interface" label="Connection"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Contained" stereotype="interface" label="Contained"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Container" stereotype="interface" label="Container"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.DiagramElement" stereotype="interface" label="DiagramElement"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement" stereotype="interface" label="IdentifiableDiagramElement"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Label" stereotype="interface" label="Label"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.Leaf" stereotype="interface" label="Leaf"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement" stereotype="interface" label="PositionableDiagramElement"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.SymbolTarget" stereotype="interface" label="SymbolTarget"></kite9-glyph>
+  <kite9-glyph id="project_java_class:org.kite9.diagram.primitives.VertexOnEdge" stereotype="interface" label="VertexOnEdge"></kite9-glyph>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Context/container/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Diagram/allLinks/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Glyph/text/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Glyph/symbols/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Key/symbols/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.KeyHelper/used/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey/shape/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Link/style/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Link/fromDecoration/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Link/toDecoration/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkEndStyle/ARROW/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkEndStyle/NONE/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkEndStyle/$VALUES/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkLineStyle/DOTTED/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkLineStyle/INVISIBLE/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkLineStyle/NORMAL/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.LinkLineStyle/$VALUES/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol/shape/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/HEXAGON/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/CIRCLE/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/DIAMOND/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/$VALUES/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.TextLine/symbols/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/links/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/c/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/contents/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/label/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnection/fromLabel/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnection/toLabel/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Arrow/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Glyph/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Key/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Symbol/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.TextLine/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractLabel/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Connected/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Connection/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Contained/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Container/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Label/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.Leaf/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Arrow/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Context/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Diagram/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Glyph/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Key/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.Link/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.adl.TextLine/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_extends" label="extends"></kite9-arrow>
+  <kite9-arrow id="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_extends" label="extends"></kite9-arrow>
+  <kite9-link id="auto:58" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkBody"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Arrow/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:104" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkBody"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Arrow/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:0">
+    <from reference="project_java_class:org.kite9.diagram.adl.Context"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Context/container/rel_is a"></to>
+    <kite9-from-label>
+      <text>container</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:106" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Context"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Context/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:2">
+    <from reference="project_java_class:org.kite9.diagram.adl.Diagram"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Diagram/allLinks/rel_is a"></to>
+    <kite9-from-label>
+      <text>allLinks</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:108" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Diagram"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Diagram/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:4">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Glyph/text/rel_is a"></to>
+    <kite9-from-label>
+      <text>text</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:6">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Glyph/symbols/rel_is a"></to>
+    <kite9-from-label>
+      <text>symbols</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:61" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Glyph/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:110" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Glyph/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:8">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Key/symbols/rel_is a"></to>
+    <kite9-from-label>
+      <text>symbols</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:64" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Key/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:112" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Key/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:10">
+    <from reference="project_java_class:org.kite9.diagram.adl.KeyHelper"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.KeyHelper/used/rel_is a"></to>
+    <kite9-from-label>
+      <text>used</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:11">
+    <from reference="project_java_class:org.kite9.diagram.adl.KeyHelper/used/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey"></to>
+    <kite9-to-label>
+      <text>Set of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:12">
+    <from reference="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey/shape/rel_is a"></to>
+    <kite9-from-label>
+      <text>shape</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:14">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Link/style/rel_is a"></to>
+    <kite9-from-label>
+      <text>style</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:16">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Link/fromDecoration/rel_is a"></to>
+    <kite9-from-label>
+      <text>fromDecoration</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:18">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Link/toDecoration/rel_is a"></to>
+    <kite9-from-label>
+      <text>toDecoration</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:114" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Link/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:17">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link/fromDecoration/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:19">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link/toDecoration/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:20">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/ARROW/rel_is a"></to>
+    <kite9-from-label>
+      <text>ARROW</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:21">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/ARROW/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:22">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/NONE/rel_is a"></to>
+    <kite9-from-label>
+      <text>NONE</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:23">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/NONE/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:24">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/$VALUES/rel_is a"></to>
+    <kite9-from-label>
+      <text>$VALUES</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:25">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle/$VALUES/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkEndStyle"></to>
+    <kite9-to-label>
+      <text>array of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:15">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link/style/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:26">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/DOTTED/rel_is a"></to>
+    <kite9-from-label>
+      <text>DOTTED</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:27">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/DOTTED/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:28">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/INVISIBLE/rel_is a"></to>
+    <kite9-from-label>
+      <text>INVISIBLE</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:29">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/INVISIBLE/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:30">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/NORMAL/rel_is a"></to>
+    <kite9-from-label>
+      <text>NORMAL</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:31">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/NORMAL/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:32">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/$VALUES/rel_is a"></to>
+    <kite9-from-label>
+      <text>$VALUES</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:33">
+    <from reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle/$VALUES/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.LinkLineStyle"></to>
+    <kite9-to-label>
+      <text>array of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:7">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph/symbols/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:9">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key/symbols/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:34">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol/shape/rel_is a"></to>
+    <kite9-from-label>
+      <text>shape</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:45">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine/symbols/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:66" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:13">
+    <from reference="project_java_class:org.kite9.diagram.adl.KeyHelper.UsedKey/shape/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:35">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol/shape/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:36">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/HEXAGON/rel_is a"></to>
+    <kite9-from-label>
+      <text>HEXAGON</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:37">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/HEXAGON/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:38">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/CIRCLE/rel_is a"></to>
+    <kite9-from-label>
+      <text>CIRCLE</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:39">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/CIRCLE/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:40">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/DIAMOND/rel_is a"></to>
+    <kite9-from-label>
+      <text>DIAMOND</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:41">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/DIAMOND/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:42">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/$VALUES/rel_is a"></to>
+    <kite9-from-label>
+      <text>$VALUES</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:43">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape/$VALUES/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.Symbol.SymbolShape"></to>
+    <kite9-to-label>
+      <text>array of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:5">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph/text/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.TextLine"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:44">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.TextLine/symbols/rel_is a"></to>
+    <kite9-from-label>
+      <text>symbols</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:68" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.TextLine/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:116" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine"></from>
+    <to reference="project_java_class:org.kite9.diagram.adl.TextLine/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:71" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:118" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:125" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:46">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/links/rel_is a"></to>
+    <kite9-from-label>
+      <text>links</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:48">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/c/rel_is a"></to>
+    <kite9-from-label>
+      <text>c</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:73" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:105" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Arrow/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:111" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:120" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:123" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:50">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/contents/rel_is a"></to>
+    <kite9-from-label>
+      <text>contents</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:52">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/label/rel_is a"></to>
+    <kite9-from-label>
+      <text>label</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:76" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:107" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Context/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:109" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Diagram/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:122" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:54">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/fromLabel/rel_is a"></to>
+    <kite9-from-label>
+      <text>fromLabel</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:56">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/toLabel/rel_is a"></to>
+    <kite9-from-label>
+      <text>toLabel</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:78" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:115" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Link/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:124" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:80" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:119" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:121" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:82" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractLabel"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractLabel/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:113" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractLabel"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:117" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine/rel_extends"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.AbstractLabel"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:72" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractBiDirectional/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.BiDirectional"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:90" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Connection/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.BiDirectional"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:67" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Symbol/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:84" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:99" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Label/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:74" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connected"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:86" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Connected"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connected/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:95" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Container/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connected"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:3">
+    <from reference="project_java_class:org.kite9.diagram.adl.Diagram/allLinks/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connection"></to>
+    <kite9-to-label>
+      <text>LinkedHashSet of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:47">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/links/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connection"></to>
+    <kite9-to-label>
+      <text>LinkedHashSet of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:79" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connection"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:88" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Connection"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Connection/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:51">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/contents/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Contained"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:75" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Contained"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:91" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Contained"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Contained/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:1">
+    <from reference="project_java_class:org.kite9.diagram.adl.Context/container/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Container"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:49">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContained/c/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Container"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:77" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Container"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:93" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Container"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Container/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:83" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractLabel/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.DiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:103" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.DiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:81" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractIdentifiableDiagramElement/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:87" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Connected/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:92" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Contained/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:94" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Container/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:96" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:101" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Leaf/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:53">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnectedContainer/label/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:55">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/fromLabel/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:57">
+    <from reference="project_java_class:org.kite9.diagram.primitives.AbstractConnection/toLabel/rel_is a"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:65" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Key/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:69" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:98" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Label"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Label/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:60" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Arrow/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Leaf"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:62" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Leaf"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:100" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Leaf"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.Leaf/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:85" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.CompositionalDiagramElement/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:89" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.Connection/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:97" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.IdentifiableDiagramElement/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:102" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.PositionableDiagramElement/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:63" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Glyph/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.SymbolTarget"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:70" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.TextLine/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.SymbolTarget"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:59" drawDirection="UP">
+    <from reference="project_java_class:org.kite9.diagram.adl.Arrow/rel_implements"></from>
+    <to reference="project_java_class:org.kite9.diagram.primitives.VertexOnEdge"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+</kite9-diagram>

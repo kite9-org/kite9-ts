@@ -175,10 +175,15 @@ function moveLength(m: Move): number {
 }
 
 function moveDirection(m: Move): Direction {
-  if (m.xe > m.xs) return Direction.RIGHT;
-  if (m.xe < m.xs) return Direction.LEFT;
-  if (m.ye > m.ys) return Direction.DOWN;
-  if (m.ye < m.ys) return Direction.UP;
+  const dx = m.xe - m.xs;
+  const dy = m.ye - m.ys;
+  // Dominant axis — tiny remap noise must not flip a vertical into RIGHT/LEFT.
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    if (dx > 0) return Direction.RIGHT;
+    if (dx < 0) return Direction.LEFT;
+  }
+  if (dy > 0) return Direction.DOWN;
+  if (dy < 0) return Direction.UP;
   return Direction.RIGHT;
 }
 

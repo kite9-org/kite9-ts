@@ -1,0 +1,120 @@
+<kite9-diagram id="The Diagram">
+  <kite9-container id="id_3" bordered="true" label="At Home">
+    <kite9-arrow id="id_12" label="reads"></kite9-arrow>
+    <kite9-glyph id="id_6" stereotype="books" label="Borrowed Books"></kite9-glyph>
+    <kite9-container id="id_22" bordered="true" label="Special Case">
+      <kite9-arrow id="id_28" label="type of"></kite9-arrow>
+      <kite9-glyph id="id_23" stereotype="books" label="Late Books"></kite9-glyph>
+    </kite9-container>
+  </kite9-container>
+  <kite9-arrow id="id_24" label="requests return"></kite9-arrow>
+  <kite9-container id="id_2" bordered="true" label="In The Library">
+    <kite9-glyph id="id_4" stereotype="staff" label="Librarian"></kite9-glyph>
+    <kite9-glyph id="id_7" stereotype="books" label="Returned Books"></kite9-glyph>
+    <kite9-arrow id="id_16" label="puts away"></kite9-arrow>
+    <kite9-arrow id="returns" label="returns"></kite9-arrow>
+    <kite9-arrow id="id_11" label="borrows"></kite9-arrow>
+    <kite9-glyph id="id_8" stereotype="books" label="Books on Shelves"></kite9-glyph>
+  </kite9-container>
+  <kite9-glyph id="id_10" label="Reader"></kite9-glyph>
+  <kite9-link id="0">
+    <from reference="id_10"></from>
+    <to reference="id_12"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="1">
+    <from reference="id_6"></from>
+    <to reference="id_12"></to>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="2">
+    <from reference="id_11"></from>
+    <to reference="id_6"></to>
+    <kite9-to-label>
+      <text>takes them home</text>
+    </kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="3" drawDirection="DOWN">
+    <from reference="id_6"></from>
+    <to reference="id_28"></to>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="4" drawDirection="UP">
+    <from reference="id_23"></from>
+    <to reference="id_28"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="5">
+    <from reference="id_24"></from>
+    <to reference="id_23"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+    <kite9-to-label>
+      <text>via letter</text>
+    </kite9-to-label>
+  </kite9-link>
+  <kite9-link id="6">
+    <from reference="id_4"></from>
+    <to reference="id_24"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="7">
+    <from reference="id_4"></from>
+    <to reference="id_16"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+    <kite9-from-label>
+      <text>Every day</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="8">
+    <from reference="id_16"></from>
+    <to reference="id_7"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="9">
+    <from reference="id_16"></from>
+    <to reference="id_8"></to>
+    <kite9-to-label>
+      <text>on the</text>
+    </kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="10">
+    <from reference="id_10"></from>
+    <to reference="id_11"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="11">
+    <from reference="id_11"></from>
+    <to reference="id_8"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="12">
+    <from reference="returns"></from>
+    <to reference="id_7"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="12">
+    <from reference="returns"></from>
+    <to reference="id_10"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-key>
+    <boldtext>Library Example</boldtext>
+    <bodytext>This diagram shows where books can go when taken out of the library, and the activities of the librarian and the reader.</bodytext>
+  </kite9-key>
+</kite9-diagram>

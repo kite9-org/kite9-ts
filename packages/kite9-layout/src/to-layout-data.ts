@@ -17,8 +17,6 @@ import {
   contentColSpan,
   contentRowSpan,
   edgeCoords,
-  ensureGridEdge,
-  snapPolylineToVertices,
 } from "@kite9/ui";
 
 const DEFAULT_GUTTER = 16;
@@ -266,56 +264,41 @@ function mapRoutePointToGrid(
 }
 
 /**
- * Same-row / same-col link along the facing gutter at the content mid-lane
- * (compaction places ConnAnchors on the mid slideable through the glyphs).
+ * Snap near-equal coords and drop collinear middles so RI→grid remap noise
+ * does not create micro-jogs (which paint as Z-bends under corner radius).
  */
-function facingMidLaneVertices(
-  grid: GridLayout,
-  from: CellPlace,
-  to: CellPlace,
-  laneY?: number,
-  laneX?: number,
-): { xi: number; yi: number }[] | null {
-  if (from.row === to.row && from.col !== to.col) {
-    const span = contentRowSpan(grid, from.row);
-    const ys = edgeCoords(grid.rowSizes);
-    const y0 = ys[span.start]!;
-    const y1 = ys[span.start + span.count]!;
-    const mid = laneY ?? (y0 + y1) / 2;
-    const yi = ensureGridEdge(grid, "row", mid);
-    const fromCs = contentColSpan(grid, from.col);
-    const toCs = contentColSpan(grid, to.col);
-    const fromXi =
-      from.col < to.col ? fromCs.start + fromCs.count : fromCs.start;
-    const toXi = to.col < from.col ? toCs.start + toCs.count : toCs.start;
-    return [
-      { xi: fromXi, yi },
-      { xi: toXi, yi },
-    ];
+function orthogonalizeRoutePoints(points: Point2D[], eps = 1): Point2D[] {
+  if (points.length < 2) return points.map((p) => ({ ...p }));
+  const snapped: Point2D[] = [{ ...points[0]! }];
+  for (let i = 1; i < points.length; i++) {
+    const prev = snapped[snapped.length - 1]!;
+    const cur = { ...points[i]! };
+    if (Math.abs(cur.x - prev.x) <= eps) cur.x = prev.x;
+    else if (Math.abs(cur.y - prev.y) <= eps) cur.y = prev.y;
+    snapped.push(cur);
   }
-  if (from.col === to.col && from.row !== to.row) {
-    const span = contentColSpan(grid, from.col);
-    const xs = edgeCoords(grid.colSizes);
-    const x0 = xs[span.start]!;
-    const x1 = xs[span.start + span.count]!;
-    const mid = laneX ?? (x0 + x1) / 2;
-    const xi = ensureGridEdge(grid, "col", mid);
-    const fromRs = contentRowSpan(grid, from.row);
-    const toRs = contentRowSpan(grid, to.row);
-    const fromYi =
-      from.row < to.row ? fromRs.start + fromRs.count : fromRs.start;
-    const toYi = to.row < from.row ? toRs.start + toRs.count : toRs.start;
-    return [
-      { xi, yi: fromYi },
-      { xi, yi: toYi },
-    ];
+
+  const out: Point2D[] = [snapped[0]!];
+  for (let i = 1; i < snapped.length - 1; i++) {
+    const prev = out[out.length - 1]!;
+    const cur = snapped[i]!;
+    const next = snapped[i + 1]!;
+    if (cur.x === prev.x && cur.y === prev.y) continue;
+    const sameVert =
+      cur.x === prev.x && next.x === cur.x && Math.sign(cur.y - prev.y) === Math.sign(next.y - cur.y);
+    const sameHoriz =
+      cur.y === prev.y && next.y === cur.y && Math.sign(cur.x - prev.x) === Math.sign(next.x - cur.x);
+    if (sameVert || sameHoriz) continue;
+    out.push(cur);
   }
-  return null;
+  const last = snapped[snapped.length - 1]!;
+  const tip = out[out.length - 1]!;
+  if (last.x !== tip.x || last.y !== tip.y) out.push(last);
+  return out;
 }
 
 /**
- * Prefer facing mid-lane gutters (compaction mid-glyph slideables). Fall back
- * to remapping the RI polyline into grid space and snapping.
+ * Remap compaction RI polylines into adjustable-grid pixel space.
  */
 function routesOnGrid(
   diagram: Diagram,
@@ -323,7 +306,6 @@ function routesOnGrid(
   placements: LayoutData["placements"],
 ): Record<string, RouteLayout> {
   const routes: Record<string, RouteLayout> = {};
-  // Content spans are created lazily by ensureGridEdge when a mid-lane splits a track.
 
   for (const c of collectConnections(diagram)) {
     const fromEl = c.getFrom();
@@ -339,45 +321,17 @@ function routesOnGrid(
       continue;
     }
 
+    const points = routePoints(c);
+    if (points.length < 2) continue;
+
     const fromRi = riBox(fromEl);
     const toRi = riBox(toEl);
     const fromGrid = gridCellBox(grid, fromP);
     const toGrid = gridCellBox(grid, toP);
-    const points = routePoints(c);
-
-    // Mid-lane from RI (mapped into the content cell), else geometric mid.
-    let laneY: number | undefined;
-    let laneX: number | undefined;
-    if (points.length > 0) {
-      const mapped0 = mapRoutePointToGrid(
-        points[0]!,
-        fromRi,
-        toRi,
-        fromGrid,
-        toGrid,
-      );
-      laneY = mapped0.y;
-      laneX = mapped0.x;
-    }
-
-    const facing = facingMidLaneVertices(grid, fromP, toP, laneY, laneX);
-    if (facing) {
-      routes[c.getID()] = { vertices: facing, labels: {} };
-      continue;
-    }
-
-    if (points.length < 2) continue;
     const mapped = points.map((p) =>
       mapRoutePointToGrid(p, fromRi, toRi, fromGrid, toGrid),
     );
-    for (const m of mapped) {
-      ensureGridEdge(grid, "col", m.x);
-      ensureGridEdge(grid, "row", m.y);
-    }
-    const vertices = snapPolylineToVertices(grid, mapped);
-    if (vertices.length >= 2) {
-      routes[c.getID()] = { vertices, labels: {} };
-    }
+    routes[c.getID()] = { points: orthogonalizeRoutePoints(mapped), labels: {} };
   }
   return routes;
 }
@@ -385,7 +339,7 @@ function routesOnGrid(
 /**
  * Build {@link LayoutData} from post-compaction rendering information.
  * Top-level connected rectangulars become grid placements (nested kids stay
- * in light-DOM under their container). Routes are snapped to grid-edge vertices.
+ * in light-DOM under their container). Routes are RI polylines remapped to grid pixels.
  */
 export function toLayoutData(diagram: Diagram): LayoutData {
   const tops = topLevelConnecteds(diagram);

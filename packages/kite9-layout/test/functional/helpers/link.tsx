@@ -2,6 +2,9 @@
 
 import type { ComponentChild } from "preact";
 
+/** Java `Link.LINK_TEST` markers (`TurnLink` / `HopLink` / `ContradictingLink`). */
+export type LinkTest = "turn" | "hop" | "contradicting";
+
 export function link(
   id: string,
   from: string,
@@ -13,15 +16,19 @@ export function link(
     fromLabel?: string;
     toLabel?: string;
     contradicting?: boolean;
+    linkTest?: LinkTest;
   } = {},
 ): ComponentChild {
   const fromDec = opts.fromDecoration ?? "NONE";
   const toDec = opts.toDecoration ?? "NONE";
+  const linkTest =
+    opts.linkTest ?? (opts.contradicting ? "contradicting" : undefined);
   return (
     <kite9-link
       id={id}
       drawDirection={opts.drawDirection}
-      contradicting={opts.contradicting}
+      contradicting={opts.contradicting || linkTest === "contradicting"}
+      link-test={linkTest}
     >
       <from reference={from} />
       <to reference={to} />

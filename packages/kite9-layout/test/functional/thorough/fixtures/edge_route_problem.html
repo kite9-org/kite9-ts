@@ -1,0 +1,54 @@
+<kite9-diagram id="The Diagram">
+  <kite9-container id="horiz" layout="VERTICAL" bordered="true" label="Vertical">
+    <kite9-glyph id="rob" stereotype="" label="Rob"></kite9-glyph>
+    <kite9-arrow id="met" label="met"></kite9-arrow>
+    <kite9-glyph id="jenny" stereotype="" label="Jenny"></kite9-glyph>
+  </kite9-container>
+  <kite9-arrow id="likes" label="likes"></kite9-arrow>
+  <kite9-arrow id="eats" label="eats"></kite9-arrow>
+  <kite9-container id="food" layout="VERTICAL" bordered="true" label="Food">
+    <kite9-glyph id="carrots" stereotype="" label="Carrots"></kite9-glyph>
+    <kite9-glyph id="chips" stereotype="" label="Chips"></kite9-glyph>
+    <kite9-glyph id="las" stereotype="" label="Lasagne"></kite9-glyph>
+  </kite9-container>
+  <kite9-link id="id_5">
+    <from reference="eats"></from>
+    <to reference="rob"></to>
+  </kite9-link>
+  <kite9-link id="id_17">
+    <from reference="met"></from>
+    <to reference="rob"></to>
+  </kite9-link>
+  <kite9-link id="id_19">
+    <from reference="met"></from>
+    <to reference="jenny"></to>
+  </kite9-link>
+  <kite9-link id="id_21">
+    <from reference="jenny"></from>
+    <to reference="likes"></to>
+  </kite9-link>
+  <kite9-link id="id_14">
+    <from reference="likes"></from>
+    <to reference="carrots"></to>
+    <kite9-from-label id="tl6"></kite9-from-label>
+    <kite9-to-label id="tl5"></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_15">
+    <from reference="likes"></from>
+    <to reference="las"></to>
+    <kite9-from-label id="tl4"></kite9-from-label>
+    <kite9-to-label id="tl3"></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_9">
+    <from reference="eats"></from>
+    <to reference="food"></to>
+    <kite9-from-label id="tl1"></kite9-from-label>
+    <kite9-to-label id="tl2"></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+</kite9-diagram>

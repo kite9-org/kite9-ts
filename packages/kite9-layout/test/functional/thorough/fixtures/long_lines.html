@@ -1,0 +1,134 @@
+<kite9-diagram id="auto:39">
+  <kite9-container id="auto:11" bordered="true">
+    <label id="auto:10">
+      <text>Simple Label</text>
+    </label>
+  </kite9-container>
+  <kite9-container id="auto:12" bordered="true">
+    <kite9-arrow id="a1" label="Arrow with a label"></kite9-arrow>
+    <kite9-glyph id="fullGlyph" stereotype="Some complex stereotype" label="Full Glyph">
+      <text-lines>
+        <text-line id="auto:5">
+          <text>Small amount of text</text>
+        </text-line>
+        <text-line id="auto:6">
+          <text>Bit more text</text>
+        </text-line>
+        <text-line id="auto:7">
+          <text>Another text line</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <kite9-container id="auto:9" bordered="true">
+      <kite9-glyph id="simple" label="Simple Label"></kite9-glyph>
+      <kite9-glyph id="withStereo" stereotype="Stereotype" label="With Stereo"></kite9-glyph>
+      <label id="auto:8">
+        <text>Multiline label
+for this context</text>
+      </label>
+    </kite9-container>
+  </kite9-container>
+  <kite9-arrow id="a2"></kite9-arrow>
+  <kite9-glyph id="withSymbols" label="With Symbols"></kite9-glyph>
+  <kite9-glyph id="text1" label="With Text 1">
+    <text-lines>
+      <text-line id="auto:0">
+        <text>This is a piece of text on one line</text>
+      </text-line>
+      <text-line id="auto:1">
+        <text>A pair of lines in a text
+line without symbols</text>
+      </text-line>
+      <text-line id="auto:2">
+        <text>This is a piece of text
+on two lines</text>
+      </text-line>
+      <text-line id="auto:3">
+        <text>Some line of text without symbols</text>
+      </text-line>
+      <text-line id="auto:4">
+        <text>This is a piece
+ of text
+on three lines</text>
+      </text-line>
+    </text-lines>
+  </kite9-glyph>
+  <kite9-glyph id="other" label="4th Man"></kite9-glyph>
+  <kite9-key>
+    <boldtext>This is a test card</boldtext>
+    <bodytext>It demonstrates all the elements in the ADL
+language to allow you to check rendering</bodytext>
+  </kite9-key>
+  <kite9-link id="auto:30">
+    <from reference="a2"></from>
+    <to reference="auto:11"></to>
+  </kite9-link>
+  <kite9-link id="auto:21">
+    <from reference="simple"></from>
+    <to reference="a1"></to>
+  </kite9-link>
+  <kite9-link id="auto:23">
+    <from reference="withSymbols"></from>
+    <to reference="a1"></to>
+    <kite9-from-label id="auto:22">
+      <text>From Label</text>
+    </kite9-from-label>
+    <fromdecoration>ARROW</fromdecoration>
+  </kite9-link>
+  <kite9-link id="auto:37">
+    <from reference="a1"></from>
+    <to reference="other"></to>
+  </kite9-link>
+  <kite9-link id="auto:38">
+    <from reference="a1"></from>
+    <to reference="withStereo"></to>
+  </kite9-link>
+  <kite9-link id="auto:26">
+    <from reference="auto:9"></from>
+    <to reference="fullGlyph"></to>
+    <kite9-from-label id="auto:24">
+      <text>From Label</text>
+    </kite9-from-label>
+    <kite9-to-label id="auto:25">
+      <text>To Label with line breaks flip</text>
+    </kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:27">
+    <from reference="auto:9"></from>
+    <to reference="fullGlyph"></to>
+  </kite9-link>
+  <kite9-link id="auto:28">
+    <from reference="a2"></from>
+    <to reference="fullGlyph"></to>
+  </kite9-link>
+  <kite9-link id="auto:29">
+    <from reference="a2"></from>
+    <to reference="auto:9"></to>
+  </kite9-link>
+  <kite9-link id="auto:31">
+    <from reference="text1"></from>
+    <to reference="simple"></to>
+  </kite9-link>
+  <kite9-link id="auto:34" drawDirection="UP">
+    <from reference="simple"></from>
+    <to reference="other"></to>
+  </kite9-link>
+  <kite9-link id="auto:32">
+    <from reference="text1"></from>
+    <to reference="withStereo"></to>
+  </kite9-link>
+  <kite9-link id="auto:36">
+    <from reference="withStereo"></from>
+    <to reference="other"></to>
+  </kite9-link>
+  <kite9-link id="auto:35">
+    <from reference="withSymbols"></from>
+    <to reference="other"></to>
+  </kite9-link>
+  <kite9-link id="auto:33">
+    <from reference="text1"></from>
+    <to reference="other"></to>
+  </kite9-link>
+</kite9-diagram>

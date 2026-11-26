@@ -1,17 +1,21 @@
 /**
- * Thorough XML fixtures.
- * old→new: Test63PortXMLFiles → generate(xml) cases
+ * Thorough HTML fixtures (converted from Java Test63PortXMLFiles ADL XML).
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkLayoutHtml } from "../helpers/check-layout.js";
-import { adlXmlToHtml } from "../helpers/adl-xml-to-html.js";
 
-const xmlDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "fixtures/xml");
+const fixturesDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "fixtures",
+);
 
-function loadXml(name: string): string {
-  return adlXmlToHtml(readFileSync(path.join(xmlDir, name), "utf8"));
+function loadHtml(name: string): string {
+  return readFileSync(path.join(fixturesDir, name), "utf8");
 }
 
-checkLayoutHtml("test_63_01_WeirdPortRouting", loadXml("weird_port_routing.xml"));
+checkLayoutHtml(
+  "test_63_01_WeirdPortRouting",
+  loadHtml("weird_port_routing.html"),
+);

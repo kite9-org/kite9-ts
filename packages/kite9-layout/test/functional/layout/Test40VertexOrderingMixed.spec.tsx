@@ -1,7 +1,7 @@
 /**
  * Vertex ordering with a mix of directed and undirected links.
  * old→new: Java Test28 (VertexOrderingMixed) → test_40_* (renumbered to avoid display clash)
- * TurnLink → plain link.
+ * TurnLink → `linkTest: "turn"`.
  */
 import type { ComponentChild } from "preact";
 import { checkLayout } from "../helpers/check-layout.js";
@@ -58,6 +58,7 @@ function mixed(
         link(`l${i + 1}`, out[s.from[0]]![s.from[1]]!, out[s.to[0]]![s.to[1]]!, {
           fromDecoration: s.arrow ? "ARROW" : undefined,
           drawDirection: s.dir,
+          linkTest: s.dir ? undefined : "turn",
         }),
       )}
     </kite9-diagram>

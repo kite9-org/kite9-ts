@@ -1,7 +1,7 @@
 /**
  * Vertex ordering for glyphs spread across (nested) containers.
  * old→new: Test30VertexOrderingContained → test_30_01, 30_02, 30_04, 30_05
- * (there is no 30_3 in the Java source). HopLink → plain link.
+ * (there is no 30_3 in the Java source). HopLink → linkTest: "hop".
  */
 import type { ComponentChild } from "preact";
 import { checkLayout } from "../helpers/check-layout.js";
@@ -42,10 +42,22 @@ checkLayout("test_30_01_BigSquareDirected", (() => {
   const cs = createXContainers("g", 4, 4, "HORIZONTAL");
   const out = glyphIds(cs);
   return topAndBottom(cs, "VERTICAL", [
-    link("l1", out[0]![0]!, out[1]![0]!, { drawDirection: "right" }),
-    link("l2", out[1]![1]!, out[3]![1]!, { drawDirection: "down" }),
-    link("l3", out[2]![2]!, out[3]![2]!, { drawDirection: "right" }),
-    link("l4", out[0]![3]!, out[2]![3]!, { drawDirection: "down" }),
+    link("l1", out[0]![0]!, out[1]![0]!, {
+      drawDirection: "right",
+      linkTest: "hop",
+    }),
+    link("l2", out[1]![1]!, out[3]![1]!, {
+      drawDirection: "down",
+      linkTest: "hop",
+    }),
+    link("l3", out[2]![2]!, out[3]![2]!, {
+      drawDirection: "right",
+      linkTest: "hop",
+    }),
+    link("l4", out[0]![3]!, out[2]![3]!, {
+      drawDirection: "down",
+      linkTest: "hop",
+    }),
   ]);
 })());
 

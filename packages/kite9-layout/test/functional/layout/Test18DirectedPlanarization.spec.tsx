@@ -1,7 +1,7 @@
 /**
  * Directed planarization: directed links, buddies, merges, containers.
  * old→new: Test18DirectedPlanarization → test_18_01…test_18_25 (no 18_15 in Java; 18_22 skipped as @NotAddressed)
- * HopLink / TurnLink are rendered with the plain link() helper.
+ * TurnLink / HopLink → `link(..., { linkTest: "turn"|"hop" })` (Java LINK_TEST).
  */
 import type { ComponentChild } from "preact";
 import { checkLayout } from "../helpers/check-layout.js";
@@ -72,8 +72,8 @@ checkLayout(
     {link("l2", "B", "C", { drawDirection: "down" })}
     {link("l3", "D", "C", { drawDirection: "up" })}
     {link("l4", "E", "C", { drawDirection: "left" })}
-    {/* the loop - must go round the outside */}
-    {link("loop", "A", "E")}
+    {/* the loop - must go round the outside (Java TurnLink) */}
+    {link("loop", "A", "E", { linkTest: "turn" })}
   </kite9-diagram>,
 );
 
@@ -87,16 +87,16 @@ checkLayout(
     <kite9-arrow id="c" label="c" />
     <kite9-arrow id="d" label="d" />
     <kite9-arrow id="e" label="e" />
-    {link("f1", "from", "a")}
-    {link("f2", "from", "b")}
-    {link("f3", "from", "c")}
-    {link("f4", "from", "d")}
-    {link("f5", "from", "e")}
-    {link("t1", "to", "a")}
-    {link("t2", "to", "b")}
-    {link("t3", "to", "c")}
-    {link("t4", "to", "d")}
-    {link("t5", "to", "e")}
+    {link("f1", "from", "a", { linkTest: "turn" })}
+    {link("f2", "from", "b", { linkTest: "turn" })}
+    {link("f3", "from", "c", { linkTest: "turn" })}
+    {link("f4", "from", "d", { linkTest: "turn" })}
+    {link("f5", "from", "e", { linkTest: "turn" })}
+    {link("t1", "to", "a", { linkTest: "turn" })}
+    {link("t2", "to", "b", { linkTest: "turn" })}
+    {link("t3", "to", "c", { linkTest: "turn" })}
+    {link("t4", "to", "d", { linkTest: "turn" })}
+    {link("t5", "to", "e", { linkTest: "turn" })}
   </kite9-diagram>,
 );
 
@@ -134,14 +134,14 @@ checkLayout(
   "test_18_09_FourPointStar4Middle",
   <kite9-diagram id="test">
     {glyphs("A", "B", "C", "D", "m1", "m2", "m3", "m4")}
-    {link("l1", "A", "m1", { drawDirection: "right" })}
-    {link("l2", "A", "m4", { drawDirection: "right" })}
-    {link("l3", "B", "m1", { drawDirection: "down" })}
-    {link("l4", "B", "m2", { drawDirection: "down" })}
-    {link("l5", "C", "m4", { drawDirection: "up" })}
-    {link("l6", "C", "m3", { drawDirection: "up" })}
-    {link("l7", "D", "m2", { drawDirection: "left" })}
-    {link("l8", "D", "m3", { drawDirection: "left" })}
+    {link("l1", "A", "m1", { drawDirection: "right", linkTest: "hop" })}
+    {link("l2", "A", "m4", { drawDirection: "right", linkTest: "hop" })}
+    {link("l3", "B", "m1", { drawDirection: "down", linkTest: "hop" })}
+    {link("l4", "B", "m2", { drawDirection: "down", linkTest: "hop" })}
+    {link("l5", "C", "m4", { drawDirection: "up", linkTest: "hop" })}
+    {link("l6", "C", "m3", { drawDirection: "up", linkTest: "hop" })}
+    {link("l7", "D", "m2", { drawDirection: "left", linkTest: "hop" })}
+    {link("l8", "D", "m3", { drawDirection: "left", linkTest: "hop" })}
   </kite9-diagram>,
 );
 
@@ -197,11 +197,11 @@ checkLayout(
     {/* creating an 'S' shape */}
     {link("l1", "a", "b", { drawDirection: "right" })}
     {link("l2", "b", "c1", { drawDirection: "down" })}
-    {link("l3", "c2", "c1", { drawDirection: "right" })}
+    {link("l3", "c2", "c1", { drawDirection: "right", linkTest: "hop" })}
     {link("l4", "c2", "d", { drawDirection: "down" })}
     {link("l5", "d", "e", { drawDirection: "right" })}
-    {/* tricky bit, crossing the 's' like a dollar sign */}
-    {link("l6", "a", "e", { drawDirection: "down" })}
+    {/* tricky bit, crossing the 's' like a dollar sign (Java HopLink) */}
+    {link("l6", "a", "e", { drawDirection: "down", linkTest: "hop" })}
   </kite9-diagram>,
 );
 
@@ -213,16 +213,16 @@ checkLayout(
     <kite9-container id="y1c">{glyphs("x2y1", "x4y1")}</kite9-container>
     <kite9-container id="y2c">{glyphs("x1y2", "x3y2")}</kite9-container>
     {glyphs("x0y1", "x0y2", "x1y3", "x2y3", "x3y3", "x4y3")}
-    {link("l1", "x2y1", "x4y1", { drawDirection: "right" })}
-    {link("l2", "x1y2", "x3y2", { drawDirection: "right" })}
-    {link("l3", "x3y0", "x3y2", { drawDirection: "down" })}
+    {link("l1", "x2y1", "x4y1", { drawDirection: "right", linkTest: "hop" })}
+    {link("l2", "x1y2", "x3y2", { drawDirection: "right", linkTest: "hop" })}
+    {link("l3", "x3y0", "x3y2", { drawDirection: "down", linkTest: "hop" })}
     {link("l4", "x0y0", "x3y0", { drawDirection: "right" })}
     {link("l5", "x0y1", "y1c", { drawDirection: "right" })}
     {link("l6", "x0y2", "y2c", { drawDirection: "right" })}
     {link("l7", "x0y0", "x0y1", { drawDirection: "down" })}
     {link("l8", "x0y1", "x0y2", { drawDirection: "down" })}
     {link("l9", "x1y2", "x1y3", { drawDirection: "down" })}
-    {link("l10", "x2y1", "x2y3", { drawDirection: "down" })}
+    {link("l10", "x2y1", "x2y3", { drawDirection: "down", linkTest: "hop" })}
     {link("l11", "x3y2", "x3y3", { drawDirection: "down" })}
     {link("l12", "x4y1", "x4y3", { drawDirection: "down" })}
     {link("l13", "x1y3", "x2y3", { drawDirection: "right" })}
@@ -264,17 +264,17 @@ checkLayout(
   "test_18_17_UnavoidableCrossing",
   <kite9-diagram id="test">
     {glyphs("A", "B", "C", "D", "m1", "m2", "m3", "m4")}
-    {link("l1", "A", "C", { drawDirection: "right" })}
-    {link("l2", "A", "B", { drawDirection: "right" })}
-    {link("l3", "B", "m1", { drawDirection: "up" })}
-    {link("l4", "B", "m3", { drawDirection: "down" })}
-    {link("l5", "C", "m2", { drawDirection: "up" })}
-    {link("l6", "C", "m4", { drawDirection: "down" })}
-    {link("l7", "m1", "m2", { drawDirection: "left" })}
-    {link("l8", "m3", "m4", { drawDirection: "left" })}
-    {/* trickier... */}
+    {link("l1", "A", "C", { drawDirection: "right", linkTest: "hop" })}
+    {link("l2", "A", "B", { drawDirection: "right", linkTest: "hop" })}
+    {link("l3", "B", "m1", { drawDirection: "up", linkTest: "hop" })}
+    {link("l4", "B", "m3", { drawDirection: "down", linkTest: "hop" })}
+    {link("l5", "C", "m2", { drawDirection: "up", linkTest: "hop" })}
+    {link("l6", "C", "m4", { drawDirection: "down", linkTest: "hop" })}
+    {link("l7", "m1", "m2", { drawDirection: "left", linkTest: "hop" })}
+    {link("l8", "m3", "m4", { drawDirection: "left", linkTest: "hop" })}
+    {/* trickier... l9 is plain Link in Java; l10 is HopLink */}
     {link("l9", "B", "D", { drawDirection: "right" })}
-    {link("l10", "C", "D", { drawDirection: "right" })}
+    {link("l10", "C", "D", { drawDirection: "right", linkTest: "hop" })}
   </kite9-diagram>,
 );
 

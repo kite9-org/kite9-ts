@@ -1,0 +1,179 @@
+<kite9-diagram id="java_class:org.kite9.diagram.builders.Test14Hierarchy/test_14_1_TestHierarchy()">
+  <kite9-container id="Rob's Hierarchy0" bordered="true" label="Rob's Hierarchy">
+    <kite9-container id="level 10" bordered="false">
+      <kite9-container id="level 10-glyphs" layout="HORIZONTAL" bordered="false">
+        <kite9-glyph id="Top" stereotype="" label="Top"></kite9-glyph>
+      </kite9-container>
+    </kite9-container>
+    <kite9-container id="level 20" bordered="false">
+      <kite9-container id="level 20-glyphs" layout="HORIZONTAL" bordered="false">
+        <kite9-glyph id="Abstract1" stereotype="" label="Abstract1"></kite9-glyph>
+        <kite9-glyph id="Middle2" stereotype="" label="Middle2"></kite9-glyph>
+        <kite9-glyph id="Middle1" stereotype="" label="Middle1"></kite9-glyph>
+      </kite9-container>
+      <kite9-container id="level 20-arrows" layout="HORIZONTAL" bordered="false">
+        <kite9-arrow id="Abstract1/rel_implements" label="implements"></kite9-arrow>
+        <kite9-arrow id="Middle2/rel_implements" label="implements"></kite9-arrow>
+        <kite9-arrow id="Middle1/rel_implements" label="implements"></kite9-arrow>
+      </kite9-container>
+    </kite9-container>
+    <kite9-container id="level 30" bordered="false">
+      <kite9-container id="level 30-glyphs" layout="HORIZONTAL" bordered="false">
+        <kite9-glyph id="Abstract2" stereotype="" label="Abstract2"></kite9-glyph>
+        <kite9-glyph id="Conc2" stereotype="" label="Conc2"></kite9-glyph>
+        <kite9-glyph id="Conc1" stereotype="" label="Conc1"></kite9-glyph>
+      </kite9-container>
+      <kite9-container id="level 30-arrows" layout="HORIZONTAL" bordered="false">
+        <kite9-arrow id="Abstract2/rel_implements" label="implements"></kite9-arrow>
+        <kite9-arrow id="Conc2/rel_extends" label="extends"></kite9-arrow>
+        <kite9-arrow id="Conc2/rel_implements" label="implements"></kite9-arrow>
+        <kite9-arrow id="Conc1/rel_extends" label="extends"></kite9-arrow>
+        <kite9-arrow id="Conc1/rel_implements" label="implements"></kite9-arrow>
+      </kite9-container>
+    </kite9-container>
+    <kite9-container id="level 40" bordered="false">
+      <kite9-container id="level 40-glyphs" layout="HORIZONTAL" bordered="false">
+        <kite9-glyph id="Conc3" stereotype="" label="Conc3"></kite9-glyph>
+      </kite9-container>
+      <kite9-container id="level 40-arrows" layout="HORIZONTAL" bordered="false">
+        <kite9-arrow id="Conc3/rel_extends" label="extends"></kite9-arrow>
+        <kite9-arrow id="Conc3/rel_implements" label="implements"></kite9-arrow>
+      </kite9-container>
+    </kite9-container>
+    <kite9-arrow id="Rob's Hierarchy1/rel_class" label="has class"></kite9-arrow>
+  </kite9-container>
+  <kite9-link id="auto:0">
+    <from reference="Rob's Hierarchy0"></from>
+    <to reference="Rob's Hierarchy1/rel_class"></to>
+  </kite9-link>
+  <kite9-link id="auto:4">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Top"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:10" drawDirection="UP">
+    <from reference="Abstract1/rel_implements"></from>
+    <to reference="Top"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:12" drawDirection="UP">
+    <from reference="Middle2/rel_implements"></from>
+    <to reference="Top"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:24" drawDirection="UP">
+    <from reference="Middle1/rel_implements"></from>
+    <to reference="Top"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:1">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Abstract1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:9" drawDirection="UP">
+    <from reference="Abstract1"></from>
+    <to reference="Abstract1/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:20" drawDirection="UP">
+    <from reference="Conc2/rel_extends"></from>
+    <to reference="Abstract1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:26" drawDirection="UP">
+    <from reference="Conc1/rel_extends"></from>
+    <to reference="Abstract1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:2">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Middle2"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:11" drawDirection="UP">
+    <from reference="Middle2"></from>
+    <to reference="Middle2/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:28" drawDirection="UP">
+    <from reference="Conc1/rel_implements"></from>
+    <to reference="Middle2"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:7">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Middle1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:16" drawDirection="UP">
+    <from reference="Conc3/rel_implements"></from>
+    <to reference="Middle1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:18" drawDirection="UP">
+    <from reference="Abstract2/rel_implements"></from>
+    <to reference="Middle1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:22" drawDirection="UP">
+    <from reference="Conc2/rel_implements"></from>
+    <to reference="Middle1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:23" drawDirection="UP">
+    <from reference="Middle1"></from>
+    <to reference="Middle1/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:5">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Abstract2"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:14" drawDirection="UP">
+    <from reference="Conc3/rel_extends"></from>
+    <to reference="Abstract2"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:17" drawDirection="UP">
+    <from reference="Abstract2"></from>
+    <to reference="Abstract2/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:6">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Conc2"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:19" drawDirection="UP">
+    <from reference="Conc2"></from>
+    <to reference="Conc2/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:21" drawDirection="UP">
+    <from reference="Conc2"></from>
+    <to reference="Conc2/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:8">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Conc1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:25" drawDirection="UP">
+    <from reference="Conc1"></from>
+    <to reference="Conc1/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:27" drawDirection="UP">
+    <from reference="Conc1"></from>
+    <to reference="Conc1/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:3">
+    <from reference="Rob's Hierarchy1/rel_class"></from>
+    <to reference="Conc3"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:13" drawDirection="UP">
+    <from reference="Conc3"></from>
+    <to reference="Conc3/rel_extends"></to>
+  </kite9-link>
+  <kite9-link id="auto:15" drawDirection="UP">
+    <from reference="Conc3"></from>
+    <to reference="Conc3/rel_implements"></to>
+  </kite9-link>
+</kite9-diagram>

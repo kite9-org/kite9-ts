@@ -1,0 +1,48 @@
+<kite9-diagram id="auto:3309">
+  <kite9-glyph id="id_0" shape="umlACTOR" label="Customer Service Assistant"></kite9-glyph>
+  <kite9-container id="c1" layout="DOWN" bordered="true">
+    <kite9-container id="c2" bordered="true" shape="umlPACKAGE">
+      <kite9-glyph id="id_18" shape="umlUSECASE" label="Update Membership Record"></kite9-glyph>
+      <kite9-glyph id="id_16" shape="umlUSECASE" label="Archive Membership"></kite9-glyph>
+    </kite9-container>
+    <kite9-container id="c3" bordered="true">
+      <kite9-glyph id="id_2" shape="umlUSECASE" label="Handle Goods Return"></kite9-glyph>
+      <kite9-glyph id="id_4" shape="umlUSECASE" label="Check Order Status"></kite9-glyph>
+      <kite9-glyph id="id_12" shape="umlUSECASE" label="Process Order"></kite9-glyph>
+      <kite9-glyph id="id_6" shape="umlUSECASE" label="Place Order"></kite9-glyph>
+      <kite9-glyph id="id_13" shape="umlUSECASE" label="Schedule Delivery"></kite9-glyph>
+      <label id="id_14">
+        <text>Order Processing</text>
+      </label>
+    </kite9-container>
+  </kite9-container>
+  <kite9-glyph id="id_10" shape="umlACTOR" label="Order Processing Clerk"></kite9-glyph>
+  <kite9-link id="id_1" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_2"></to>
+  </kite9-link>
+  <kite9-link id="id_3" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_4"></to>
+  </kite9-link>
+  <kite9-link id="id_7" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_6"></to>
+  </kite9-link>
+  <kite9-link id="id_15" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_16"></to>
+  </kite9-link>
+  <kite9-link id="id_17" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_18"></to>
+  </kite9-link>
+  <kite9-link id="id_11" drawDirection="LEFT">
+    <from reference="id_10"></from>
+    <to reference="id_12"></to>
+  </kite9-link>
+  <kite9-link id="id_9.1" drawDirection="RIGHT">
+    <from reference="id_13"></from>
+    <to reference="id_10"></to>
+  </kite9-link>
+</kite9-diagram>

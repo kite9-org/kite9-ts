@@ -1,0 +1,21 @@
+<kite9-diagram id="dia">
+  <kite9-glyph id="b1" label="y">
+    <kite9-socket id="p1" style="--kite9-port-side: top;"></kite9-socket>
+  </kite9-glyph>
+  <kite9-glyph id="b3" label="b3 line"></kite9-glyph>
+  <kite9-container id="bigbox" layout="HORIZONTAL">
+    <kite9-glyph id="b2" label="jj"></kite9-glyph>
+  </kite9-container>
+  <kite9-link id="link1" r="r">
+    <from id="link1-from" reference="p1" shape="arrow"></from>
+    <to id="link1-to" reference="b3" shape="arrow"></to>
+  </kite9-link>
+  <kite9-link drawDirection="RIGHT" id="link2">
+    <from id="link2-from" reference="b1"></from>
+    <to id="link2-to" reference="b2"></to>
+  </kite9-link>
+  <kite9-link drawDirection="UP" id="2-0">
+    <from id="2-0-0" reference="b2"></from>
+    <to id="2-0-1" reference="b3"></to>
+  </kite9-link>
+</kite9-diagram>

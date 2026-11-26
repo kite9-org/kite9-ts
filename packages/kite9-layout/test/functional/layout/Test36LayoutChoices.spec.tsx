@@ -22,7 +22,10 @@ function pairLinks(
   prefix = "l",
 ): ComponentChild[] {
   return pairs.map(([f, t], i) =>
-    link(`${prefix}${i + 1}`, f, t, { drawDirection: going }),
+    link(`${prefix}${i + 1}`, f, t, {
+      drawDirection: going,
+      linkTest: going ? undefined : "turn",
+    }),
   );
 }
 

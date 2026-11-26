@@ -1,0 +1,59 @@
+<kite9-diagram id="The Diagram">
+  <kite9-container id="id_4" layout="DOWN" bordered="true" label="How to Use Kite9">
+    <kite9-glyph id="id_5" stereotype="Glyphs" label="Create Some Glyphs"></kite9-glyph>
+    <kite9-glyph id="id_6" stereotype="Links" label="Join Them Up"></kite9-glyph>
+    <kite9-glyph id="id_7" stereotype="Publish" label="Share Your Diagram"></kite9-glyph>
+  </kite9-container>
+  <kite9-container id="id_3" bordered="true" label="Components of Kite9">
+    <kite9-glyph id="id_1" stereotype="Glyph" label="I am a Glyph"></kite9-glyph>
+    <kite9-arrow id="id_2" label="I am a link body"></kite9-arrow>
+    <kite9-container id="id_11" bordered="true" label="New Context">
+      <kite9-glyph id="id_16" stereotype="" label="Another Glyph"></kite9-glyph>
+      <kite9-container id="id_19" bordered="true" label="New Context"></kite9-container>
+    </kite9-container>
+  </kite9-container>
+  <kite9-link id="id_8">
+    <from reference="id_6"></from>
+    <to reference="id_5"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+  </kite9-link>
+  <kite9-link id="id_15">
+    <from reference="id_2"></from>
+    <to reference="id_6"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_10">
+    <from reference="id_1"></from>
+    <to reference="id_2"></to>
+    <kite9-from-label>
+      <text>Links can join up to glyphs</text>
+    </kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_13">
+    <from reference="id_2"></from>
+    <to reference="id_19"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label>
+      <text>Links can join up to contexts</text>
+    </kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_14">
+    <from reference="id_2"></from>
+    <to reference="id_16"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label>
+      <text>Links can join within contexts</text>
+    </kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+</kite9-diagram>

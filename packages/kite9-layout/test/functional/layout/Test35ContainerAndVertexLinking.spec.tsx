@@ -5,13 +5,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { adlXmlToHtml } from "../helpers/adl-xml-to-html.js";
 import { checkLayout, checkLayoutHtml } from "../helpers/check-layout.js";
 import { link } from "../helpers/link.js";
 
-const xmlDir = path.resolve(
+const fixturesDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../thorough/fixtures/xml",
+  "../thorough/fixtures",
 );
 
 /** Java `checkEverythingStraight()` → false (the default). */
@@ -19,7 +18,7 @@ const opts = {};
 
 checkLayoutHtml(
   "test_35_01_ContentsAndContainerLinked",
-  adlXmlToHtml(readFileSync(path.join(xmlDir, "edge_route_problem.xml"), "utf8")),
+  readFileSync(path.join(fixturesDir, "edge_route_problem.html"), "utf8"),
   opts,
 );
 

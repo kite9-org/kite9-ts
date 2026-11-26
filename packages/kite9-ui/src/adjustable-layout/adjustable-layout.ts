@@ -15,12 +15,11 @@ import {
   contentColSpan,
   contentRowSpan,
   orthogonalPathD,
-  snapPolylineToVertices,
   vertexPoint as gridVertexPoint,
   verticesToPoints,
 } from "./route-path.js";
 
-/** Legacy route shape before grid-edge vertices. */
+/** Legacy route shape when routes used grid-edge vertices. */
 type LegacyRoute = {
   points?: Point2D[];
   vertices?: GridVertex[];
@@ -28,7 +27,7 @@ type LegacyRoute = {
   labels?: Record<string, Point2D>;
 };
 
-/** Upgrade `points` routes to `vertices` against the current grid. */
+/** Prefer `points`; upgrade legacy `vertices` against the current grid. */
 function normalizeRoutes(
   grid: GridLayout,
   routes: Record<string, RouteLayout | LegacyRoute>,
@@ -36,9 +35,9 @@ function normalizeRoutes(
   const out: Record<string, RouteLayout> = {};
   for (const [id, raw] of Object.entries(routes)) {
     const route = raw as LegacyRoute;
-    if (route.vertices && route.vertices.length >= 2) {
+    if (route.points && route.points.length >= 2) {
       out[id] = {
-        vertices: route.vertices,
+        points: route.points,
         ...(route.cornerRadius !== undefined
           ? { cornerRadius: route.cornerRadius }
           : {}),
@@ -46,9 +45,9 @@ function normalizeRoutes(
       };
       continue;
     }
-    if (route.points && route.points.length >= 2) {
+    if (route.vertices && route.vertices.length >= 2) {
       out[id] = {
-        vertices: snapPolylineToVertices(grid, route.points),
+        points: verticesToPoints(grid, route.vertices),
         ...(route.cornerRadius !== undefined
           ? { cornerRadius: route.cornerRadius }
           : {}),
@@ -126,7 +125,7 @@ function syncContentAxis(
     if (i === count - 1) {
       sizes[idx] = Math.max(0, total - written);
     } else if ((sizes[idx] ?? 0) > 0) {
-      const next = (sizes[idx]! * scale);
+      const next = sizes[idx]! * scale;
       sizes[idx] = next;
       written += next;
     }
@@ -169,60 +168,33 @@ export class AdjustableLayout {
     ) as LayoutData;
   }
 
-  /** Content size plus margins — track occupancy for a cell placement. */
-  static occupiedSize(p: { size?: Size; margin?: BoxInsets }): Size {
+  static occupiedSize(p: CellPlacement): Size {
     const s = p.size ?? { w: 0, h: 0 };
     const m = p.margin;
-    if (!m) return { w: s.w, h: s.h };
+    if (!m) return { ...s };
     return {
       w: s.w + m.left + m.right,
       h: s.h + m.top + m.bottom,
     };
   }
 
-  /**
-   * Update an element's placement size and the content tracks it occupies.
-   * Returns false if `id` has no cell placement.
-   */
   resizeElement(id: string, size: Size): boolean {
     const placement = this.placements[id];
     if (!placement || !isCellPlacement(placement)) return false;
-    placement.size = { w: size.w, h: size.h };
+    placement.size = { ...size };
     this.recomputeTracksForPlacement(placement);
     return true;
   }
 
-  /**
-   * Update cell-placement margins and recompute occupied tracks.
-   * Returns false if `id` has no cell placement.
-   */
   setMargin(id: string, margin: BoxInsets): boolean {
     const placement = this.placements[id];
     if (!placement || !isCellPlacement(placement)) return false;
-    placement.margin = {
-      top: margin.top,
-      right: margin.right,
-      bottom: margin.bottom,
-      left: margin.left,
-    };
+    placement.margin = { ...margin };
     this.recomputeTracksForPlacement(placement);
     return true;
   }
 
-  /** Clear margins on a cell placement and recompute tracks. */
-  clearMargin(id: string): boolean {
-    const placement = this.placements[id];
-    if (!placement || !isCellPlacement(placement)) return false;
-    delete placement.margin;
-    this.recomputeTracksForPlacement(placement);
-    return true;
-  }
-
-  /**
-   * Ensure a cell placement is at least `min` (e.g. parent grows with nested child).
-   * Returns false if `id` has no cell placement.
-   */
-  growToFit(id: string, min: Size): boolean {
+  growToAtLeast(id: string, min: Size): boolean {
     const placement = this.placements[id];
     if (!placement || !isCellPlacement(placement)) return false;
     const cur = placement.size ?? { w: 0, h: 0 };
@@ -250,20 +222,19 @@ export class AdjustableLayout {
   /** Orthogonal polyline for a route id (empty if missing / too short). */
   routePolyline(id: string): Point2D[] {
     const route = this.routes[id];
-    if (!route?.vertices?.length) return [];
-    return verticesToPoints(this.grid, route.vertices);
+    if (!route?.points?.length) return [];
+    return route.points;
   }
 
   /**
    * SVG path `d` for a route, with corner radius from the route or `radius`.
-   * Returns null when the route has fewer than two vertices.
+   * Returns null when the route has fewer than two points.
    */
   routePathD(id: string, radius?: number): string | null {
     const route = this.routes[id];
-    if (!route?.vertices || route.vertices.length < 2) return null;
-    const points = verticesToPoints(this.grid, route.vertices);
+    if (!route?.points || route.points.length < 2) return null;
     const r = radius ?? route.cornerRadius ?? DEFAULT_CORNER_RADIUS;
-    return orthogonalPathD(points, r);
+    return orthogonalPathD(route.points, r);
   }
 
   private maxWidthInContentCol(col: number): number {

@@ -1,0 +1,254 @@
+<kite9-diagram id="srvuniq_9o2tf3" layout="RIGHT" name="CS - Insight Release Process">
+  <kite9-container layout="RIGHT" bordered="true">
+    <kite9-glyph id="id_0" label="14.2 Branch"></kite9-glyph>
+    <kite9-glyph id="id_58" shape="fcDOCUMENT" label="Project Plan">
+      <text-lines>
+        <text-line id="auto:28129">
+          <text>dictates timeboxes</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <kite9-glyph id="id_16" shape="fcDOCUMENT" label="Quality Center">
+      <text-lines>
+        <text-line id="auto:3971">
+          <text>Bugs From Testing</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <kite9-glyph id="id_14" shape="fcDOCUMENT" label="JIRAs">
+      <text-lines>
+        <text-line id="auto:65907">
+          <text>Specify business
+functionality</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+  </kite9-container>
+  <kite9-container id="auto:40619" layout="RIGHT" bordered="true">
+    <kite9-container id="auto:2046" layout="DOWN" bordered="true">
+      <kite9-glyph id="id_2" shape="fcPROCESS" label="SIT Drop">
+        <text-lines>
+          <text-line id="auto:1652">
+            <text>Run full suite of groups, loads</text>
+          </text-line>
+          <text-line id="auto:1653">
+            <text>Full & Partial</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_9" shape="fcPROCESS" label="Regular SIT Meetings">
+        <text-lines>
+          <text-line id="auto:2237">
+            <text>Liselle is Test Manager</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_38" shape="fcPROCESS" label="Performed By">
+        <text-lines>
+          <text-line id="auto:11698">
+            <text>BAs, PMs do testing</text>
+          </text-line>
+          <text-line id="auto:11699">
+            <text>Data could be as prod or dev</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-arrow id="id_27" label="All JIRA's Ready?"></kite9-arrow>
+      <label id="id_11">
+        <text>SIT Testing.
+
+Time Box: 5 weeks</text>
+      </label>
+    </kite9-container>
+    <kite9-container id="id_22" layout="DOWN" bordered="true">
+      <kite9-glyph id="id_24" shape="fcPROCESS" label="UAT Drop">
+        <text-lines>
+          <text-line id="auto:7118">
+            <text>Same code, same environment</text>
+          </text-line>
+          <text-line id="auto:7119">
+            <text>-or- start with new business date
+new setup</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_41" shape="fcPROCESS" label="Testing">
+        <text-lines>
+          <text-line id="auto:42540">
+            <text>Performed by Business Change Management 
+& Change Management Singapore</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_30" shape="fcPROCESS" label="Sign Off">
+        <text-lines>
+          <text-line id="auto:8693">
+            <text>Liselle (Test Manager) polices</text>
+          </text-line>
+          <text-line id="auto:8694">
+            <text>SMT can push out a release</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-arrow id="id_37" label="SMT Approved?"></kite9-arrow>
+      <label id="id_23">
+        <text>UAT Testing
+
+Time Box: 6 weeks</text>
+      </label>
+    </kite9-container>
+    <kite9-container id="id_43" layout="DOWN" bordered="true">
+      <kite9-glyph id="id_45" shape="fcPROCESS" label="Merge">
+        <text-lines>
+          <text-line id="auto:14448">
+            <text>Release candidate branch 
+merged to trunk</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_47" shape="fcPROCESS" label="Regression Drop"></kite9-glyph>
+      <kite9-glyph id="id_48" shape="fcPROCESS" label="Impact Analysis">
+        <text-lines>
+          <text-line id="auto:17029">
+            <text>Performed by business</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_50" shape="fcPROCESS" label="Sign Off">
+        <text-lines>
+          <text-line id="auto:18121">
+            <text>Impact analysis signed 
+off by Finance</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-arrow id="id_54" label="Finance Sign Off?"></kite9-arrow>
+      <label id="id_44">
+        <text>Regression
+
+? how long</text>
+      </label>
+    </kite9-container>
+    <kite9-container id="id_60" layout="DOWN" bordered="true">
+      <kite9-glyph id="id_62" shape="fcPROCESS" label="Dry Run Drop">
+        <text-lines>
+          <text-line id="auto:31718">
+            <text>Release into environment</text>
+          </text-line>
+          <text-line id="auto:31719">
+            <text>Run entire (2 COB) process</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-glyph id="id_65" shape="fcPROCESS" label="PTG Walkthrough"></kite9-glyph>
+      <kite9-glyph id="id_66" shape="fcPROCESS" label="Support Walkthrough"></kite9-glyph>
+      <kite9-arrow id="id_68" label="Approval?"></kite9-arrow>
+      <label id="id_61">
+        <text>Dry Run</text>
+      </label>
+    </kite9-container>
+    <kite9-container id="id_70" layout="DOWN" bordered="true">
+      <kite9-glyph id="id_76" shape="fcPROCESS" label="Release Drop"></kite9-glyph>
+      <kite9-glyph id="id_77" shape="fcPROCESS" label="Testing">
+        <text-lines>
+          <text-line id="auto:47414">
+            <text>Make sure all features of the 
+release have gone in</text>
+          </text-line>
+          <text-line id="auto:47415">
+            <text>Performed by business within
+30 hours</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <kite9-arrow id="id_81" label="Finished"></kite9-arrow>
+      <label id="id_71">
+        <text>Prod</text>
+      </label>
+    </kite9-container>
+    <label id="id_74">
+      <text>Release Manager's Remit</text>
+    </label>
+  </kite9-container>
+  <kite9-link id="id_1" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_0"></from>
+    <to reference="id_2"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_85" shape="DOTTED">
+    <from reference="id_58"></from>
+    <to reference="auto:40619"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_83" shape="DOTTED">
+    <from reference="id_16"></from>
+    <to reference="auto:40619"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_84" shape="DOTTED">
+    <from reference="id_14"></from>
+    <to reference="auto:40619"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_26.1" shape="NORMAL" drawDirection="DOWN">
+    <from reference="id_38"></from>
+    <to reference="id_27"></to>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_33" shape="NORMAL">
+    <from reference="id_27"></from>
+    <to reference="id_24"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_56" shape="INVISIBLE" drawDirection="RIGHT">
+    <from reference="id_27"></from>
+    <to reference="id_37"></to>
+  </kite9-link>
+  <kite9-link id="id_52" shape="NORMAL">
+    <from reference="id_30"></from>
+    <to reference="id_37"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_53" shape="NORMAL">
+    <from reference="id_37"></from>
+    <to reference="id_45"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_57" shape="INVISIBLE" drawDirection="RIGHT">
+    <from reference="id_37"></from>
+    <to reference="id_54"></to>
+  </kite9-link>
+  <kite9-link id="id_55" shape="NORMAL">
+    <from reference="id_50"></from>
+    <to reference="id_54"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_67" shape="NORMAL">
+    <from reference="id_54"></from>
+    <to reference="id_62"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_69" shape="INVISIBLE" drawDirection="RIGHT">
+    <from reference="id_54"></from>
+    <to reference="id_68"></to>
+  </kite9-link>
+  <kite9-link id="id_80" shape="NORMAL">
+    <from reference="id_68"></from>
+    <to reference="id_76"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_82" shape="INVISIBLE" drawDirection="RIGHT">
+    <from reference="id_68"></from>
+    <to reference="id_81"></to>
+  </kite9-link>
+</kite9-diagram>

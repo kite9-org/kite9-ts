@@ -1,35 +1,48 @@
 /**
- * Thorough XML fixtures.
- * old→new: Test33Contradictions → generate(xml) cases
+ * Thorough HTML fixtures (converted from Java Test33Contradictions ADL XML).
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkLayoutHtml } from "../helpers/check-layout.js";
-import { adlXmlToHtml } from "../helpers/adl-xml-to-html.js";
 
-const xmlDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "fixtures/xml");
+const fixturesDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "fixtures",
+);
 
-function loadXml(name: string): string {
-  return adlXmlToHtml(readFileSync(path.join(xmlDir, name), "utf8"));
+function loadHtml(name: string): string {
+  return readFileSync(path.join(fixturesDir, name), "utf8");
 }
 
-checkLayoutHtml("test_33_15_TooManyContradictions", loadXml("too_many_contradictions.xml"));
+checkLayoutHtml(
+  "test_33_15_TooManyContradictions",
+  loadHtml("too_many_contradictions.html"),
+);
 
-checkLayoutHtml("test_33_21_BadRequest", loadXml("badrequest.xml"));
+checkLayoutHtml("test_33_21_BadRequest", loadHtml("badrequest.html"));
 
-checkLayoutHtml("test_33_22_BretsError", loadXml("brets_error.xml"));
+checkLayoutHtml("test_33_22_BretsError", loadHtml("brets_error.html"));
 
-checkLayoutHtml("test_33_23_BentContainer", loadXml("bent_container.xml"));
+checkLayoutHtml("test_33_23_BentContainer", loadHtml("bent_container.html"));
 
-checkLayoutHtml("test_33_27_30KElements", loadXml("30k.xml"));
+checkLayoutHtml("test_33_27_30KElements", loadHtml("30k.html"));
 
-checkLayoutHtml("test_33_30_ADLHierarchy", loadXml("ADLClassHierarchy.xml"));
+checkLayoutHtml("test_33_30_ADLHierarchy", loadHtml("ADLClassHierarchy.html"));
 
-checkLayoutHtml("test_33_31_ADLHierarchyNoBorder", loadXml("ADLClassHierarchyNoBorder.xml"));
+checkLayoutHtml(
+  "test_33_31_ADLHierarchyNoBorder",
+  loadHtml("ADLClassHierarchyNoBorder.html"),
+);
 
-checkLayoutHtml("test_33_32_ADLHierarchyStrictNoBorder", loadXml("ContradictingADLClassHierarchyNoBorder.xml"));
+checkLayoutHtml(
+  "test_33_32_ADLHierarchyStrictNoBorder",
+  loadHtml("ContradictingADLClassHierarchyNoBorder.html"),
+);
 
-checkLayoutHtml("test_33_33_LayoutDirection", loadXml("layout_direction.xml"));
+checkLayoutHtml("test_33_33_LayoutDirection", loadHtml("layout_direction.html"));
 
-checkLayoutHtml("test_33_34_CouldntEstablishDirection", loadXml("couldnt_establish_direction.xml"));
+checkLayoutHtml(
+  "test_33_34_CouldntEstablishDirection",
+  loadHtml("couldnt_establish_direction.html"),
+);

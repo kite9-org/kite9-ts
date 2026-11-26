@@ -4,15 +4,31 @@
  */
 
 import {
+  DiagramElementSizing,
   DiagramElementType,
+  Dimension,
+  Direction,
+  Layout,
+  Measurement,
+  type Connected,
   type Connection,
   type Diagram,
   type DiagramElement,
+  type GridContainerPosition,
   type LayoutData,
   type LayoutPlacement,
+  type Placement,
   type Rectangular,
   type RouteRenderingInformation,
 } from "@kite9/model";
+import { contentColSpan, contentRowSpan, edgeCoords } from "@kite9/ui";
+import {
+  getRouteDirection,
+  ROUTE_MULTIPLE,
+  ROUTE_NONE,
+  type RouteDirectionResult,
+} from "./diagram-checker.js";
+import type { LinkTest } from "./link.js";
 
 /** Toggle flags — defaults match `AbstractLayoutFunctionalTest`. */
 export type LayoutChecks = {
@@ -26,12 +42,19 @@ export type LayoutChecks = {
   checkMidConnection: boolean;
 };
 
-/** Defaults match Java `AbstractDisplayFunctionalTest.checks()`. */
-export function defaultLayoutChecks(): LayoutChecks {
+/**
+ * Defaults: layout/thorough/performance match Java `AbstractLayoutFunctionalTest`
+ * (`checkNoHops` / `everythingStraight` on). Display matches
+ * `AbstractDisplayFunctionalTest` (hops / straightness off).
+ */
+export function defaultLayoutChecks(
+  kind: "display" | "layout" | "thorough" | "performance" = "display",
+): LayoutChecks {
+  const layoutLike = kind !== "display";
   return {
     checkEdgeDirections: true,
-    checkNoHops: false,
-    everythingStraight: false,
+    checkNoHops: layoutLike,
+    everythingStraight: layoutLike,
     checkLayout: true,
     checkNoContradictions: true,
     checkOcclusion: true,
@@ -53,6 +76,14 @@ function isRectangular(de: DiagramElement): de is Rectangular {
 
 function isConnection(de: DiagramElement): de is Connection {
   return de.getType() === DiagramElementType.CONNECTION;
+}
+
+function isConnected(de: DiagramElement): de is Connected {
+  return typeof (de as Partial<Connected>).getLinks === "function";
+}
+
+function isConnectedRectangular(de: DiagramElement): boolean {
+  return de.getType() === DiagramElementType.CONNECTED_RECTANGULAR;
 }
 
 /** Skip layout-only temps (Java skips TemporaryConnected / ConnectedGroupLinkNode). */
@@ -150,20 +181,22 @@ function pointInExpandedRect(
   );
 }
 
-/** Axis-aligned route direction summary for straightness / edge checks. */
-function routeDirection(rri: RouteRenderingInformation): "straight" | "turn" | "empty" {
-  const pts = rri.routePositions;
-  if (!pts || pts.length < 2) return "empty";
-  let sawH = false;
-  let sawV = false;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i]!.x() - pts[i - 1]!.x();
-    const dy = pts[i]!.y() - pts[i - 1]!.y();
-    if (Math.abs(dx) > 0.5 && Math.abs(dy) > 0.5) return "turn";
-    if (Math.abs(dx) > 0.5) sawH = true;
-    if (Math.abs(dy) > 0.5) sawV = true;
+/** Java `Link.LINK_TEST` / `contradicting` attribute on the connection host. */
+export function linkTestOf(c: Connection): LinkTest | null {
+  const el = (c as { el?: Element }).el;
+  if (el) {
+    const raw =
+      el.getAttribute("link-test") ??
+      el.getAttribute("linkTest") ??
+      el.getAttribute("linktest");
+    const v = raw?.trim().toLowerCase();
+    if (v === "turn" || v === "hop" || v === "contradicting") return v;
+    const contra = el.getAttribute("contradicting");
+    if (contra != null && contra !== "false" && contra !== "0") {
+      return "contradicting";
+    }
   }
-  return sawH && sawV ? "turn" : "straight";
+  return null;
 }
 
 function connectionsOf(diagram: Diagram): Connection[] {
@@ -227,6 +260,232 @@ function assertLayoutData(layout: LayoutData, checks: LayoutChecks): void {
   }
 }
 
+function checkBefore(
+  x1: number,
+  w1: number,
+  x2: number,
+  _w2: number,
+  prev: DiagramElement,
+  cc: DiagramElement,
+  l: Layout,
+): void {
+  if (x1 + w1 > x2) {
+    throw new LayoutCheckError(
+      `Was expecting ${prev.getID()} before ${cc.getID()} ${l}`,
+    );
+  }
+}
+
+function checkAligned(
+  x1: number,
+  w1: number,
+  x2: number,
+  w2: number,
+  prev: DiagramElement,
+  cc: DiagramElement,
+  l: Layout,
+): void {
+  if (x1 + w1 < x2) {
+    throw new LayoutCheckError(
+      `Was expecting alignment of ${prev.getID()} and ${cc.getID()} ${l}`,
+    );
+  }
+  if (x2 + w2 < x1) {
+    throw new LayoutCheckError(
+      `Was expecting some alignment of ${prev.getID()} and ${cc.getID()} ${l}`,
+    );
+  }
+}
+
+/** Java `TestingEngine.checkLayoutOrder` (intended: advance prev on each Connected). */
+function checkLayoutOrder(d: Rectangular, l: Layout): void {
+  let prev: Connected | null = null;
+  for (const c of d.getContents()) {
+    if (!isConnected(c) || isLayoutTemporary(c)) continue;
+    if (prev != null) {
+      const prevRI = prev.getRenderingInformation();
+      const ccRI = c.getRenderingInformation();
+      if (!prevRI.position || !prevRI.size || !ccRI.position || !ccRI.size) {
+        prev = c;
+        continue;
+      }
+      const prevPos = { x: prevRI.position.x(), y: prevRI.position.y() };
+      const ccPos = { x: ccRI.position.x(), y: ccRI.position.y() };
+      const prevSize = { w: prevRI.size.width(), h: prevRI.size.height() };
+      const ccSize = { w: ccRI.size.width(), h: ccRI.size.height() };
+
+      switch (l) {
+        case Layout.HORIZONTAL:
+          checkAligned(prevPos.y, prevSize.h, ccPos.y, ccSize.h, prev, c, l);
+          break;
+        case Layout.LEFT:
+          checkAligned(prevPos.y, prevSize.h, ccPos.y, ccSize.h, prev, c, l);
+          checkBefore(ccPos.x, ccSize.w, prevPos.x, prevSize.w, c, prev, l);
+          break;
+        case Layout.RIGHT:
+          checkAligned(prevPos.y, prevSize.h, ccPos.y, ccSize.h, prev, c, l);
+          checkBefore(prevPos.x, prevSize.w, ccPos.x, ccSize.w, prev, c, l);
+          break;
+        case Layout.VERTICAL:
+          checkAligned(prevPos.x, prevSize.w, ccPos.x, ccSize.w, prev, c, l);
+          break;
+        case Layout.UP:
+          checkAligned(prevPos.x, prevSize.w, ccPos.x, ccSize.w, prev, c, l);
+          checkBefore(ccPos.y, ccSize.h, prevPos.y, prevSize.h, c, prev, l);
+          break;
+        case Layout.DOWN:
+          checkAligned(prevPos.x, prevSize.w, ccPos.x, ccSize.w, prev, c, l);
+          checkBefore(prevPos.y, prevSize.h, ccPos.y, ccSize.h, prev, c, l);
+          break;
+        default:
+          break;
+      }
+    }
+    prev = c;
+  }
+}
+
+/** Java `TestingEngine.checkContentsOverlap`. */
+function checkContentsOverlap(d: Rectangular, l: Layout): void {
+  const contRI: { x: number; y: number; w: number; h: number }[] = [];
+  for (const c of d.getContents()) {
+    if (!isConnectedRectangular(c) || isLayoutTemporary(c)) continue;
+    const box = rectBox(c);
+    if (box) contRI.push(box);
+  }
+
+  contRI.sort((a, b) =>
+    l === Layout.HORIZONTAL ? a.x - b.x : a.y - b.y,
+  );
+
+  let last: (typeof contRI)[number] | null = null;
+  for (const current of contRI) {
+    if (last != null) {
+      if (l === Layout.HORIZONTAL) {
+        if (last.x + last.w > current.x) {
+          throw new LayoutCheckError(
+            `Elements of ${d.getID()} are not laid out horizontally`,
+          );
+        }
+      } else if (l === Layout.VERTICAL) {
+        if (last.y + last.h > current.y) {
+          throw new LayoutCheckError(
+            `Elements of ${d.getID()} are not laid out vertically`,
+          );
+        }
+      }
+    }
+    last = current;
+  }
+}
+
+function isGridPos(p: unknown): p is GridContainerPosition {
+  return (
+    !!p &&
+    typeof (p as GridContainerPosition).isSet === "function" &&
+    typeof (p as GridContainerPosition).getFrom === "function"
+  );
+}
+
+/**
+ * Java `checkContentsGrid` — only when children expose set grid occupies coords.
+ * Otherwise skip (do not invent positions).
+ */
+function checkContentsGrid(con: Rectangular): void {
+  const connecteds = con
+    .getContents()
+    .filter(
+      (cc) => isConnectedRectangular(cc) && !isLayoutTemporary(cc),
+    ) as Connected[];
+
+  for (const c of connecteds) {
+    const gcpCX = c.getContainerPosition?.(Dimension.H);
+    const gcpCY = c.getContainerPosition?.(Dimension.V);
+    if (!isGridPos(gcpCX) || !isGridPos(gcpCY) || !gcpCX.isSet() || !gcpCY.isSet()) {
+      continue;
+    }
+    const rriC = rectBox(c);
+    if (!rriC) continue;
+
+    for (const d of connecteds) {
+      if (d === c) continue;
+      const gcpDX = d.getContainerPosition?.(Dimension.H);
+      const gcpDY = d.getContainerPosition?.(Dimension.V);
+      if (!isGridPos(gcpDX) || !isGridPos(gcpDY) || !gcpDX.isSet() || !gcpDY.isSet()) {
+        continue;
+      }
+      const rriD = rectBox(d);
+      if (!rriD) continue;
+
+      if (gcpDX.getTo() < gcpCX.getFrom()) {
+        checkBefore(rriD.x, rriD.w, rriC.x, rriC.w, d, c, Layout.RIGHT);
+      }
+      if (gcpDX.getFrom() > gcpCX.getTo()) {
+        checkBefore(rriC.x, rriC.w, rriD.x, rriD.w, c, d, Layout.RIGHT);
+      }
+      if (gcpDY.getTo() < gcpCY.getFrom()) {
+        checkBefore(rriD.y, rriD.h, rriC.y, rriC.h, d, c, Layout.DOWN);
+      }
+      if (gcpDY.getFrom() > gcpCY.getTo()) {
+        checkBefore(rriC.y, rriC.h, rriD.y, rriD.h, c, d, Layout.DOWN);
+      }
+    }
+  }
+}
+
+/** Java `TestingEngine.testLayout` — directed order / axis overlap / grid. */
+function testLayoutRecursive(d: Rectangular): void {
+  const l = d.getLayout();
+  if (l != null) {
+    switch (l) {
+      case Layout.LEFT:
+      case Layout.RIGHT:
+      case Layout.UP:
+      case Layout.DOWN:
+        checkLayoutOrder(d, l);
+        break;
+      case Layout.HORIZONTAL:
+      case Layout.VERTICAL:
+        checkContentsOverlap(d, l);
+        break;
+      case Layout.GRID:
+        checkContentsGrid(d);
+        break;
+      default:
+        break;
+    }
+  }
+
+  for (const cc of d.getContents()) {
+    if (
+      cc.getType() === DiagramElementType.LABEL ||
+      isLayoutTemporary(cc)
+    ) {
+      continue;
+    }
+    const ri = cc.getRenderingInformation();
+    if (ri.position && ri.size && isRectangular(d)) {
+      const inside = rectBox(cc);
+      const outside = rectBox(d);
+      if (
+        inside &&
+        outside &&
+        inside.w > 0 &&
+        inside.h > 0 &&
+        (inside.x < outside.x - 1 ||
+          inside.y < outside.y - 1 ||
+          inside.x + inside.w > outside.x + outside.w + 1 ||
+          inside.y + inside.h > outside.y + outside.h + 1)
+      ) {
+        throw new LayoutCheckError(
+          `${cc.getID()} not entirely within ${d.getID()}`,
+        );
+      }
+    }
+    if (isRectangular(cc)) testLayoutRecursive(cc);
+  }
+}
+
 function assertDiagramLayout(diagram: Diagram, checks: LayoutChecks): void {
   if (checks.checkLayout) {
     walk(diagram, (de) => {
@@ -261,6 +520,7 @@ function assertDiagramLayout(diagram: Diagram, checks: LayoutChecks): void {
         }
       }
     });
+    testLayoutRecursive(diagram);
   }
 
   if (checks.checkOcclusion) {
@@ -297,7 +557,274 @@ function assertDiagramLayout(diagram: Diagram, checks: LayoutChecks): void {
   }
 }
 
-function assertConnections(diagram: Diagram, checks: LayoutChecks): void {
+function placementBox(
+  layout: LayoutData,
+  id: string,
+): { x: number; y: number; w: number; h: number } | null {
+  const p = layout.placements[id];
+  if (!p || !hasCell(p)) return null;
+  const cs = contentColSpan(layout.grid, p.col);
+  const rs = contentRowSpan(layout.grid, p.row);
+  const xs = edgeCoords(layout.grid.colSizes);
+  const ys = edgeCoords(layout.grid.rowSizes);
+  const x0 = xs[cs.start]!;
+  const y0 = ys[rs.start]!;
+  return {
+    x: x0,
+    y: y0,
+    w: xs[cs.start + cs.count]! - x0,
+    h: ys[rs.start + rs.count]! - y0,
+  };
+}
+
+/**
+ * True when an orthogonal segment crosses the open interior of `box`
+ * (edge contact alone does not count — that is a legal meet).
+ */
+function segmentCrossesInterior(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  box: { x: number; y: number; w: number; h: number },
+  inset = 1,
+): boolean {
+  const x0 = box.x + inset;
+  const y0 = box.y + inset;
+  const x1 = box.x + box.w - inset;
+  const y1 = box.y + box.h - inset;
+  if (x1 <= x0 || y1 <= y0) return false;
+
+  const minX = Math.min(a.x, b.x);
+  const maxX = Math.max(a.x, b.x);
+  const minY = Math.min(a.y, b.y);
+  const maxY = Math.max(a.y, b.y);
+
+  // Horizontal
+  if (Math.abs(a.y - b.y) <= 0.5) {
+    const y = (a.y + b.y) / 2;
+    if (y <= y0 || y >= y1) return false;
+    return maxX > x0 && minX < x1;
+  }
+  // Vertical
+  if (Math.abs(a.x - b.x) <= 0.5) {
+    const x = (a.x + b.x) / 2;
+    if (x <= x0 || x >= x1) return false;
+    return maxY > y0 && minY < y1;
+  }
+  // Non-orthogonal: sample midpoint (remap noise should already be orthogonalized).
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  return mx > x0 && mx < x1 && my > y0 && my < y1;
+}
+
+function routeEndPoint(
+  rri: RouteRenderingInformation,
+  start: boolean,
+): { x: number; y: number } | null {
+  const len = rri.getLength?.() ?? rri.routePositions?.length ?? 0;
+  if (len === 0) return null;
+  const d = start
+    ? (rri.getWaypoint?.(0) ?? rri.routePositions?.[0])
+    : (rri.getWaypoint?.(len - 1) ?? rri.routePositions?.[len - 1]);
+  if (!d) return null;
+  return { x: d.x(), y: d.y() };
+}
+
+function getConnectionSide(
+  c: Connection,
+  v: Connected,
+  r: { x: number; y: number; w: number; h: number },
+): Direction | null {
+  const start = c.getFrom() === v;
+  const p = routeEndPoint(c.getRenderingInformation(), start);
+  if (!p) return null;
+
+  const tol = 1.5;
+  const distLeft = Math.abs(p.x - r.x);
+  const distRight = Math.abs(p.x - (r.x + r.w));
+  const distUp = Math.abs(p.y - r.y);
+  const distDown = Math.abs(p.y - (r.y + r.h));
+  const min = Math.min(distLeft, distRight, distUp, distDown);
+  if (min > tol) {
+    throw new LayoutCheckError(
+      `connection ${c.getID()} should meet ${v.getID()}, cannot determine side`,
+    );
+  }
+  if (min === distLeft) return Direction.LEFT;
+  if (min === distRight) return Direction.RIGHT;
+  if (min === distUp) return Direction.UP;
+  return Direction.DOWN;
+}
+
+function connectionsOnSide(
+  v: Connected,
+  connectionSide: Direction,
+  r: { x: number; y: number; w: number; h: number },
+): number {
+  let n = 0;
+  for (const l of v.getLinks()) {
+    try {
+      if (getConnectionSide(l, v, r) === connectionSide) n++;
+    } catch {
+      // skip links that do not yet meet
+    }
+  }
+  return n;
+}
+
+function isAligning(v: Connected, side: Direction): boolean {
+  if (v.getType() === DiagramElementType.PORT) return false;
+  const sizing = (
+    v as Connected & { getSizing?: (h: boolean) => DiagramElementSizing }
+  ).getSizing?.(
+    side === Direction.LEFT || side === Direction.RIGHT,
+  );
+  if (sizing === DiagramElementSizing.MAXIMIZE) return false;
+  return true;
+}
+
+function calculatePositionForPlacement(
+  p: Placement,
+  totalDist: number,
+): number {
+  const amount = p.amount;
+  if (p.type === Measurement.PIXELS) {
+    return amount < 0 ? totalDist + amount : amount;
+  }
+  return (totalDist * amount) / 100;
+}
+
+function getAlignPoint(
+  s: number,
+  len: number,
+  v: Connected,
+  connectionSide: Direction,
+): number {
+  const dim =
+    connectionSide === Direction.LEFT || connectionSide === Direction.RIGHT
+      ? Dimension.V
+      : Dimension.H;
+  const aligned = v as Connected & {
+    getConnectionAlignment?: (d: Dimension) => Placement;
+  };
+  const p =
+    aligned.getConnectionAlignment?.(dim) ??
+    ({ type: Measurement.PERCENTAGE, amount: 50 } as Placement);
+  return s + calculatePositionForPlacement(p, len);
+}
+
+/** Connections often cannot be centered when a directed layout runs through. */
+function straightWithLayoutException(c: Connection, v: Connected): boolean {
+  const container = v.getContainer?.();
+  if (!container) return false;
+  const l = container.getLayout();
+  if (l != null && l !== Layout.GRID && c.getDrawDirection() != null) {
+    return true;
+  }
+  return false;
+}
+
+function checkMidConnection(
+  c: Connection,
+  v: Connected,
+  start: boolean,
+): void {
+  const rri = c.getRenderingInformation();
+  const len = rri.getLength?.() ?? rri.routePositions?.length ?? 0;
+  if (len === 0) return;
+
+  const p = routeEndPoint(rri, start);
+  const box = rectBox(v);
+  if (!p || !box) return;
+
+  if (!pointInExpandedRect(p.x, p.y, box)) {
+    throw new LayoutCheckError(
+      `connection ${c.getID()} doesn't meet ${v.getID()}`,
+    );
+  }
+
+  const connectionSide = getConnectionSide(c, v, box);
+  if (connectionSide == null) return;
+  if (connectionsOnSide(v, connectionSide, box) !== 1) return;
+  if (!isAligning(v, connectionSide)) return;
+
+  if (
+    connectionSide === Direction.UP ||
+    connectionSide === Direction.DOWN
+  ) {
+    const alignPoint = getAlignPoint(box.x, box.w, v, connectionSide);
+    if (Math.abs(p.x - alignPoint) > 2 && !straightWithLayoutException(c, v)) {
+      throw new LayoutCheckError(
+        `${c.getID()} Not mid side of ${v.getID()}`,
+      );
+    }
+  } else {
+    const alignPoint = getAlignPoint(box.y, box.h, v, connectionSide);
+    if (Math.abs(p.y - alignPoint) > 2 && !straightWithLayoutException(c, v)) {
+      throw new LayoutCheckError(
+        `${c.getID()} Not mid side of ${v.getID()}`,
+      );
+    }
+  }
+}
+
+/** Java `TestingEngine.testConnectionPresence`. */
+function testConnectionPresence(
+  c: Connection,
+  rri: RouteRenderingInformation,
+  checks: LayoutChecks,
+): void {
+  const linkTest = linkTestOf(c);
+  if (rri.isContradicting) {
+    if (checks.checkNoContradictions && linkTest !== "contradicting") {
+      throw new LayoutCheckError(`Connection contradiction set: ${c.getID()}`);
+    }
+    return;
+  }
+
+  let dir: RouteDirectionResult;
+  try {
+    dir = getRouteDirection(rri);
+  } catch (e) {
+    throw new LayoutCheckError(
+      `Could not find location of : ${c.getID()}: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
+  }
+
+  if (dir === ROUTE_MULTIPLE) {
+    if (checks.everythingStraight && linkTest !== "turn") {
+      throw new LayoutCheckError(`Connection not straight: ${c.getID()}`);
+    }
+    // Java keeps this odd branch for multiple vs scalar drawDirection.
+    if (
+      checks.checkEdgeDirections &&
+      c.getDrawDirection() != null &&
+      dir !== ROUTE_NONE &&
+      dir !== c.getDrawDirection()
+    ) {
+      throw new LayoutCheckError(
+        `Connection in wrong direction: ${c.getID()} ${c.getDrawDirection()} ${dir}`,
+      );
+    }
+  } else if (c.getDrawDirection() != null) {
+    if (
+      checks.checkEdgeDirections &&
+      dir !== c.getDrawDirection() &&
+      dir !== ROUTE_NONE
+    ) {
+      throw new LayoutCheckError(
+        `Connection in wrong direction: ${c.getID()} ${c.getDrawDirection()} ${dir}`,
+      );
+    }
+  }
+}
+
+function assertConnections(
+  diagram: Diagram,
+  layout: LayoutData,
+  checks: LayoutChecks,
+): void {
   const conns = connectionsOf(diagram);
   const missing: string[] = [];
 
@@ -306,51 +833,101 @@ function assertConnections(diagram: Diagram, checks: LayoutChecks): void {
 
     const rri = c.getRenderingInformation();
     const len = rri.getLength?.() ?? rri.routePositions?.length ?? 0;
+    const painted = layout.routes[c.getID()];
+    const paintedLen = painted?.points?.length ?? 0;
 
     // Java TestingEngine.testConnectionPresence: empty route ⇒ ElementsMissingException
-    if (len === 0) {
+    if (len === 0 && paintedLen === 0) {
       missing.push(c.getID());
       continue;
     }
 
-    if (checks.checkConnectionsMeetConnecteds && len >= 2) {
-      const pts = rri.routePositions!;
-      const fromBox = rectBox(c.getFrom());
-      const toBox = rectBox(c.getTo());
-      const first = pts[0]!;
-      const last = pts[pts.length - 1]!;
-      if (fromBox && !pointInExpandedRect(first.x(), first.y(), fromBox)) {
+    if (checks.checkConnectionsMeetConnecteds) {
+      // Compaction RI endpoints vs glyph RI boxes (Java TestingEngine.meets).
+      if (len >= 2) {
+        const fromBox = rectBox(c.getFrom());
+        const toBox = rectBox(c.getTo());
+        const first = routeEndPoint(rri, true);
+        const last = routeEndPoint(rri, false);
+        if (!fromBox) {
+          throw new LayoutCheckError(
+            `connection ${c.getID()} from ${c.getFrom().getID()} missing position/size`,
+          );
+        }
+        if (!toBox) {
+          throw new LayoutCheckError(
+            `connection ${c.getID()} to ${c.getTo().getID()} missing position/size`,
+          );
+        }
+        if (!first || !pointInExpandedRect(first.x, first.y, fromBox)) {
+          throw new LayoutCheckError(
+            `connection ${c.getID()} start does not meet ${c.getFrom().getID()}`,
+          );
+        }
+        if (!last || !pointInExpandedRect(last.x, last.y, toBox)) {
+          throw new LayoutCheckError(
+            `connection ${c.getID()} end does not meet ${c.getTo().getID()}`,
+          );
+        }
+
+        if (checks.checkMidConnection) {
+          checkMidConnection(c, c.getFrom(), true);
+          checkMidConnection(c, c.getTo(), false);
+        }
+      }
+
+      // Painted LayoutData routes vs placement cells (catches paint/remap drift).
+      // Nested endpoints have no top-level placement → no painted route expected.
+      const fromId = c.getFrom().getID();
+      const toId = c.getTo().getID();
+      const fromCell = placementBox(layout, fromId);
+      const toCell = placementBox(layout, toId);
+      if (paintedLen >= 2) {
+        const pts = painted!.points;
+        const first = pts[0]!;
+        const last = pts[pts.length - 1]!;
+        if (fromCell && !pointInExpandedRect(first.x, first.y, fromCell, 2)) {
+          throw new LayoutCheckError(
+            `painted route ${c.getID()} start does not meet ${fromId}`,
+          );
+        }
+        if (toCell && !pointInExpandedRect(last.x, last.y, toCell, 2)) {
+          throw new LayoutCheckError(
+            `painted route ${c.getID()} end does not meet ${toId}`,
+          );
+        }
+      } else if (len >= 2 && fromCell && toCell) {
         throw new LayoutCheckError(
-          `connection ${c.getID()} start does not meet ${c.getFrom().getID()}`,
+          `connection ${c.getID()} has RI route but no painted LayoutData.route`,
         );
       }
-      if (toBox && !pointInExpandedRect(last.x(), last.y(), toBox)) {
-        throw new LayoutCheckError(
-          `connection ${c.getID()} end does not meet ${c.getTo().getID()}`,
-        );
+    }
+
+    // Java TestingEngine.testHopCount: HopLink (`linkTest=hop`) may overlap.
+    if (checks.checkNoHops && linkTestOf(c) !== "hop") {
+      if (rri.hops?.some(Boolean)) {
+        throw new LayoutCheckError(`Connection overlap on: ${c.getID()}`);
       }
-      // Mid-side alignment is enabled by flag but needs richer arrival-side
-      // data; skip until ports/alignment are fully wired in TS fixtures.
-      void checks.checkMidConnection;
+      const pts = painted?.points;
+      if (pts && pts.length >= 2) {
+        const fromId = c.getFrom().getID();
+        const toId = c.getTo().getID();
+        for (const [id, p] of Object.entries(layout.placements)) {
+          if (id === fromId || id === toId || !hasCell(p)) continue;
+          const box = placementBox(layout, id);
+          if (!box) continue;
+          for (let i = 1; i < pts.length; i++) {
+            if (segmentCrossesInterior(pts[i - 1]!, pts[i]!, box)) {
+              throw new LayoutCheckError(
+                `Connection overlap on: ${c.getID()} (through ${id})`,
+              );
+            }
+          }
+        }
+      }
     }
 
-    if (checks.checkNoHops && rri.hops?.some(Boolean)) {
-      throw new LayoutCheckError(`connection hop on ${c.getID()}`);
-    }
-
-    if (checks.checkNoContradictions && rri.isContradicting) {
-      throw new LayoutCheckError(`connection contradiction on ${c.getID()}`);
-    }
-
-    const dir = routeDirection(rri);
-    if (checks.everythingStraight && dir === "turn") {
-      throw new LayoutCheckError(`connection not straight: ${c.getID()}`);
-    }
-
-    // checkEdgeDirections needs Java DiagramChecker route-bearing analysis;
-    // do not treat multi-segment routes as failures until that is ported.
-    void checks.checkEdgeDirections;
-    void dir;
+    testConnectionPresence(c, rri, checks);
   }
 
   if (missing.length > 0) {
@@ -371,5 +948,5 @@ export function testDiagram(
 ): void {
   assertLayoutData(layoutData, checks);
   assertDiagramLayout(diagram, checks);
-  assertConnections(diagram, checks);
+  assertConnections(diagram, layoutData, checks);
 }

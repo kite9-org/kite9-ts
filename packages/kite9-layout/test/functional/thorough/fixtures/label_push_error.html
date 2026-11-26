@@ -1,0 +1,56 @@
+<kite9-diagram id="The Diagram">
+  <kite9-container id="top" layout="RIGHT" bordered="true" label="Top">
+    <kite9-glyph id="A" label="A"></kite9-glyph>
+    <kite9-glyph id="B" label="B"></kite9-glyph>
+    <kite9-glyph id="C" label="C"></kite9-glyph>
+  </kite9-container>
+  <kite9-container id="bottom" layout="RIGHT" bordered="true" label="Bottom">
+    <kite9-glyph id="D" label="D"></kite9-glyph>
+    <kite9-glyph id="E" label="E"></kite9-glyph>
+    <kite9-glyph id="F" label="F"></kite9-glyph>
+  </kite9-container>
+  <kite9-link id="id_18" drawDirection="DOWN">
+    <from reference="A"></from>
+    <to reference="D"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="id_19">
+    <from reference="D"></from>
+    <to reference="B"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_20">
+    <from reference="B"></from>
+    <to reference="E"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_21">
+    <from reference="C"></from>
+    <to reference="E"></to>
+    <kite9-from-label>
+      <text>sometimes</text>
+    </kite9-from-label>
+    <kite9-to-label>
+      <text>is</text>
+    </kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+  <kite9-link id="id_22" drawDirection="UP">
+    <from reference="F"></from>
+    <to reference="C"></to>
+    <kite9-from-label></kite9-from-label>
+    <kite9-to-label></kite9-to-label>
+    <fromdecoration>ARROW</fromdecoration>
+    <todecoration>NONE</todecoration>
+  </kite9-link>
+</kite9-diagram>

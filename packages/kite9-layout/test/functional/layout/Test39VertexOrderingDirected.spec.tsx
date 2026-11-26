@@ -2,7 +2,7 @@
  * Vertex ordering with directed (draw-direction) arrow links.
  * old→new: Java Test27 (VertexOrderingDirected) → test_39_* (renumbered to avoid display clash)
  * (39_2 and 27_12 are @Ignore; there is no 27_8 in the Java source.)
- * HopLink / TurnLink → plain link (no per-link hop/turn assertion in TS checks).
+ * HopLink / TurnLink → `linkTest: "hop"|"turn"` where Java uses those types.
  */
 import type { ComponentChild } from "preact";
 import { checkLayout, type CheckLayoutOptions } from "../helpers/check-layout.js";
@@ -63,6 +63,7 @@ function directed(
         link(`l${i + 1}`, out[s.from[0]]![s.from[1]]!, out[s.to[0]]![s.to[1]]!, {
           fromDecoration: s.arrow ? "ARROW" : undefined,
           drawDirection: s.dir,
+          linkTest: s.dir ? undefined : "turn",
         }),
       )}
     </kite9-diagram>

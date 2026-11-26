@@ -1,0 +1,137 @@
+<kite9-diagram id="auto:3309" layout="RIGHT">
+  <kite9-container id="id_30" shape="umlCONTAINER" layout="DOWN" bordered="true">
+    <kite9-glyph id="id_32" shape="fcDOCUMENT" label="Code">
+      <text-lines>
+        <text-line id="auto:133750">
+          <text>Calc Components
+            DSL
+            Orchestrator
+            etc.</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <label id="id_31">
+      <text>SVN</text>
+    </label>
+  </kite9-container>
+  <kite9-container id="id_7" shape="umlCONTAINER" layout="DOWN" bordered="true">
+    <kite9-glyph id="id_39" shape="fcPROCESS" label="Orchestrator Release Build"></kite9-glyph>
+    <kite9-glyph id="id_35" shape="fcPROCESS" label="DSL Release Build"></kite9-glyph>
+    <label id="id_8">
+      <text>Team City</text>
+    </label>
+  </kite9-container>
+  <kite9-container id="id_2" shape="umlCONTAINER" layout="DOWN" bordered="true">
+    <kite9-glyph id="id_5" shape="umlCOMPONENT" label="Orchestrator">
+      <text-lines>
+        <text-line id="auto:100390">
+          <text>ref version</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <kite9-glyph id="id_4" shape="umlCOMPONENT" label="DSL">
+      <text-lines>
+        <text-line id="auto:100077">
+          <text>ref version</text>
+        </text-line>
+      </text-lines>
+    </kite9-glyph>
+    <kite9-glyph id="id_6" shape="umlCOMPONENT" label="..etc"></kite9-glyph>
+    <label id="id_3">
+      <text>Nexus Repository</text>
+    </label>
+  </kite9-container>
+  <kite9-container id="id_0" shape="umlCONTAINER" layout="DOWN" bordered="true">
+    <kite9-glyph id="id_25" shape="fcPROCESS" label="TC Snapshot Build"></kite9-glyph>
+    <kite9-glyph id="id_12" shape="fcPROCESS" label="TC Versioned Build (regular)"></kite9-glyph>
+    <label id="id_1">
+      <text>Team City</text>
+    </label>
+  </kite9-container>
+  <kite9-container id="auto:101020" layout="DOWN" bordered="false">
+    <kite9-container id="id_23" shape="umlCONTAINER" bordered="true">
+      <kite9-glyph id="id_26" shape="umlCOMPONENT" label="Built REF">
+        <text-lines>
+          <text-line id="auto:103241">
+            <text>snapshot version</text>
+          </text-line>
+          <text-line id="auto:103242">
+            <text>smoke testing</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <label id="id_24">
+        <text>Container</text>
+      </label>
+    </kite9-container>
+    <kite9-container id="id_15" shape="umlCONTAINER" bordered="true">
+      <kite9-glyph id="id_18" shape="umlCOMPONENT" label="Built REF">
+        <text-lines>
+          <text-line id="auto:103626">
+            <text>ref version</text>
+          </text-line>
+          <text-line id="auto:103627">
+            <text>full automated testing</text>
+          </text-line>
+        </text-lines>
+      </kite9-glyph>
+      <label id="id_16">
+        <text>Test Environment</text>
+      </label>
+    </kite9-container>
+  </kite9-container>
+  <kite9-link id="id_38" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_32"></from>
+    <to reference="id_39"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_42" shape="DOTTED" drawDirection="RIGHT">
+    <from reference="id_32"></from>
+    <to reference="id_25"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_40" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_39"></from>
+    <to reference="id_5"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_36" shape="NORMAL">
+    <from reference="id_35"></from>
+    <to reference="id_4"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_13" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_5"></from>
+    <to reference="id_12"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_11" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_4"></from>
+    <to reference="id_12"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_14" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_6"></from>
+    <to reference="id_12"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_44" shape="DOTTED" drawDirection="RIGHT">
+    <from reference="id_25"></from>
+    <to reference="id_26"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="id_17" shape="NORMAL" drawDirection="RIGHT">
+    <from reference="id_12"></from>
+    <to reference="id_18"></to>
+    <fromdecoration>NONE</fromdecoration>
+    <todecoration>BARBED ARROW</todecoration>
+  </kite9-link>
+</kite9-diagram>

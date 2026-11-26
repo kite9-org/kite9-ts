@@ -1,0 +1,174 @@
+<kite9-diagram id="1">
+  <kite9-glyph id="edg" stereotype="interface" label="Edge"></kite9-glyph>
+  <kite9-glyph id="vtx" stereotype="interface" label="Vertex"></kite9-glyph>
+  <kite9-glyph id="ap" stereotype="class" label="ap"></kite9-glyph>
+  <kite9-glyph id="Face" stereotype="class" label="Face"></kite9-glyph>
+  <kite9-glyph id="Planarization" stereotype="interface" label="Planarization"></kite9-glyph>
+  <kite9-glyph id="m1" stereotype="interface" label="MGTPlanarization"></kite9-glyph>
+  <kite9-glyph id="m" stereotype="class" label="MGTPlanarizationImpl"></kite9-glyph>
+  <kite9-arrow id="ap/faces/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="Face/boundary/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="Face/corners/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="Face/containedFaces/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="Face/containedBy/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="m/vertexOrder/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="m/aboveSet/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="m/crossingEdges/rel_is a" label="is a"></kite9-arrow>
+  <kite9-arrow id="ap/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="m1/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="m/rel_implements" label="implements"></kite9-arrow>
+  <kite9-arrow id="m/rel_extends" label="extends"></kite9-arrow>
+  <kite9-link id="auto:49">
+    <from reference="Face/boundary/rel_is a"></from>
+    <to reference="edg"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:59">
+    <from reference="m/aboveSet/rel_is a"></from>
+    <to reference="edg"></to>
+    <kite9-to-label>
+      <text>Set of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:61">
+    <from reference="m/crossingEdges/rel_is a"></from>
+    <to reference="edg"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:51">
+    <from reference="Face/corners/rel_is a"></from>
+    <to reference="vtx"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:57">
+    <from reference="m/vertexOrder/rel_is a"></from>
+    <to reference="vtx"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:46">
+    <from reference="ap"></from>
+    <to reference="ap/faces/rel_is a"></to>
+    <kite9-from-label>
+      <text>faces</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:62" drawDirection="UP">
+    <from reference="ap"></from>
+    <to reference="ap/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:69" drawDirection="UP">
+    <from reference="m/rel_extends"></from>
+    <to reference="ap"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:47">
+    <from reference="ap/faces/rel_is a"></from>
+    <to reference="Face"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:48">
+    <from reference="Face"></from>
+    <to reference="Face/boundary/rel_is a"></to>
+    <kite9-from-label>
+      <text>boundary</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:50">
+    <from reference="Face"></from>
+    <to reference="Face/corners/rel_is a"></to>
+    <kite9-from-label>
+      <text>corners</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:52">
+    <from reference="Face"></from>
+    <to reference="Face/containedFaces/rel_is a"></to>
+    <kite9-from-label>
+      <text>containedFaces</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:53">
+    <from reference="Face/containedFaces/rel_is a"></from>
+    <to reference="Face"></to>
+    <kite9-to-label>
+      <text>List of</text>
+    </kite9-to-label>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:54">
+    <from reference="Face"></from>
+    <to reference="Face/containedBy/rel_is a"></to>
+    <kite9-from-label>
+      <text>containedBy</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:55">
+    <from reference="Face/containedBy/rel_is a"></from>
+    <to reference="Face"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:63" drawDirection="UP">
+    <from reference="ap/rel_implements"></from>
+    <to reference="Planarization"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:65" drawDirection="UP">
+    <from reference="m1/rel_implements"></from>
+    <to reference="Planarization"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:64" drawDirection="UP">
+    <from reference="m1"></from>
+    <to reference="m1/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:67" drawDirection="UP">
+    <from reference="m/rel_implements"></from>
+    <to reference="m1"></to>
+    <todecoration>ARROW</todecoration>
+  </kite9-link>
+  <kite9-link id="auto:56">
+    <from reference="m"></from>
+    <to reference="m/vertexOrder/rel_is a"></to>
+    <kite9-from-label>
+      <text>vertexOrder</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:58">
+    <from reference="m"></from>
+    <to reference="m/aboveSet/rel_is a"></to>
+    <kite9-from-label>
+      <text>aboveSet</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:60">
+    <from reference="m"></from>
+    <to reference="m/crossingEdges/rel_is a"></to>
+    <kite9-from-label>
+      <text>crossingEdges</text>
+    </kite9-from-label>
+  </kite9-link>
+  <kite9-link id="auto:66" drawDirection="UP">
+    <from reference="m"></from>
+    <to reference="m/rel_implements"></to>
+  </kite9-link>
+  <kite9-link id="auto:68" drawDirection="UP">
+    <from reference="m"></from>
+    <to reference="m/rel_extends"></to>
+  </kite9-link>
+</kite9-diagram>

@@ -40,11 +40,11 @@ export type LayoutPlacement =
 export type GridVertex = { xi: number; yi: number };
 
 /**
- * Connection topology on the diagram grid — direction-change vertices only.
- * Pixel paths are derived at paint time by `@kite9/ui` `AdjustableLayout`.
+ * Connection route in diagram pixel space (orthogonal polyline).
+ * Prefer compaction RI waypoints remapped into the painted grid.
  */
 export type RouteLayout = {
-  vertices: GridVertex[];
+  points: Point2D[];
   /** Paint corner radius in px; consumers may default when omitted. */
   cornerRadius?: number;
   labels: Record<string, Point2D>;
