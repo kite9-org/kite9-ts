@@ -1,9 +1,13 @@
 /** Chromium boot for functional layout: measure + arrange in a real browser. */
 
-import type { LayoutData } from "@kite9/model";
 import { createDiagram } from "@kite9/templating";
 import { applyLayout, testTemplatePack } from "@kite9/test-template";
 import { DomElementSizer, layout } from "@kite9/layout";
+import {
+  drawCompactionPng,
+  drawPositionsPng,
+} from "./helpers/debug-draw.js";
+import type { FunctionalLayoutRun } from "./helpers/functional-layout-run.js";
 import {
   defaultLayoutChecks,
   testDiagram,
@@ -16,7 +20,7 @@ declare global {
     __runFunctionalLayout?: (
       html: string,
       checks?: Partial<LayoutChecks>,
-    ) => LayoutData;
+    ) => FunctionalLayoutRun;
   }
 }
 
@@ -26,7 +30,7 @@ if (!mount) throw new Error("No #mount");
 window.__runFunctionalLayout = (
   html: string,
   checks?: Partial<LayoutChecks>,
-): LayoutData => {
+): FunctionalLayoutRun => {
   mount.replaceChildren();
   mount.innerHTML = html;
   const root = mount.querySelector("kite9-diagram");
@@ -41,7 +45,11 @@ window.__runFunctionalLayout = (
     ...checks,
   });
 
-  return result.layout;
+  return {
+    layout: result.layout,
+    positionsPngBase64: drawPositionsPng(result.grouping, result.routable),
+    compactionPngBase64: drawCompactionPng(result.compaction),
+  };
 };
 
 window.__kite9Ready = true;

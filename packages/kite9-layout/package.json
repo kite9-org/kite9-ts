@@ -18,11 +18,12 @@
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:functional": "playwright test",
-    "test:results": "vite --config vite.outputs.config.ts"
+    "test:results": "pnpm --filter @kite9/preview test:results"
   },
   "dependencies": {
     "@kite9/css": "workspace:*",
-    "@kite9/model": "workspace:*"
+    "@kite9/model": "workspace:*",
+    "@kite9/ui": "workspace:*"
   },
   "devDependencies": {
     "@kite9/templating": "workspace:*",

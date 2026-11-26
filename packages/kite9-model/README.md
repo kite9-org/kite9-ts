@@ -63,16 +63,6 @@ flowchart TB
 
 **`LayoutData`** is the serializable arrangement of a diagram: grid tracks, element placements, and link routes. Fixtures and layout algorithms produce it; renderers (e.g. `@kite9/test-template` `applyLayout`) consume it.
 
-| Field | Type | Role |
-| --- | --- | --- |
-| `grid` | `GridLayout` | Content counts, mins, gutters, `content*Sizes`, physical `colSizes` / `rowSizes` |
-| `placements` | `Record<id, LayoutPlacement>` | Cell (`col`/`row`/`size`, optional `margin`), edge (`edge`/`along`/`size`), or anchor (`anchor`/`side`) |
-| `routes` | `Record<id, RouteLayout>` | Connection polylines + label points in diagram coords |
-
-Related paint inputs (same file): `ConnectionRenderLayout`, `TerminatorRenderLayout`, `LabelRenderLayout`.
-
-Mutation (resize, margins, track recompute) is **not** in this package — use `AdjustableLayout` from `@kite9/ui`, which deep-clones `LayoutData` for an edit session.
-
 ```mermaid
 flowchart LR
   data["LayoutData in model"]

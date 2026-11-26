@@ -6,22 +6,22 @@
     "minCol": 40,
     "minRow": 40,
     "contentColSizes": [
-      147
+      163
     ],
     "contentRowSizes": [
-      109
+      127
     ],
     "colSizes": [
       16,
       16,
-      147,
+      163,
       16,
       16
     ],
     "rowSizes": [
       16,
       16,
-      109,
+      127,
       16,
       16
     ]

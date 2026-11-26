@@ -1,5 +1,6 @@
 import { DiagramElementType } from "@kite9/css";
-import { End, type ConnectionRenderLayout, type Point2D } from "@kite9/model";
+import { End } from "@kite9/model";
+import type { ConnectionRenderLayout } from "@kite9/model";
 import {
   applyHostCapabilities,
   type RenderHtmlFn,
@@ -42,11 +43,6 @@ export const renderLinkChrome: RenderHtmlFn = (host, shadow) => {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function pathD(points: readonly Point2D[]): string | null {
-  if (points.length < 2) return null;
-  return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-}
-
 export type ConnectionSvgProps = ConnectionRenderLayout;
 
 /**
@@ -54,14 +50,13 @@ export type ConnectionSvgProps = ConnectionRenderLayout;
  */
 export function ConnectionSvg({
   id,
-  points,
+  d,
+  fromPoint,
+  toPoint,
   fromStyle,
   toStyle,
 }: ConnectionSvgProps) {
-  const d = pathD(points);
   if (!d) return null;
-  const first = points[0]!;
-  const last = points[points.length - 1]!;
   return (
     <>
       <path
@@ -73,8 +68,8 @@ export function ConnectionSvg({
         marker-start={`url(#${markerId(fromStyle, End.FROM)})`}
         marker-end={`url(#${markerId(toStyle, End.TO)})`}
       />
-      <TerminatorHit style={fromStyle} end={End.FROM} point={first} />
-      <TerminatorHit style={toStyle} end={End.TO} point={last} />
+      <TerminatorHit style={fromStyle} end={End.FROM} point={fromPoint} />
+      <TerminatorHit style={toStyle} end={End.TO} point={toPoint} />
     </>
   );
 }

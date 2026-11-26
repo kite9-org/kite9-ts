@@ -81,6 +81,14 @@ export default defineConfig({
         find: "@kite9/css",
         replacement: path.resolve(packages, "kite9-css/src/index.ts"),
       },
+      {
+        find: "@kite9/ui",
+        replacement: path.resolve(packages, "kite9-ui/src/index.ts"),
+      },
+      {
+        find: "@kite9/command",
+        replacement: path.resolve(packages, "kite9-command/src/index.ts"),
+      },
     ],
   },
 });

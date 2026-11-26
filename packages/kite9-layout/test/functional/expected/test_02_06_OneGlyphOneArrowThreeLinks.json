@@ -1,0 +1,90 @@
+{
+  "grid": {
+    "contentCols": 2,
+    "contentRows": 1,
+    "gutter": 16,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      52,
+      55
+    ],
+    "contentRowSizes": [
+      41
+    ],
+    "colSizes": [
+      16,
+      16,
+      52,
+      16,
+      55,
+      16,
+      16
+    ],
+    "rowSizes": [
+      16,
+      16,
+      24.848484848484844,
+      16.151515151515156,
+      16,
+      16
+    ],
+    "contentRowStarts": [
+      2
+    ],
+    "contentRowCounts": [
+      2
+    ]
+  },
+  "placements": {
+    "one": {
+      "col": 1,
+      "row": 1
+    },
+    "meets": {
+      "col": 2,
+      "row": 1
+    }
+  },
+  "routes": {
+    "tl1": {
+      "vertices": [
+        {
+          "xi": 4,
+          "yi": 3
+        },
+        {
+          "xi": 3,
+          "yi": 3
+        }
+      ],
+      "labels": {}
+    },
+    "tl2": {
+      "vertices": [
+        {
+          "xi": 4,
+          "yi": 3
+        },
+        {
+          "xi": 3,
+          "yi": 3
+        }
+      ],
+      "labels": {}
+    },
+    "tl3": {
+      "vertices": [
+        {
+          "xi": 4,
+          "yi": 3
+        },
+        {
+          "xi": 3,
+          "yi": 3
+        }
+      ],
+      "labels": {}
+    }
+  }
+}

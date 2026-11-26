@@ -4,12 +4,22 @@ import type {
   Connection,
   Diagram,
   DiagramElement,
+  GridLayout,
   LayoutData,
+  LayoutPlacement,
   Point2D,
   Rectangular,
+  RouteLayout,
   Size,
 } from "@kite9/model";
 import { DiagramElementType } from "@kite9/model";
+import {
+  contentColSpan,
+  contentRowSpan,
+  edgeCoords,
+  ensureGridEdge,
+  snapPolylineToVertices,
+} from "@kite9/ui";
 
 const DEFAULT_GUTTER = 16;
 const DEFAULT_MIN = 40;
@@ -130,61 +140,288 @@ function collectConnections(diagram: Diagram): Connection[] {
 }
 
 function routePoints(c: Connection): Point2D[] {
-  const rri = c.getRenderingInformation() as {
-    routePositions?: { x(): number; y(): number }[];
-  };
+  const rri = c.getRenderingInformation();
   const pts = rri.routePositions;
   if (!pts?.length) return [];
   return pts.map((p) => ({ x: p.x(), y: p.y() }));
 }
 
+type CellPlace = Extract<LayoutPlacement, { col: number; row: number }>;
+
+function isCellPlace(p: LayoutPlacement | undefined): p is CellPlace {
+  return !!p && "col" in p && "row" in p;
+}
+
+type Box = { x: number; y: number; w: number; h: number };
+
+function gridCellBox(grid: GridLayout, p: CellPlace): Box {
+  const cs = contentColSpan(grid, p.col);
+  const rs = contentRowSpan(grid, p.row);
+  const xs = edgeCoords(grid.colSizes);
+  const ys = edgeCoords(grid.rowSizes);
+  const x0 = xs[cs.start]!;
+  const y0 = ys[rs.start]!;
+  return {
+    x: x0,
+    y: y0,
+    w: xs[cs.start + cs.count]! - x0,
+    h: ys[rs.start + rs.count]! - y0,
+  };
+}
+
+function riBox(el: Rectangular): Box {
+  const p = positionOf(el);
+  const s = sizeOf(el);
+  return { x: p.x, y: p.y, w: s.w, h: s.h };
+}
+
+function clamp01(t: number): number {
+  if (t < 0) return 0;
+  if (t > 1) return 1;
+  return t;
+}
+
+/**
+ * Map a compaction-space route point into adjustable-grid space using the
+ * from/to element boxes (RI → content cell). Mid-glyph slideables land at
+ * mid-cell edges instead of the remapped pad/top.
+ */
+function mapRoutePointToGrid(
+  p: Point2D,
+  fromRi: Box,
+  toRi: Box,
+  fromGrid: Box,
+  toGrid: Box,
+): Point2D {
+  const midFrom = {
+    x: fromRi.x + fromRi.w / 2,
+    y: fromRi.y + fromRi.h / 2,
+  };
+  const midTo = {
+    x: toRi.x + toRi.w / 2,
+    y: toRi.y + toRi.h / 2,
+  };
+  const distFrom =
+    (p.x - midFrom.x) ** 2 + (p.y - midFrom.y) ** 2;
+  const distTo = (p.x - midTo.x) ** 2 + (p.y - midTo.y) ** 2;
+  const primary = distFrom <= distTo ? fromRi : toRi;
+  const primaryGrid = distFrom <= distTo ? fromGrid : toGrid;
+  const secondary = distFrom <= distTo ? toRi : fromRi;
+  const secondaryGrid = distFrom <= distTo ? toGrid : fromGrid;
+
+  const inPrimaryX = p.x >= primary.x && p.x <= primary.x + primary.w;
+  const inPrimaryY = p.y >= primary.y && p.y <= primary.y + primary.h;
+
+  let x: number;
+  let y: number;
+  if (inPrimaryX) {
+    x =
+      primaryGrid.x +
+      clamp01(primary.w > 0 ? (p.x - primary.x) / primary.w : 0.5) *
+        primaryGrid.w;
+  } else if (p.x >= secondary.x && p.x <= secondary.x + secondary.w) {
+    x =
+      secondaryGrid.x +
+      clamp01(secondary.w > 0 ? (p.x - secondary.x) / secondary.w : 0.5) *
+        secondaryGrid.w;
+  } else {
+    // Gutter / channel between the two cells — interpolate facing edges.
+    const leftRi = fromRi.x <= toRi.x ? fromRi : toRi;
+    const rightRi = fromRi.x <= toRi.x ? toRi : fromRi;
+    const leftGrid = fromRi.x <= toRi.x ? fromGrid : toGrid;
+    const rightGrid = fromRi.x <= toRi.x ? toGrid : fromGrid;
+    const x0 = leftRi.x + leftRi.w;
+    const x1 = rightRi.x;
+    const t =
+      x1 > x0 ? clamp01((p.x - x0) / (x1 - x0)) : 0.5;
+    x = leftGrid.x + leftGrid.w + t * (rightGrid.x - (leftGrid.x + leftGrid.w));
+  }
+
+  if (inPrimaryY) {
+    y =
+      primaryGrid.y +
+      clamp01(primary.h > 0 ? (p.y - primary.y) / primary.h : 0.5) *
+        primaryGrid.h;
+  } else if (p.y >= secondary.y && p.y <= secondary.y + secondary.h) {
+    y =
+      secondaryGrid.y +
+      clamp01(secondary.h > 0 ? (p.y - secondary.y) / secondary.h : 0.5) *
+        secondaryGrid.h;
+  } else {
+    const topRi = fromRi.y <= toRi.y ? fromRi : toRi;
+    const bottomRi = fromRi.y <= toRi.y ? toRi : fromRi;
+    const topGrid = fromRi.y <= toRi.y ? fromGrid : toGrid;
+    const bottomGrid = fromRi.y <= toRi.y ? toGrid : fromGrid;
+    const y0 = topRi.y + topRi.h;
+    const y1 = bottomRi.y;
+    const t =
+      y1 > y0 ? clamp01((p.y - y0) / (y1 - y0)) : 0.5;
+    y =
+      topGrid.y +
+      topGrid.h +
+      t * (bottomGrid.y - (topGrid.y + topGrid.h));
+  }
+
+  return { x, y };
+}
+
+/**
+ * Same-row / same-col link along the facing gutter at the content mid-lane
+ * (compaction places ConnAnchors on the mid slideable through the glyphs).
+ */
+function facingMidLaneVertices(
+  grid: GridLayout,
+  from: CellPlace,
+  to: CellPlace,
+  laneY?: number,
+  laneX?: number,
+): { xi: number; yi: number }[] | null {
+  if (from.row === to.row && from.col !== to.col) {
+    const span = contentRowSpan(grid, from.row);
+    const ys = edgeCoords(grid.rowSizes);
+    const y0 = ys[span.start]!;
+    const y1 = ys[span.start + span.count]!;
+    const mid = laneY ?? (y0 + y1) / 2;
+    const yi = ensureGridEdge(grid, "row", mid);
+    const fromCs = contentColSpan(grid, from.col);
+    const toCs = contentColSpan(grid, to.col);
+    const fromXi =
+      from.col < to.col ? fromCs.start + fromCs.count : fromCs.start;
+    const toXi = to.col < from.col ? toCs.start + toCs.count : toCs.start;
+    return [
+      { xi: fromXi, yi },
+      { xi: toXi, yi },
+    ];
+  }
+  if (from.col === to.col && from.row !== to.row) {
+    const span = contentColSpan(grid, from.col);
+    const xs = edgeCoords(grid.colSizes);
+    const x0 = xs[span.start]!;
+    const x1 = xs[span.start + span.count]!;
+    const mid = laneX ?? (x0 + x1) / 2;
+    const xi = ensureGridEdge(grid, "col", mid);
+    const fromRs = contentRowSpan(grid, from.row);
+    const toRs = contentRowSpan(grid, to.row);
+    const fromYi =
+      from.row < to.row ? fromRs.start + fromRs.count : fromRs.start;
+    const toYi = to.row < from.row ? toRs.start + toRs.count : toRs.start;
+    return [
+      { xi, yi: fromYi },
+      { xi, yi: toYi },
+    ];
+  }
+  return null;
+}
+
+/**
+ * Prefer facing mid-lane gutters (compaction mid-glyph slideables). Fall back
+ * to remapping the RI polyline into grid space and snapping.
+ */
+function routesOnGrid(
+  diagram: Diagram,
+  grid: GridLayout,
+  placements: LayoutData["placements"],
+): Record<string, RouteLayout> {
+  const routes: Record<string, RouteLayout> = {};
+  // Content spans are created lazily by ensureGridEdge when a mid-lane splits a track.
+
+  for (const c of collectConnections(diagram)) {
+    const fromEl = c.getFrom();
+    const toEl = c.getTo();
+    const fromP = placements[fromEl.getID()];
+    const toP = placements[toEl.getID()];
+    if (
+      !isRectangular(fromEl) ||
+      !isRectangular(toEl) ||
+      !isCellPlace(fromP) ||
+      !isCellPlace(toP)
+    ) {
+      continue;
+    }
+
+    const fromRi = riBox(fromEl);
+    const toRi = riBox(toEl);
+    const fromGrid = gridCellBox(grid, fromP);
+    const toGrid = gridCellBox(grid, toP);
+    const points = routePoints(c);
+
+    // Mid-lane from RI (mapped into the content cell), else geometric mid.
+    let laneY: number | undefined;
+    let laneX: number | undefined;
+    if (points.length > 0) {
+      const mapped0 = mapRoutePointToGrid(
+        points[0]!,
+        fromRi,
+        toRi,
+        fromGrid,
+        toGrid,
+      );
+      laneY = mapped0.y;
+      laneX = mapped0.x;
+    }
+
+    const facing = facingMidLaneVertices(grid, fromP, toP, laneY, laneX);
+    if (facing) {
+      routes[c.getID()] = { vertices: facing, labels: {} };
+      continue;
+    }
+
+    if (points.length < 2) continue;
+    const mapped = points.map((p) =>
+      mapRoutePointToGrid(p, fromRi, toRi, fromGrid, toGrid),
+    );
+    for (const m of mapped) {
+      ensureGridEdge(grid, "col", m.x);
+      ensureGridEdge(grid, "row", m.y);
+    }
+    const vertices = snapPolylineToVertices(grid, mapped);
+    if (vertices.length >= 2) {
+      routes[c.getID()] = { vertices, labels: {} };
+    }
+  }
+  return routes;
+}
+
 /**
  * Build {@link LayoutData} from post-compaction rendering information.
  * Top-level connected rectangulars become grid placements (nested kids stay
- * in light-DOM under their container). Routes come from connection RI.
+ * in light-DOM under their container). Routes are snapped to grid-edge vertices.
  */
 export function toLayoutData(diagram: Diagram): LayoutData {
   const tops = topLevelConnecteds(diagram);
   const diagSize = sizeOf(diagram);
   const diagPos = positionOf(diagram);
 
-  const routes: LayoutData["routes"] = {};
-  for (const c of collectConnections(diagram)) {
-    const points = routePoints(c);
-    if (points.length) {
-      routes[c.getID()] = { points, labels: {} };
-    }
-  }
-
   if (tops.length === 0) {
     const w = Math.max(DEFAULT_MIN, diagSize.w);
     const h = Math.max(DEFAULT_MIN, diagSize.h);
+    const grid: GridLayout = {
+      contentCols: 1,
+      contentRows: 1,
+      gutter: DEFAULT_GUTTER,
+      minCol: DEFAULT_MIN,
+      minRow: DEFAULT_MIN,
+      contentColSizes: [w],
+      contentRowSizes: [h],
+      colSizes: [
+        DEFAULT_GUTTER,
+        DEFAULT_GUTTER,
+        w,
+        DEFAULT_GUTTER,
+        DEFAULT_GUTTER,
+      ],
+      rowSizes: [
+        DEFAULT_GUTTER,
+        DEFAULT_GUTTER,
+        h,
+        DEFAULT_GUTTER,
+        DEFAULT_GUTTER,
+      ],
+    };
     return {
-      grid: {
-        contentCols: 1,
-        contentRows: 1,
-        gutter: DEFAULT_GUTTER,
-        minCol: DEFAULT_MIN,
-        minRow: DEFAULT_MIN,
-        contentColSizes: [w],
-        contentRowSizes: [h],
-        colSizes: [
-          DEFAULT_GUTTER,
-          DEFAULT_GUTTER,
-          w,
-          DEFAULT_GUTTER,
-          DEFAULT_GUTTER,
-        ],
-        rowSizes: [
-          DEFAULT_GUTTER,
-          DEFAULT_GUTTER,
-          h,
-          DEFAULT_GUTTER,
-          DEFAULT_GUTTER,
-        ],
-      },
+      grid,
       placements: {},
-      routes,
+      routes: routesOnGrid(diagram, grid, {}),
     };
   }
 
@@ -284,19 +521,21 @@ export function toLayoutData(diagram: Diagram): LayoutData {
   }
   rowSizes.push(outerB, outerB);
 
+  const grid: GridLayout = {
+    contentCols,
+    contentRows,
+    gutter: DEFAULT_GUTTER,
+    minCol: DEFAULT_MIN,
+    minRow: DEFAULT_MIN,
+    contentColSizes,
+    contentRowSizes,
+    colSizes,
+    rowSizes,
+  };
+
   return {
-    grid: {
-      contentCols,
-      contentRows,
-      gutter: DEFAULT_GUTTER,
-      minCol: DEFAULT_MIN,
-      minRow: DEFAULT_MIN,
-      contentColSizes,
-      contentRowSizes,
-      colSizes,
-      rowSizes,
-    },
+    grid,
     placements,
-    routes,
+    routes: routesOnGrid(diagram, grid, placements),
   };
 }

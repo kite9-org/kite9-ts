@@ -1,6 +1,5 @@
 /** Layout snapshot types (grid tracks, element placements, link routes). */
 
-import type { End } from "@kite9/css";
 import type { Direction } from "./position/Direction.js";
 
 export type Size = { w: number; h: number };
@@ -34,8 +33,20 @@ export type LayoutPlacement =
   | { edge: Direction; along: number; size?: Size }
   | { anchor: string; side: Direction };
 
+/**
+ * Intersection of a vertical grid edge (`xi`) and a horizontal grid edge (`yi`).
+ * `xi` ∈ `0..colSizes.length`, `yi` ∈ `0..rowSizes.length`.
+ */
+export type GridVertex = { xi: number; yi: number };
+
+/**
+ * Connection topology on the diagram grid — direction-change vertices only.
+ * Pixel paths are derived at paint time by `@kite9/ui` `AdjustableLayout`.
+ */
 export type RouteLayout = {
-  points: Point2D[];
+  vertices: GridVertex[];
+  /** Paint corner radius in px; consumers may default when omitted. */
+  cornerRadius?: number;
   labels: Record<string, Point2D>;
 };
 
@@ -49,6 +60,18 @@ export type GridLayout = {
   contentRowSizes: number[];
   colSizes: number[];
   rowSizes: number[];
+  /**
+   * Physical 0-based start index into {@link colSizes} for each content column.
+   * Omitted → legacy `2 * (col)` (1-based col). Raised when connection lanes
+   * split a content track.
+   */
+  contentColStarts?: number[];
+  /** Physical track counts per content column (default 1). */
+  contentColCounts?: number[];
+  /** Physical 0-based start index into {@link rowSizes} for each content row. */
+  contentRowStarts?: number[];
+  /** Physical track counts per content row (default 1). */
+  contentRowCounts?: number[];
 };
 
 /** Serializable layout snapshot: sized grid, element placements, and connection routes. */
@@ -56,29 +79,4 @@ export type LayoutData = {
   grid: GridLayout;
   placements: Record<string, LayoutPlacement>;
   routes: Record<string, RouteLayout>;
-};
-
-/** Connection body geometry for SVG rendering. */
-export type ConnectionRenderLayout = {
-  id: string;
-  points: Point2D[];
-  /** Decoration style at the from end (`ARROW` / `NONE`) — drives `marker-start`. */
-  fromStyle: string;
-  /** Decoration style at the to end — drives `marker-end`. */
-  toStyle: string;
-};
-
-/** Terminator pose + decoration style at a link end (hit-box + marker def). */
-export type TerminatorRenderLayout = {
-  style: string;
-  end: End;
-  point: Point2D;
-};
-
-/** Connection label pose for SVG foreignObject (text comes from the label host/model). */
-export type LabelRenderLayout = {
-  id: string;
-  end: End;
-  point: Point2D;
-  size: Size;
 };

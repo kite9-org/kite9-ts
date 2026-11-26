@@ -14,7 +14,10 @@ export function outputsDir(suite: string, name: string): string {
   return path.join(PKG_ROOT, "outputs", suite, name);
 }
 
-/** Browser viewer: light-DOM + apply sibling `*-layout.json` via test-template. */
+/**
+ * Browser viewer: light-DOM + `@kite9/preview` bootScene (edit/resize).
+ * Served by `pnpm test:results` (preview vite.results.config).
+ */
 export function buildViewHtml(name: string, inputHtml: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -36,14 +39,13 @@ export function buildViewHtml(name: string, inputHtml: string): string {
 ${inputHtml}
     </div>
     <script type="module">
-      import { createDiagram } from "@kite9/templating";
-      import { applyLayout, testTemplatePack } from "@kite9/test-template";
+      import { bootScene } from "@kite9/preview";
       import layoutData from "./${name}-layout.json";
 
       const root = document.querySelector("kite9-diagram");
       if (!root) throw new Error("No <kite9-diagram> in document");
-      createDiagram(root, testTemplatePack);
-      applyLayout(root, layoutData, testTemplatePack);
+      root.setAttribute("mode", "edit");
+      bootScene(layoutData);
     </script>
   </body>
 </html>

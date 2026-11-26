@@ -30,7 +30,7 @@ const dispose = applyBehaviourPack(
 | Module | Role |
 | --- | --- |
 | `behaviour` | `Behaviour`, `BehaviourPack`, `applyBehaviourPack` |
-| `adjustable-layout` | Edit-session wrapper over `LayoutData` (`resizeElement`, `setMargin`, …) |
+| `adjustable-layout` | Edit-session wrapper over `LayoutData`.  Allows for diagram elements to be resized without a new layout being generated. (`resizeElement`, `setMargin`, …) |
 | `layout-session` | `{ layout: AdjustableLayout, apply }` on `BehaviourContext` |
 | `context-menu/` | Floating edit menu (`ContextMenu`) |
 | `overlay/` | Sizing rects / arrows in diagram shadow (session-scoped) |

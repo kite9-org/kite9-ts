@@ -59,7 +59,8 @@ describe("HTML + grid → shadow layout", () => {
     const l2 = root.shadowRoot!.querySelector(
       '.links-layer g[data-link-id="l2"] path[data-connection-path]',
     )!;
-    expect(l2.getAttribute("d")).toContain("380 87");
+    // l2 runs along content-row top edge (yi=2 → y=32) from xi=5→6.
+    expect(l2.getAttribute("d")).toBe("M296 32 L360 32");
 
     const objects = root.shadowRoot!.querySelector(".objects-layer") as HTMLElement;
     expect(objects.style.display).toBe("grid");

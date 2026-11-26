@@ -3,11 +3,62 @@
 import type {
   BoxInsets,
   GridLayout,
+  GridVertex,
   LayoutData,
   LayoutPlacement,
+  Point2D,
   RouteLayout,
   Size,
 } from "@kite9/model";
+import {
+  DEFAULT_CORNER_RADIUS,
+  contentColSpan,
+  contentRowSpan,
+  orthogonalPathD,
+  snapPolylineToVertices,
+  vertexPoint as gridVertexPoint,
+  verticesToPoints,
+} from "./route-path.js";
+
+/** Legacy route shape before grid-edge vertices. */
+type LegacyRoute = {
+  points?: Point2D[];
+  vertices?: GridVertex[];
+  cornerRadius?: number;
+  labels?: Record<string, Point2D>;
+};
+
+/** Upgrade `points` routes to `vertices` against the current grid. */
+function normalizeRoutes(
+  grid: GridLayout,
+  routes: Record<string, RouteLayout | LegacyRoute>,
+): Record<string, RouteLayout> {
+  const out: Record<string, RouteLayout> = {};
+  for (const [id, raw] of Object.entries(routes)) {
+    const route = raw as LegacyRoute;
+    if (route.vertices && route.vertices.length >= 2) {
+      out[id] = {
+        vertices: route.vertices,
+        ...(route.cornerRadius !== undefined
+          ? { cornerRadius: route.cornerRadius }
+          : {}),
+        labels: route.labels ?? {},
+      };
+      continue;
+    }
+    if (route.points && route.points.length >= 2) {
+      out[id] = {
+        vertices: snapPolylineToVertices(grid, route.points),
+        ...(route.cornerRadius !== undefined
+          ? { cornerRadius: route.cornerRadius }
+          : {}),
+        labels: route.labels ?? {},
+      };
+      continue;
+    }
+  }
+  return out;
+}
 
 type CellPlacement = Extract<LayoutPlacement, { col: number; row: number }>;
 
@@ -27,29 +78,60 @@ function rowSpan(p: CellPlacement): { start: number; end: number; count: number 
   return { start, end, count: end - start + 1 };
 }
 
-/** Physical 0-based index of content column `col` (1-based) in `colSizes`. */
-function contentColPhysicalIndex(col: number): number {
-  return 2 * col;
-}
-
-/** Physical 0-based index of content row `row` (1-based) in `rowSizes`. */
-function contentRowPhysicalIndex(row: number): number {
-  return 2 * row;
-}
-
 function syncPhysicalContentTracks(grid: GridLayout): void {
   for (let c = 0; c < grid.contentColSizes.length; c++) {
-    const idx = contentColPhysicalIndex(c + 1);
-    if (idx < grid.colSizes.length) {
-      grid.colSizes[idx] = grid.contentColSizes[c]!;
-    }
+    syncContentAxis(
+      grid.colSizes,
+      contentColSpan(grid, c + 1),
+      grid.contentColSizes[c]!,
+    );
   }
   for (let r = 0; r < grid.contentRowSizes.length; r++) {
-    const idx = contentRowPhysicalIndex(r + 1);
-    if (idx < grid.rowSizes.length) {
-      grid.rowSizes[idx] = grid.contentRowSizes[r]!;
+    syncContentAxis(
+      grid.rowSizes,
+      contentRowSpan(grid, r + 1),
+      grid.contentRowSizes[r]!,
+    );
+  }
+}
+
+/** Write logical content size into one or more physical tracks (preserve mid-lane zeros). */
+function syncContentAxis(
+  sizes: number[],
+  span: { start: number; count: number },
+  total: number,
+): void {
+  const { start, count } = span;
+  if (start < 0 || start >= sizes.length) return;
+  if (count <= 1) {
+    sizes[start] = total;
+    return;
+  }
+  let sum = 0;
+  let flex = 0;
+  for (let i = 0; i < count; i++) {
+    const s = sizes[start + i] ?? 0;
+    sum += s;
+    if (s > 0) flex += s;
+  }
+  if (flex <= 0) {
+    sizes[start] = total;
+    return;
+  }
+  const scale = total / flex;
+  let written = 0;
+  for (let i = 0; i < count; i++) {
+    const idx = start + i;
+    if (idx >= sizes.length) break;
+    if (i === count - 1) {
+      sizes[idx] = Math.max(0, total - written);
+    } else if ((sizes[idx] ?? 0) > 0) {
+      const next = (sizes[idx]! * scale);
+      sizes[idx] = next;
+      written += next;
     }
   }
+  void sum;
 }
 
 /**
@@ -64,14 +146,13 @@ export class AdjustableLayout {
   private constructor(data: LayoutData) {
     this.grid = data.grid;
     this.placements = data.placements;
-    this.routes = data.routes;
+    this.routes = normalizeRoutes(data.grid, data.routes);
   }
 
   /** Deep-clone `data` into a mutable session layout. */
   static from(data: LayoutData): AdjustableLayout {
-    return new AdjustableLayout(
-      JSON.parse(JSON.stringify(data)) as LayoutData,
-    );
+    const cloned = JSON.parse(JSON.stringify(data)) as LayoutData;
+    return new AdjustableLayout(cloned);
   }
 
   clone(): AdjustableLayout {
@@ -159,6 +240,30 @@ export class AdjustableLayout {
     if (!placement || !isCellPlacement(placement)) return false;
     this.recomputeTracksForPlacement(placement);
     return true;
+  }
+
+  /** Pixel position of a grid-edge vertex under current track sizes. */
+  vertexPoint(v: GridVertex): Point2D {
+    return gridVertexPoint(this.grid, v);
+  }
+
+  /** Orthogonal polyline for a route id (empty if missing / too short). */
+  routePolyline(id: string): Point2D[] {
+    const route = this.routes[id];
+    if (!route?.vertices?.length) return [];
+    return verticesToPoints(this.grid, route.vertices);
+  }
+
+  /**
+   * SVG path `d` for a route, with corner radius from the route or `radius`.
+   * Returns null when the route has fewer than two vertices.
+   */
+  routePathD(id: string, radius?: number): string | null {
+    const route = this.routes[id];
+    if (!route?.vertices || route.vertices.length < 2) return null;
+    const points = verticesToPoints(this.grid, route.vertices);
+    const r = radius ?? route.cornerRadius ?? DEFAULT_CORNER_RADIUS;
+    return orthogonalPathD(points, r);
   }
 
   private maxWidthInContentCol(col: number): number {

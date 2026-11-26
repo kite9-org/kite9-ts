@@ -1,6 +1,6 @@
 import type { LayoutData } from "@kite9/model";
 import { describe, expect, it } from "vitest";
-import { AdjustableLayout } from "../src/adjustable-layout.js";
+import { AdjustableLayout } from "../src/adjustable-layout/index.js";
 
 function sampleLayout(): LayoutData {
   return {

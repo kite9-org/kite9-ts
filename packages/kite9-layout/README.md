@@ -16,7 +16,7 @@ pnpm playwright:install                               # once (workspace Chromium
 pnpm --filter @kite9/layout test                      # unit (vitest) + functional (Playwright)
 pnpm --filter @kite9/layout test:unit                 # vitest only
 pnpm --filter @kite9/layout test:functional           # Chromium layout + expected JSON
-pnpm --filter @kite9/layout test:results              # browse outputs/
+pnpm --filter @kite9/layout test:results              # browse outputs/ (via @kite9/preview, edit/resize)
 ```
 
-Functional specs (`*.spec.tsx`) call `checkLayout(name, jsx)` which runs layout in Chromium, applies `LayoutChecks` (Java `TestingEngine` / `AbstractLayoutFunctionalTest` defaults), then compares against `expected/<name>.json`. Override flags via `checkLayout(name, jsx, { checks: { … } })`. Changing the diagram or label will fail until you update that expected file (copy from `outputs/.../*-layout.json`). Artifacts land under `outputs/`; each `*.html` viewer applies the sibling `*-layout.json`.
+Functional specs (`*.spec.tsx`) call `checkLayout(name, jsx)` which runs layout in Chromium, applies `LayoutChecks` (Java `TestingEngine` / `AbstractLayoutFunctionalTest` defaults), then compares against `expected/<name>.json`. Override flags via `checkLayout(name, jsx, { checks: { … } })`. Changing the diagram or label will fail until you update that expected file (Accept from the results page, or copy from `outputs/.../*-layout.json`). Artifacts land under `outputs/` (`*-layout.json`, `*.html`, screenshot `*.png`, plus Java-style `*-positions.png` / `*-compaction.png` debug drawings); each `*.html` viewer boots via `@kite9/preview` `bootScene` in edit mode.

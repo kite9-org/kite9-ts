@@ -7,3 +7,4 @@ Links follow cell edges
 Diagram Element Factory should go?  -- All elements involved in connections should be in the HTML, otherwise a) they won't have IDs and b) they'll be too hard to change.  Actually, same reason.  
 fanning
 Grids
+Type Guards stuff.

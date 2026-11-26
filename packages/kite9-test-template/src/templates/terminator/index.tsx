@@ -1,4 +1,5 @@
-import { End, type TerminatorRenderLayout } from "@kite9/model";
+import { End } from "@kite9/model";
+import type { TerminatorRenderLayout } from "@kite9/model";
 import type { RenderDefsFn } from "@kite9/templating";
 
 const SVG_NS = "http://www.w3.org/2000/svg";

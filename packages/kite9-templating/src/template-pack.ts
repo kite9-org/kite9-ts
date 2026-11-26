@@ -1,7 +1,7 @@
 import { resolveDiagramElementType } from "@kite9/css";
+import type { DiagramElementType } from "@kite9/model";
 import type {
   ConnectionRenderLayout,
-  DiagramElementType,
   LabelRenderLayout,
   TerminatorRenderLayout,
 } from "@kite9/model";

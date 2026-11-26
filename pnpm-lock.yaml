@@ -72,6 +72,9 @@ importers:
       '@kite9/model':
         specifier: workspace:*
         version: link:../kite9-model
+      '@kite9/ui':
+        specifier: workspace:*
+        version: link:../kite9-ui
     devDependencies:
       '@kite9/templating':
         specifier: workspace:*

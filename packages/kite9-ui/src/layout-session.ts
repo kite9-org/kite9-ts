@@ -1,4 +1,4 @@
-import type { AdjustableLayout } from "./adjustable-layout.js";
+import type { AdjustableLayout } from "./adjustable-layout/index.js";
 
 /**
  * Mutable layout held during an edit session.

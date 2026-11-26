@@ -41,6 +41,16 @@ export function isDiagram(x: unknown): x is Diagram {
 }
 
 export function isRectangular(x: unknown): x is Rectangular {
+  const t = typeOf(x);
+  // Ports/labels/terminators also expose adapter getContents — they are not layout containers.
+  if (
+    t === DiagramElementType.PORT ||
+    t === DiagramElementType.CONNECTION ||
+    t === DiagramElementType.TERMINATOR ||
+    t === DiagramElementType.LABEL
+  ) {
+    return false;
+  }
   return hasMethod(x, "getContents");
 }
 
@@ -49,7 +59,13 @@ export function isConnected(x: unknown): x is Connected {
 }
 
 export function isConnectedRectangular(x: unknown): x is ConnectedRectangular {
-  return isRectangular(x) && isConnected(x);
+  // Require the connected-rectangular type so ports (which also expose
+  // getContents/getLinks via RectangularAdapter) are not counted as containers.
+  return (
+    typeOf(x) === DiagramElementType.CONNECTED_RECTANGULAR &&
+    hasMethod(x, "getContents") &&
+    hasMethod(x, "getLinks")
+  );
 }
 
 export function isAlignedRectangular(x: unknown): x is AlignedRectangular {

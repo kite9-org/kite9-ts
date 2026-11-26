@@ -12,7 +12,23 @@ export {
   ContextMenu,
 } from "./context-menu/context-menu.js";
 
-export { AdjustableLayout } from "./adjustable-layout.js";
+export {
+  AdjustableLayout,
+  DEFAULT_CORNER_RADIUS,
+  ceilEdgeIndex,
+  contentColSpan,
+  contentRowSpan,
+  edgeCoords,
+  ensureGridEdge,
+  floorEdgeIndex,
+  initContentSpans,
+  orthogonalPathD,
+  simplifyVertices,
+  snapPolylineToVertices,
+  snapToGridVertex,
+  vertexPoint,
+  verticesToPoints,
+} from "./adjustable-layout/index.js";
 export type { LayoutSession } from "./layout-session.js";
 
 export type {

@@ -7,6 +7,7 @@ import type { LayoutData } from "@kite9/model";
 import { expect, test, type Page } from "@playwright/test";
 import { Window } from "happy-dom";
 import { render, type ComponentChild } from "preact";
+import type { FunctionalLayoutRun } from "./functional-layout-run.js";
 import {
   defaultLayoutChecks,
   type LayoutChecks,
@@ -34,7 +35,7 @@ declare global {
     __runFunctionalLayout?: (
       html: string,
       checks?: Partial<LayoutChecks>,
-    ) => LayoutData;
+    ) => FunctionalLayoutRun;
   }
 }
 
@@ -84,7 +85,7 @@ async function runInBrowser(
   page: Page,
   inputHtml: string,
   checks: Partial<LayoutChecks>,
-): Promise<LayoutData> {
+): Promise<FunctionalLayoutRun> {
   await page.goto("/functional");
   await page.waitForFunction(() => window.__kite9Ready === true);
   return page.evaluate(
@@ -121,8 +122,18 @@ export function checkLayout(
     let dir: string | undefined;
     try {
       const inputHtml = htmlFromJsx(diagram);
-      const layoutData = await runInBrowser(page, inputHtml, checks);
+      const run = await runInBrowser(page, inputHtml, checks);
+      const layoutData = run.layout;
       dir = writeLayoutArtifacts(suite, name, inputHtml, layoutData);
+
+      writeFileSync(
+        path.join(dir, `${name}-positions.png`),
+        Buffer.from(run.positionsPngBase64, "base64"),
+      );
+      writeFileSync(
+        path.join(dir, `${name}-compaction.png`),
+        Buffer.from(run.compactionPngBase64, "base64"),
+      );
 
       await page.locator("#mount").screenshot({
         path: path.join(dir, `${name}.png`),
