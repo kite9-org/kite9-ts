@@ -4,6 +4,8 @@
   position: relative;
   justify-self: center;
   align-self: center;
+  /* Matches Java tester.css --kite9-margin; read by getMargin() for sibling gaps. */
+  margin: 10px;
   font: 500 12px/1.35 Metropolis, system-ui, sans-serif;
   color: #0f172a;
 }
@@ -18,6 +20,9 @@
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 0;
 }
 
@@ -29,11 +34,13 @@
 .card header {
   font-weight: 500;
   font-size: 13px;
+  text-align: center;
 }
 
 .body {
   display: none;
   color: #475569;
+  text-align: center;
 }
 
 :host(:has(> *)) .body {

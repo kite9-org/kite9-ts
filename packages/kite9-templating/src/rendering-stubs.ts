@@ -46,7 +46,8 @@ export function createRectangleRI(): RectangleRenderingInformation {
   let gx: OPair<LongFraction> | null = null;
   let gy: OPair<LongFraction> | null = null;
   return {
-    rendered: false,
+    // Match Java AbstractRenderingInformationImpl (default true).
+    rendered: true,
     size: null,
     position: null,
     cellXPositions: null,
@@ -74,7 +75,9 @@ export function createRouteRI(): RouteRenderingInformation {
   const positions: Dimension2D[] = [];
   const hops: boolean[] = [];
   return {
-    rendered: false,
+    // Match Java AbstractRenderingInformationImpl (default true).
+    // ConnectionPositionCompactionStep skips non-rendered connections.
+    rendered: true,
     size: null,
     position: null,
     routePositions: positions,

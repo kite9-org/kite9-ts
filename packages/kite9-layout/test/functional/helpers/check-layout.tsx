@@ -1,6 +1,6 @@
 /** One-liner functional layout check in Chromium via Playwright. */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { LayoutData } from "@kite9/model";
@@ -16,12 +16,16 @@ import { outputsDir, writeLayoutArtifacts } from "./write-artifacts.js";
 
 const HELPERS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const EXPECTED_DIR = path.resolve(HELPERS_DIR, "../expected");
+/** When set, write `expected/<name>.json` from the run instead of asserting. */
+const UPDATE_EXPECTED = process.env.UPDATE_EXPECTED === "1";
 
 export type CheckLayoutOptions = {
   /** Override suite folder under `outputs/` (default: calling `*.spec.tsx` basename). */
   suite?: string;
-  /** Override {@link LayoutChecks} defaults from AbstractLayoutFunctionalTest. */
+  /** Override {@link LayoutChecks} defaults from AbstractDisplayFunctionalTest. */
   checks?: Partial<LayoutChecks>;
+  /** Skip until layout engine supports this fixture (still keeps the spec for traceability). */
+  skip?: string;
 };
 
 declare global {
@@ -106,6 +110,13 @@ export function checkLayout(
   const suite = options.suite ?? suiteFromCaller();
   const checks = { ...defaultLayoutChecks(), ...options.checks };
 
+  if (options.skip) {
+    test.skip(name, () => {
+      // kept for old→new traceability
+    });
+    return;
+  }
+
   test(name, async ({ page }) => {
     let dir: string | undefined;
     try {
@@ -117,7 +128,22 @@ export function checkLayout(
         path: path.join(dir, `${name}.png`),
       });
 
-      expect(layoutData).toEqual(loadExpected(`${name}.json`));
+      if (UPDATE_EXPECTED) {
+        mkdirSync(EXPECTED_DIR, { recursive: true });
+        writeFileSync(
+          path.join(EXPECTED_DIR, `${name}.json`),
+          `${JSON.stringify(layoutData, null, 2)}\n`,
+          "utf8",
+        );
+      } else {
+        const expectedFile = path.join(EXPECTED_DIR, `${name}.json`);
+        if (!existsSync(expectedFile)) {
+          throw new Error(
+            `No expected layout for ${name} — Accept from the results page (pnpm test:results) or set UPDATE_EXPECTED=1`,
+          );
+        }
+        expect(layoutData).toEqual(loadExpected(`${name}.json`));
+      }
       writeTestResult(dir, suite, name, "passed");
     } catch (e) {
       const failDir = dir ?? outputsDir(suite, name);

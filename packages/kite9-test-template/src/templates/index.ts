@@ -5,6 +5,12 @@ export {
   type GlyphChromeProps,
 } from "./glyph/index.js";
 export {
+  ArrowChrome,
+  ARROW_STYLES,
+  renderArrowChrome,
+  type ArrowChromeProps,
+} from "./arrow/index.js";
+export {
   ContainerChrome,
   CONTAINER_STYLES,
   renderContainerChrome,

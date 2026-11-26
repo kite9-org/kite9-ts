@@ -69,7 +69,11 @@ export class State<P extends PathLocation<P>> {
   }
 
   remove(): P {
-    return this.pq.remove()!;
+    const next = this.pq.remove();
+    if (next == null) {
+      throw new Error("PriorityQueue empty");
+    }
+    return next;
   }
 
   getAdds(): number {

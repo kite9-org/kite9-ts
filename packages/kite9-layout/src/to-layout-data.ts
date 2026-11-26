@@ -1,9 +1,11 @@
 /** Convert arranged RI positions/sizes into serializable {@link LayoutData}. */
 
 import type {
+  Connection,
   Diagram,
   DiagramElement,
   LayoutData,
+  Point2D,
   Rectangular,
   Size,
 } from "@kite9/model";
@@ -11,28 +13,25 @@ import { DiagramElementType } from "@kite9/model";
 
 const DEFAULT_GUTTER = 16;
 const DEFAULT_MIN = 40;
+const BAND_EPS = 1;
 
 function isRectangular(de: DiagramElement): de is Rectangular {
   return typeof (de as Partial<Rectangular>).getContents === "function";
 }
 
-function leafConnecteds(root: Rectangular): Rectangular[] {
-  const out: Rectangular[] = [];
-  const walk = (r: Rectangular) => {
-    const kids = r.getContents().filter(isRectangular) as Rectangular[];
-    const connectedKids = kids.filter(
-      (k) => k.getType() === DiagramElementType.CONNECTED_RECTANGULAR,
-    );
-    if (
-      r.getType() === DiagramElementType.CONNECTED_RECTANGULAR &&
-      connectedKids.length === 0
-    ) {
-      out.push(r);
-    }
-    for (const k of kids) walk(k);
-  };
-  walk(root);
-  return out;
+function isConnectedRectangular(de: DiagramElement): boolean {
+  return de.getType() === DiagramElementType.CONNECTED_RECTANGULAR;
+}
+
+function isConnection(de: DiagramElement): de is Connection {
+  return de.getType() === DiagramElementType.CONNECTION;
+}
+
+/** Direct connected-rectangular children of the diagram (grid participants). */
+function topLevelConnecteds(diagram: Diagram): Rectangular[] {
+  return diagram
+    .getContents()
+    .filter((c): c is Rectangular => isRectangular(c) && isConnectedRectangular(c));
 }
 
 function sizeOf(r: Rectangular): Size {
@@ -54,7 +53,10 @@ function hostOf(r: Rectangular): HTMLElement | null {
 }
 
 /** Parse an authored (non-`auto`) length; percentages resolve via used style. */
-function authoredCssPx(el: HTMLElement, prop: "width" | "height"): number | undefined {
+function authoredCssPx(
+  el: HTMLElement,
+  prop: "width" | "height",
+): number | undefined {
   const specified = el.style.getPropertyValue(prop).trim();
   if (!specified || specified === "auto") return undefined;
   if (specified.endsWith("px")) {
@@ -79,17 +81,82 @@ function authoredCssSize(r: Rectangular): Size | undefined {
   return { w: w ?? measured.w, h: h ?? measured.h };
 }
 
+/** Cluster sorted coordinates into bands (tolerance {@link BAND_EPS}). */
+function bandValues(values: number[]): number[] {
+  const sorted = [...values].sort((a, b) => a - b);
+  const bands: number[] = [];
+  for (const v of sorted) {
+    const last = bands[bands.length - 1];
+    if (last === undefined || Math.abs(v - last) > BAND_EPS) bands.push(v);
+  }
+  return bands;
+}
+
+function bandIndex(bands: number[], v: number): number {
+  let best = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < bands.length; i++) {
+    const d = Math.abs(bands[i]! - v);
+    if (d < bestDist) {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+function ceilPx(n: number): number {
+  return Math.max(DEFAULT_MIN, Math.ceil(n));
+}
+
+/**
+ * Connections live on the diagram registry (`allConnections`), not under
+ * rectangular `getContents()` (ADL links are siblings of glyphs/arrows).
+ */
+function collectConnections(diagram: Diagram): Connection[] {
+  const adapter = diagram as Diagram & { allConnections?: Connection[] };
+  if (Array.isArray(adapter.allConnections)) {
+    return [...adapter.allConnections];
+  }
+  const out: Connection[] = [];
+  const walk = (r: Rectangular) => {
+    for (const c of r.getContents()) {
+      if (isConnection(c)) out.push(c);
+      if (isRectangular(c)) walk(c);
+    }
+  };
+  walk(diagram);
+  return out;
+}
+
+function routePoints(c: Connection): Point2D[] {
+  const rri = c.getRenderingInformation() as {
+    routePositions?: { x(): number; y(): number }[];
+  };
+  const pts = rri.routePositions;
+  if (!pts?.length) return [];
+  return pts.map((p) => ({ x: p.x(), y: p.y() }));
+}
+
 /**
  * Build {@link LayoutData} from post-compaction rendering information.
- * Single-glyph / simple scenes map to a 1×N or N×1 content grid with outer pads
- * derived from diagram vs leaf bounds.
+ * Top-level connected rectangulars become grid placements (nested kids stay
+ * in light-DOM under their container). Routes come from connection RI.
  */
 export function toLayoutData(diagram: Diagram): LayoutData {
-  const leaves = leafConnecteds(diagram);
+  const tops = topLevelConnecteds(diagram);
   const diagSize = sizeOf(diagram);
   const diagPos = positionOf(diagram);
 
-  if (leaves.length === 0) {
+  const routes: LayoutData["routes"] = {};
+  for (const c of collectConnections(diagram)) {
+    const points = routePoints(c);
+    if (points.length) {
+      routes[c.getID()] = { points, labels: {} };
+    }
+  }
+
+  if (tops.length === 0) {
     const w = Math.max(DEFAULT_MIN, diagSize.w);
     const h = Math.max(DEFAULT_MIN, diagSize.h);
     return {
@@ -101,81 +168,101 @@ export function toLayoutData(diagram: Diagram): LayoutData {
         minRow: DEFAULT_MIN,
         contentColSizes: [w],
         contentRowSizes: [h],
-        colSizes: [DEFAULT_GUTTER, DEFAULT_GUTTER, w, DEFAULT_GUTTER, DEFAULT_GUTTER],
-        rowSizes: [DEFAULT_GUTTER, DEFAULT_GUTTER, h, DEFAULT_GUTTER, DEFAULT_GUTTER],
+        colSizes: [
+          DEFAULT_GUTTER,
+          DEFAULT_GUTTER,
+          w,
+          DEFAULT_GUTTER,
+          DEFAULT_GUTTER,
+        ],
+        rowSizes: [
+          DEFAULT_GUTTER,
+          DEFAULT_GUTTER,
+          h,
+          DEFAULT_GUTTER,
+          DEFAULT_GUTTER,
+        ],
       },
       placements: {},
-      routes: {},
+      routes,
     };
   }
 
-  // Sort by (y, x) for stable grid assignment
-  const sorted = [...leaves].sort((a, b) => {
-    const pa = positionOf(a);
-    const pb = positionOf(b);
-    return pa.y - pb.y || pa.x - pb.x || a.getID().localeCompare(b.getID());
-  });
+  const positions = tops.map((t) => ({
+    el: t,
+    pos: positionOf(t),
+    sz: sizeOf(t),
+  }));
 
-  // For the first milestone, place each leaf in its own column of a single row
-  // when they share similar y; otherwise one column, multiple rows.
-  const ys = sorted.map((l) => positionOf(l).y);
-  const sameRow = ys.every((y) => Math.abs(y - ys[0]!) < 1);
+  const xBands = bandValues(positions.map((p) => p.pos.x));
+  const yBands = bandValues(positions.map((p) => p.pos.y));
+  let contentCols = xBands.length;
+  const contentRows = yBands.length;
 
-  const contentCols = sameRow ? sorted.length : 1;
-  const contentRows = sameRow ? 1 : sorted.length;
-  const contentColSizes: number[] = [];
-  const contentRowSizes: number[] = [];
+  const contentColSizes = Array.from({ length: contentCols }, () => DEFAULT_MIN);
+  const contentRowSizes = Array.from({ length: contentRows }, () => DEFAULT_MIN);
   const placements: LayoutData["placements"] = {};
 
-  if (sameRow) {
-    let maxH = DEFAULT_MIN;
-    for (let i = 0; i < sorted.length; i++) {
-      const leaf = sorted[i]!;
-      const sz = sizeOf(leaf);
-      contentColSizes.push(Math.max(DEFAULT_MIN, sz.w));
-      maxH = Math.max(maxH, sz.h);
-      const cssSize = authoredCssSize(leaf);
-      placements[leaf.getID()] = {
-        col: i + 1,
-        row: 1,
-        ...(cssSize ? { size: cssSize } : {}),
-      };
+  // Assign cells from position bands; resolve collisions so each id is unique.
+  type Cell = { el: Rectangular; sz: Size; col: number; row: number };
+  const cells: Cell[] = positions.map(({ el, pos, sz }) => ({
+    el,
+    sz,
+    col: bandIndex(xBands, pos.x) + 1,
+    row: bandIndex(yBands, pos.y) + 1,
+  }));
+  const occupied = new Set<string>();
+  for (const cell of cells) {
+    let { col, row } = cell;
+    let key = `${col},${row}`;
+    while (occupied.has(key)) {
+      col += 1;
+      if (col > contentCols) {
+        contentCols = col;
+        contentColSizes.push(DEFAULT_MIN);
+      }
+      key = `${col},${row}`;
     }
-    contentRowSizes.push(maxH);
-  } else {
-    let maxW = DEFAULT_MIN;
-    for (let i = 0; i < sorted.length; i++) {
-      const leaf = sorted[i]!;
-      const sz = sizeOf(leaf);
-      contentRowSizes.push(Math.max(DEFAULT_MIN, sz.h));
-      maxW = Math.max(maxW, sz.w);
-      const cssSize = authoredCssSize(leaf);
-      placements[leaf.getID()] = {
-        col: 1,
-        row: i + 1,
-        ...(cssSize ? { size: cssSize } : {}),
-      };
-    }
-    contentColSizes.push(maxW);
+    occupied.add(key);
+    cell.col = col;
+    cell.row = row;
+    contentColSizes[col - 1] = Math.max(
+      contentColSizes[col - 1] ?? DEFAULT_MIN,
+      ceilPx(cell.sz.w),
+    );
+    contentRowSizes[row - 1] = Math.max(
+      contentRowSizes[row - 1]!,
+      ceilPx(cell.sz.h),
+    );
+    const cssSize = authoredCssSize(cell.el);
+    placements[cell.el.getID()] = {
+      col,
+      row,
+      ...(cssSize ? { size: cssSize } : {}),
+    };
   }
 
-  // Outer pads from diagram bounds vs first/last leaf
-  const first = sorted[0]!;
-  const last = sorted[sorted.length - 1]!;
-  const fp = positionOf(first);
-  const lp = positionOf(last);
-  const fs = sizeOf(first);
-  const ls = sizeOf(last);
+  // Outer pads from diagram bounds vs content bbox
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const { pos, sz } of positions) {
+    minX = Math.min(minX, pos.x);
+    minY = Math.min(minY, pos.y);
+    maxX = Math.max(maxX, pos.x + sz.w);
+    maxY = Math.max(maxY, pos.y + sz.h);
+  }
 
-  const padLeft = Math.max(0, Math.round(fp.x - diagPos.x));
-  const padTop = Math.max(0, Math.round(fp.y - diagPos.y));
+  const padLeft = Math.max(0, Math.round(minX - diagPos.x));
+  const padTop = Math.max(0, Math.round(minY - diagPos.y));
   const padRight = Math.max(
     0,
-    Math.round(diagPos.x + diagSize.w - (lp.x + ls.w)),
+    Math.round(diagPos.x + diagSize.w - maxX),
   );
   const padBottom = Math.max(
     0,
-    Math.round(diagPos.y + diagSize.h - (lp.y + fs.h)),
+    Math.round(diagPos.y + diagSize.h - maxY),
   );
 
   const outerL = Math.max(DEFAULT_GUTTER, padLeft || DEFAULT_GUTTER);
@@ -210,6 +297,6 @@ export function toLayoutData(diagram: Diagram): LayoutData {
       rowSizes,
     },
     placements,
-    routes: {},
+    routes,
   };
 }

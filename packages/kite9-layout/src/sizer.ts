@@ -144,6 +144,23 @@ export class DomElementSizer implements ElementSizer {
     concave: boolean,
   ): number {
     if (a === b && isRectangular(a)) {
+      // Diagram hosts are typically `display:block` and stretch to the mount
+      // before layout. Using that rect (or getMinimumSize, which reads the same
+      // rect) as the START→END minimum freezes an oversized canvas — DSCS only
+      // locks max=min. Diagram extent must come from contents + padding.
+      // Honour only an authored CSS min-width / min-height on the host.
+      if (a.getType() === DiagramElementType.DIAGRAM) {
+        const host = this.getHost(a) as HTMLElement | null;
+        if (host) {
+          const cs = getComputedStyle(host);
+          const raw = isHorizontal(aSide) ? cs.minWidth : cs.minHeight;
+          const n = parseFloat(raw);
+          if (Number.isFinite(n) && n > 0 && raw !== "auto" && raw !== "none") {
+            return n;
+          }
+        }
+        return 0;
+      }
       const size = this.measure(a);
       return isHorizontal(aSide) ? size.w : size.h;
     }

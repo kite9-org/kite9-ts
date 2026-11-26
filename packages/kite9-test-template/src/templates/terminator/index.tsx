@@ -58,22 +58,59 @@ export function ensureMarkerDef(
   marker.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
   const kind = style.trim().toUpperCase();
-  if (kind === "ARROW") {
-    marker.setAttribute("markerWidth", "7");
-    marker.setAttribute("markerHeight", "7");
-    marker.setAttribute("refY", "4");
+  marker.setAttribute("markerWidth", "8");
+  marker.setAttribute("markerHeight", "8");
+  marker.setAttribute("refY", "4");
+  marker.setAttribute("refX", end === End.FROM ? "2" : "6");
+
+  if (kind === "ARROW" || kind === "BARBED-ARROW") {
     const polygon = document.createElementNS(SVG_NS, "polygon");
     polygon.setAttribute("class", "arrow-marker");
     polygon.setAttribute("fill", "#64748b");
-    if (end === End.FROM) {
-      marker.setAttribute("refX", "2");
-      polygon.setAttribute("points", "2,4 6,2 6,6");
+    polygon.setAttribute(
+      "points",
+      end === End.FROM ? "2,4 6,2 6,6" : "6,4 2,2 2,6",
+    );
+    marker.appendChild(polygon);
+  } else if (kind === "ARROW-OPEN") {
+    const polygon = document.createElementNS(SVG_NS, "polygon");
+    polygon.setAttribute("fill", "none");
+    polygon.setAttribute("stroke", "#64748b");
+    polygon.setAttribute("stroke-width", "1");
+    polygon.setAttribute(
+      "points",
+      end === End.FROM ? "2,4 6,2 6,6" : "6,4 2,2 2,6",
+    );
+    marker.appendChild(polygon);
+  } else if (kind === "CIRCLE") {
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", "4");
+    circle.setAttribute("cy", "4");
+    circle.setAttribute("r", "2.5");
+    circle.setAttribute("fill", "#64748b");
+    marker.appendChild(circle);
+  } else if (kind === "DIAMOND" || kind === "DIAMOND-OPEN") {
+    const polygon = document.createElementNS(SVG_NS, "polygon");
+    polygon.setAttribute("points", "4,1 7,4 4,7 1,4");
+    if (kind === "DIAMOND") {
+      polygon.setAttribute("fill", "#64748b");
     } else {
-      marker.setAttribute("refX", "6");
-      polygon.setAttribute("points", "6,4 2,2 2,6");
+      polygon.setAttribute("fill", "none");
+      polygon.setAttribute("stroke", "#64748b");
+      polygon.setAttribute("stroke-width", "1");
     }
     marker.appendChild(polygon);
+  } else if (kind === "GAP") {
+    const line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("x1", "4");
+    line.setAttribute("y1", "1");
+    line.setAttribute("x2", "4");
+    line.setAttribute("y2", "7");
+    line.setAttribute("stroke", "#f8fafc");
+    line.setAttribute("stroke-width", "3");
+    marker.appendChild(line);
   }
+  // NONE / unknown → empty marker
 
   defs.appendChild(marker);
   return id;

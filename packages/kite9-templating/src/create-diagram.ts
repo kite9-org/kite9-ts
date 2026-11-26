@@ -18,13 +18,14 @@ import {
   type ContainerPosition,
   type Diagram,
   type DiagramElement,
-  type Dimension,
+  Dimension,
   type Label,
   type Placement,
   type Port,
   type Rectangular,
   type Terminator,
   type Temporary,
+  gridContainerPosition,
 } from "@kite9/model";
 import { createRectangleRI, createRouteRI, StubDimension2D } from "./rendering-stubs.js";
 import {
@@ -209,18 +210,42 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
   }
 
   getLayout(): Layout | null {
-    const raw = attr(this.el, "layout") ?? attr(this.el, "kite9-layout");
-    if (!raw) return null;
+    const attrRaw = attr(this.el, "layout") ?? attr(this.el, "kite9-layout");
+    const cssRaw = getComputedStyle(this.el as Element)
+      .getPropertyValue("--kite9-layout")
+      .trim();
+    const raw = attrRaw || cssRaw;
+    if (!raw || raw === "none") return null;
     const key = raw.trim().toUpperCase();
     return (Layout as Record<string, Layout>)[key] ?? null;
   }
 
   getGridColumns(): number {
-    return Number(attr(this.el, "grid-columns") ?? attr(this.el, "content-cols") ?? 0);
+    const attrN = Number(
+      attr(this.el, "grid-columns") ?? attr(this.el, "content-cols") ?? "",
+    );
+    if (attrN > 0) return attrN;
+    const cssN = Number.parseInt(
+      getComputedStyle(this.el as Element)
+        .getPropertyValue("--kite9-grid-columns")
+        .trim(),
+      10,
+    );
+    return Number.isFinite(cssN) && cssN > 0 ? cssN : 0;
   }
 
   getGridRows(): number {
-    return Number(attr(this.el, "grid-rows") ?? attr(this.el, "content-rows") ?? 0);
+    const attrN = Number(
+      attr(this.el, "grid-rows") ?? attr(this.el, "content-rows") ?? "",
+    );
+    if (attrN > 0) return attrN;
+    const cssN = Number.parseInt(
+      getComputedStyle(this.el as Element)
+        .getPropertyValue("--kite9-grid-rows")
+        .trim(),
+      10,
+    );
+    return Number.isFinite(cssN) && cssN > 0 ? cssN : 0;
   }
 
   deepContains(d: DiagramElement): boolean {
@@ -234,10 +259,6 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
 
   getRenderingInformation() {
     return this.rectRI;
-  }
-
-  getContainerPosition(_d: Dimension): ContainerPosition | null {
-    return null;
   }
 
   getContainer(): Rectangular | null {
@@ -299,27 +320,120 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
     }
   }
 
-  /** Measured content box of the painted host. */
+  /** Measured content box of the painted host, floored by CSS min-width/height. */
   getMinimumSize() {
-    const r = (this.el as Element).getBoundingClientRect();
-    const w = r.width || parseFloat((this.el as HTMLElement).style.width) || 80;
-    const h =
-      r.height || parseFloat((this.el as HTMLElement).style.height) || 40;
+    const el = this.el as HTMLElement;
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const minW =
+      parseFloat(cs.minWidth) ||
+      parseFloat(cs.getPropertyValue("--kite9-min-width")) ||
+      0;
+    const minH =
+      parseFloat(cs.minHeight) ||
+      parseFloat(cs.getPropertyValue("--kite9-min-height")) ||
+      0;
+    const w = Math.max(
+      minW,
+      r.width || parseFloat(el.style.width) || 80,
+    );
+    const h = Math.max(
+      minH,
+      r.height || parseFloat(el.style.height) || 40,
+    );
     return new StubDimension2D(w, h);
   }
 
-  getSizing(_horiz: boolean): DiagramElementSizing {
+  getSizing(horiz: boolean): DiagramElementSizing {
+    const cs = getComputedStyle(this.el as Element);
+    const axis = cs
+      .getPropertyValue(
+        horiz
+          ? "--kite9-horizontal-sizing"
+          : "--kite9-vertical-sizing",
+      )
+      .trim();
+    const both = cs.getPropertyValue("--kite9-sizing").trim();
+    const raw = (axis || both).toLowerCase();
+    if (raw === DiagramElementSizing.MAXIMIZE) {
+      return DiagramElementSizing.MAXIMIZE;
+    }
     return DiagramElementSizing.MINIMIZE;
+  }
+
+  getContainerPosition(d: Dimension): ContainerPosition | null {
+    const cs = getComputedStyle(this.el as Element);
+    const axisProp =
+      d === Dimension.H ? "--kite9-occupies-x" : "--kite9-occupies-y";
+    let raw = cs.getPropertyValue(axisProp).trim();
+    if (!raw) {
+      const all = cs.getPropertyValue("--kite9-occupies").trim();
+      if (all) {
+        const nums = all.split(/\s+/).map((p) => Number.parseInt(p, 10));
+        if (nums.length === 2) {
+          raw = String(d === Dimension.H ? nums[0] : nums[1]);
+        } else if (nums.length >= 4) {
+          raw =
+            d === Dimension.H
+              ? `${nums[0]} ${nums[1]}`
+              : `${nums[2]} ${nums[3]}`;
+        }
+      }
+    }
+    if (!raw) return null;
+    const parts = raw.split(/\s+/).map((p) => Number.parseInt(p, 10));
+    const a = parts[0];
+    const b = parts[1] ?? a;
+    if (a === undefined || Number.isNaN(a) || Number.isNaN(b!)) return null;
+    return gridContainerPosition(Math.min(a, b!), Math.max(a, b!));
   }
 }
 
 /** Glyph / context / container with fixed `CONNECTED_RECTANGULAR` type. */
 export class ConnectedRectangularAdapter
   extends RectangularAdapter
-  implements ConnectedRectangular
+  implements ConnectedRectangular, AlignedRectangular
 {
   override getType(): DiagramElementType.CONNECTED_RECTANGULAR {
     return DiagramElementType.CONNECTED_RECTANGULAR;
+  }
+
+  getVerticalAlignment(): VerticalAlignment {
+    const raw = getComputedStyle(this.el as Element)
+      .getPropertyValue("--kite9-vertical-align")
+      .trim()
+      .toLowerCase();
+    if (raw === VerticalAlignment.TOP) return VerticalAlignment.TOP;
+    if (raw === VerticalAlignment.BOTTOM) return VerticalAlignment.BOTTOM;
+    return VerticalAlignment.CENTER;
+  }
+
+  getHorizontalAlignment(): HorizontalAlignment {
+    const raw = getComputedStyle(this.el as Element)
+      .getPropertyValue("--kite9-horizontal-align")
+      .trim()
+      .toLowerCase();
+    if (raw === HorizontalAlignment.LEFT) return HorizontalAlignment.LEFT;
+    if (raw === HorizontalAlignment.RIGHT) return HorizontalAlignment.RIGHT;
+    return HorizontalAlignment.CENTER;
+  }
+
+  getConnectionAlignment(d: Dimension): Placement {
+    const cs = getComputedStyle(this.el as Element);
+    const raw = cs
+      .getPropertyValue(
+        d === Dimension.H
+          ? "--kite9-horizontal-align-position"
+          : "--kite9-vertical-align-position",
+      )
+      .trim();
+    if (!raw) return PLACEMENT_NONE;
+    if (raw.endsWith("%")) {
+      const n = parseFloat(raw);
+      return placement(Measurement.PERCENTAGE, Number.isFinite(n) ? n : 50);
+    }
+    const n = parseFloat(raw);
+    return placement(Measurement.PIXELS, Number.isFinite(n) ? n : 50);
   }
 }
 
@@ -406,7 +520,25 @@ export class PortAdapter extends RectangularAdapter implements Port {
   }
 
   override getContainerPosition(_d: Dimension): Placement {
-    return placement(Measurement.PERCENTAGE, 50);
+    const raw =
+      attr(this.el, "along") ??
+      attr(this.el, "port-position") ??
+      getComputedStyle(this.el as Element)
+        .getPropertyValue("--kite9-port-position")
+        .trim();
+    if (!raw) return placement(Measurement.PERCENTAGE, 50);
+    if (raw.endsWith("%")) {
+      const n = parseFloat(raw);
+      return placement(
+        Measurement.PERCENTAGE,
+        Number.isFinite(n) ? n : 50,
+      );
+    }
+    const n = parseFloat(raw);
+    return placement(
+      Measurement.PIXELS,
+      Number.isFinite(n) ? n : 50,
+    );
   }
 }
 

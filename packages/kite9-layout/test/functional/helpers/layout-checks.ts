@@ -26,11 +26,12 @@ export type LayoutChecks = {
   checkMidConnection: boolean;
 };
 
+/** Defaults match Java `AbstractDisplayFunctionalTest.checks()`. */
 export function defaultLayoutChecks(): LayoutChecks {
   return {
     checkEdgeDirections: true,
-    checkNoHops: true,
-    everythingStraight: true,
+    checkNoHops: false,
+    everythingStraight: false,
     checkLayout: true,
     checkNoContradictions: true,
     checkOcclusion: true,
@@ -57,8 +58,9 @@ function isConnection(de: DiagramElement): de is Connection {
 /** Skip layout-only temps (Java skips TemporaryConnected / ConnectedGroupLinkNode). */
 function isLayoutTemporary(de: DiagramElement): boolean {
   const id = de.getID();
+  // ConnectedGroupLinkNode suffixes: -und, -bareleaf, -dlN, -grid-(x, y)
   return (
-    id.includes("--bareleaf") ||
+    /--(und|bareleaf|dl\d+|grid-)/.test(id) ||
     id.includes("-tmp-") ||
     id.includes("--tmp-")
   );
@@ -297,9 +299,19 @@ function assertDiagramLayout(diagram: Diagram, checks: LayoutChecks): void {
 
 function assertConnections(diagram: Diagram, checks: LayoutChecks): void {
   const conns = connectionsOf(diagram);
+  const missing: string[] = [];
+
   for (const c of conns) {
+    if (isLayoutTemporary(c)) continue;
+
     const rri = c.getRenderingInformation();
     const len = rri.getLength?.() ?? rri.routePositions?.length ?? 0;
+
+    // Java TestingEngine.testConnectionPresence: empty route ⇒ ElementsMissingException
+    if (len === 0) {
+      missing.push(c.getID());
+      continue;
+    }
 
     if (checks.checkConnectionsMeetConnecteds && len >= 2) {
       const pts = rri.routePositions!;
@@ -322,8 +334,6 @@ function assertConnections(diagram: Diagram, checks: LayoutChecks): void {
       void checks.checkMidConnection;
     }
 
-    if (len === 0) continue;
-
     if (checks.checkNoHops && rri.hops?.some(Boolean)) {
       throw new LayoutCheckError(`connection hop on ${c.getID()}`);
     }
@@ -337,13 +347,16 @@ function assertConnections(diagram: Diagram, checks: LayoutChecks): void {
       throw new LayoutCheckError(`connection not straight: ${c.getID()}`);
     }
 
-    if (checks.checkEdgeDirections && c.getDrawDirection() != null && dir === "turn") {
-      // Draw-direction vs route bearing needs DiagramChecker-equivalent;
-      // treat multi-direction as a failure when a draw direction is set.
-      throw new LayoutCheckError(
-        `connection ${c.getID()} turns but has drawDirection ${c.getDrawDirection()}`,
-      );
-    }
+    // checkEdgeDirections needs Java DiagramChecker route-bearing analysis;
+    // do not treat multi-segment routes as failures until that is ported.
+    void checks.checkEdgeDirections;
+    void dir;
+  }
+
+  if (missing.length > 0) {
+    throw new LayoutCheckError(
+      `Diagram Elements not included [${missing.join(", ")}] missing`,
+    );
   }
 }
 

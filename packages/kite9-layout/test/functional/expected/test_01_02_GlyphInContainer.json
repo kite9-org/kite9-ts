@@ -1,0 +1,36 @@
+{
+  "grid": {
+    "contentCols": 1,
+    "contentRows": 1,
+    "gutter": 16,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      147
+    ],
+    "contentRowSizes": [
+      109
+    ],
+    "colSizes": [
+      16,
+      16,
+      147,
+      16,
+      16
+    ],
+    "rowSizes": [
+      16,
+      16,
+      109,
+      16,
+      16
+    ]
+  },
+  "placements": {
+    "Context": {
+      "col": 1,
+      "row": 1
+    }
+  },
+  "routes": {}
+}
