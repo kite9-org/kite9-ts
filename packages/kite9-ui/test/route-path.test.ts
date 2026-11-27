@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { Direction } from "@kite9/model";
 import {
+  AdjustableLayout,
+} from "../src/adjustable-layout/adjustable-layout.js";
+import {
+  anchorOnBox,
   contentRowSpan,
   edgeCoords,
   ensureGridEdge,
@@ -7,7 +12,7 @@ import {
   resolveRouteToPoints,
   snapPolylineToVertices,
 } from "../src/adjustable-layout/route-path.js";
-import type { GridLayout } from "@kite9/model";
+import type { GridLayout, LayoutData } from "@kite9/model";
 
 function sampleGrid(): GridLayout {
   return {
@@ -83,5 +88,77 @@ describe("route-path", () => {
     expect(Math.max(start.x, end.x)).toBeGreaterThanOrEqual(trackX);
     // Entire polyline stays on midY (straight)
     expect(pts.every((p) => p.y === midY)).toBe(true);
+  });
+
+  it("anchorOnBox uses the measured host box (not the cell)", () => {
+    const p = anchorOnBox(
+      { x: 20, y: 15, w: 50, h: 40 },
+      Direction.RIGHT,
+      50,
+      "percentage",
+    );
+    expect(p).toEqual({ x: 70, y: 35 });
+  });
+
+  it("rematerializeRoutes rebuilds terminals from painted anchors", () => {
+    const data: LayoutData = {
+      grid: {
+        contentCols: 2,
+        contentRows: 1,
+        gutter: 0,
+        minCol: 40,
+        minRow: 40,
+        contentColSizes: [100, 100],
+        contentRowSizes: [70],
+        colSizes: [100, 100],
+        rowSizes: [70],
+      },
+      placements: [
+        {
+          id: "a",
+          col: 1,
+          row: 1,
+          margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        },
+        {
+          id: "b",
+          col: 2,
+          row: 1,
+          margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        },
+        {
+          id: "a__hub__right",
+          onId: "a",
+          edge: Direction.RIGHT,
+          along: 50,
+          type: "percentage",
+        },
+        {
+          id: "b__hub__left",
+          onId: "b",
+          edge: Direction.LEFT,
+          along: 50,
+          type: "percentage",
+        },
+      ],
+      routes: {
+        l1: {
+          startId: "a__hub__right",
+          endId: "b__hub__left",
+          route: [{ xi: 1 }],
+        },
+      },
+    };
+    const layout = AdjustableLayout.from(data);
+    // Painted hosts are smaller/centered than the cell content box
+    layout.rematerializeRoutes((id) => {
+      if (id === "a__hub__right") return { x: 60, y: 30 };
+      if (id === "b__hub__left") return { x: 120, y: 30 };
+      return null;
+    });
+    const pts = layout.routePolyline("l1");
+    expect(pts[0]).toEqual({ x: 60, y: 30 });
+    expect(pts[pts.length - 1]).toEqual({ x: 120, y: 30 });
+    expect(pts.every((p) => p.y === 30)).toBe(true);
   });
 });

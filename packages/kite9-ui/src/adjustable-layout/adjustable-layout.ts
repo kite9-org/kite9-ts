@@ -36,12 +36,14 @@ type PaintRoute = {
   labels: Record<string, Point2D>;
   startId?: string;
   endId?: string;
+  /** Single-axis track targets — kept so paint can rematerialize after measure. */
+  vertices?: GridVertex[];
 };
 
 /**
  * Prefer model `route: GridVertex[]`; also accept legacy `points` / `vertices`.
- * Stored as pixel polylines for SVG paint. Single-axis vertices resolve from
- * `startId`/`endId` hub anchors when present.
+ * Initial points use cell-based hub anchors; {@link AdjustableLayout.rematerializeRoutes}
+ * replaces them with painted-host anchors after DOM layout.
  */
 function normalizeRoutes(
   grid: GridLayout,
@@ -64,6 +66,7 @@ function normalizeRoutes(
         labels: {},
         startId: model.startId,
         endId: model.endId,
+        vertices: model.route,
       };
       continue;
     }
@@ -85,6 +88,7 @@ function normalizeRoutes(
           ? { cornerRadius: route.cornerRadius }
           : {}),
         labels: route.labels ?? {},
+        vertices: route.vertices,
       };
       continue;
     }
@@ -311,6 +315,36 @@ export class AdjustableLayout {
     if (!route?.points || route.points.length < 2) return null;
     const r = radius ?? route.cornerRadius ?? DEFAULT_CORNER_RADIUS;
     return orthogonalPathD(route.points, r);
+  }
+
+  /**
+   * Rebuild paint polylines from stored single-axis vertices using fresh
+   * terminal anchors (typically measured from painted hosts / sockets).
+   * Call after DOM layout when placements omit fixed `size`.
+   */
+  rematerializeRoutes(
+    anchorForId: (id: string) => Point2D | null,
+  ): void {
+    for (const route of Object.values(this.routes)) {
+      if (!route.vertices?.length || !route.startId || !route.endId) continue;
+      const start =
+        anchorForId(route.startId) ??
+        hubAnchorPoint(this.grid, this.placements, route.startId) ?? {
+          x: 0,
+          y: 0,
+        };
+      const end =
+        anchorForId(route.endId) ??
+        hubAnchorPoint(this.grid, this.placements, route.endId) ?? {
+          ...start,
+        };
+      route.points = resolveRouteToPoints(
+        this.grid,
+        route.vertices,
+        start,
+        end,
+      );
+    }
   }
 
   private maxWidthInContentCol(col: number): number {

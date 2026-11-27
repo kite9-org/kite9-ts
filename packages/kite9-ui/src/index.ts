@@ -15,6 +15,7 @@ export {
 export {
   AdjustableLayout,
   DEFAULT_CORNER_RADIUS,
+  anchorOnBox,
   applyVertex,
   ceilEdgeIndex,
   contentColSpan,
@@ -36,6 +37,7 @@ export {
   vertexPoint,
   verticesToPoints,
 } from "./adjustable-layout/index.js";
+export type { EdgeBox } from "./adjustable-layout/index.js";
 export type { LayoutSession } from "./layout-session.js";
 
 export type {

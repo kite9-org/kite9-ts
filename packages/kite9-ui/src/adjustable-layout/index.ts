@@ -1,6 +1,7 @@
 export { AdjustableLayout } from "./adjustable-layout.js";
 export {
   DEFAULT_CORNER_RADIUS,
+  anchorOnBox,
   applyVertex,
   ceilEdgeIndex,
   contentColSpan,
@@ -22,3 +23,4 @@ export {
   vertexPoint,
   verticesToPoints,
 } from "./route-path.js";
+export type { EdgeBox } from "./route-path.js";

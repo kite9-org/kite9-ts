@@ -33,7 +33,7 @@
       import { bootScene } from "../../src/boot-scene.ts";
       import layout from "@kite9/test-template/fixtures/grid/simple.json";
 
-      mountSimpleDiagram(document.getElementById("mount"));
+      mountSimpleDiagram(document.getElementById("mount"), { mode: "edit" });
       bootScene(layout);
     </script>
   </body>

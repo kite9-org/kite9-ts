@@ -234,10 +234,46 @@ export function placementCellRect(
   return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
 }
 
+export type EdgeBox = { x: number; y: number; w: number; h: number };
+
 /**
- * Pixel position of a port/hub on its host **content** edge (`along` % or px),
- * inset by placement margin so adjacent side hubs are not coincident on a
- * shared cell seam.
+ * Point on the border of `box` for a port/hub (`along` % of the edge or px
+ * from the top/left of that edge).
+ */
+export function anchorOnBox(
+  box: EdgeBox,
+  edge: Direction,
+  along: number,
+  type: "pixels" | "percentage" = "percentage",
+): Point2D {
+  const alongFrac =
+    type === "percentage" ? Math.min(1, Math.max(0, along / 100)) : null;
+  const alongY =
+    alongFrac != null
+      ? box.y + box.h * alongFrac
+      : box.y + Math.min(box.h, Math.max(0, along));
+  const alongX =
+    alongFrac != null
+      ? box.x + box.w * alongFrac
+      : box.x + Math.min(box.w, Math.max(0, along));
+  switch (edge) {
+    case Direction.LEFT:
+      return { x: box.x, y: alongY };
+    case Direction.RIGHT:
+      return { x: box.x + box.w, y: alongY };
+    case Direction.UP:
+      return { x: alongX, y: box.y };
+    case Direction.DOWN:
+      return { x: alongX, y: box.y + box.h };
+    default:
+      return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  }
+}
+
+/**
+ * Headless fallback: port/hub on the host **content** edge (cell inset by
+ * placement margin). Prefer {@link anchorOnBox} with a painted host box when
+ * the glyph size is not fixed in layout.
  */
 export function hubAnchorPoint(
   grid: GridLayout,
@@ -260,30 +296,7 @@ export function hubAnchorPoint(
     w: Math.max(0, full.w - left - right),
     h: Math.max(0, full.h - top - bottom),
   };
-  const alongFrac =
-    p.type === "percentage"
-      ? Math.min(1, Math.max(0, p.along / 100))
-      : null;
-  const alongY =
-    alongFrac != null
-      ? box.y + box.h * alongFrac
-      : box.y + Math.min(box.h, Math.max(0, p.along));
-  const alongX =
-    alongFrac != null
-      ? box.x + box.w * alongFrac
-      : box.x + Math.min(box.w, Math.max(0, p.along));
-  switch (p.edge) {
-    case Direction.LEFT:
-      return { x: box.x, y: alongY };
-    case Direction.RIGHT:
-      return { x: box.x + box.w, y: alongY };
-    case Direction.UP:
-      return { x: alongX, y: box.y };
-    case Direction.DOWN:
-      return { x: alongX, y: box.y + box.h };
-    default:
-      return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
-  }
+  return anchorOnBox(box, p.edge, p.along, p.type);
 }
 
 type Move = {

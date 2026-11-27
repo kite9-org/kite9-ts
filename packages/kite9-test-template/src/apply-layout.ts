@@ -13,6 +13,7 @@ import {
 } from "@kite9/model";
 import {
   AdjustableLayout,
+  anchorOnBox,
   contentColSpan,
   contentRowSpan,
   edgeCoords,
@@ -257,10 +258,18 @@ function placeSized(
   el.style.zIndex = el.localName === "kite9-container" ? "0" : "1";
 }
 
-/** Mount a port/hub on the mid-edge of its host (`onId`). */
+/**
+ * Mount a port/socket on its host edge. Uses placement `along` so the anchor
+ * tracks the painted host as it resizes (host may be intrinsically sized).
+ */
 function placeOnHostEdge(
   el: HTMLElement,
-  placement: { onId: string; edge: Direction },
+  placement: {
+    onId: string;
+    edge: Direction;
+    along?: number;
+    type?: "pixels" | "percentage";
+  },
   diagram: Element,
 ): void {
   const host = diagram.querySelector(
@@ -272,6 +281,13 @@ function placeOnHostEdge(
     host.style.position = "relative";
   }
 
+  const along =
+    placement.along != null
+      ? placement.type === "pixels"
+        ? `${placement.along}px`
+        : `${placement.along}%`
+      : "50%";
+
   el.style.position = "absolute";
   el.style.width = `${ANCHOR_SIZE}px`;
   el.style.height = `${ANCHOR_SIZE}px`;
@@ -282,26 +298,27 @@ function placeOnHostEdge(
   el.style.right = "";
   el.style.top = "";
   el.style.bottom = "";
+  el.style.transform = "";
 
   switch (placement.edge) {
     case Direction.LEFT:
       el.style.left = "0";
-      el.style.top = "50%";
+      el.style.top = along;
       el.style.transform = "translate(-50%, -50%)";
       break;
     case Direction.RIGHT:
       el.style.right = "0";
-      el.style.top = "50%";
+      el.style.top = along;
       el.style.transform = "translate(50%, -50%)";
       break;
     case Direction.UP:
       el.style.top = "0";
-      el.style.left = "50%";
+      el.style.left = along;
       el.style.transform = "translate(-50%, -50%)";
       break;
     case Direction.DOWN:
       el.style.bottom = "0";
-      el.style.left = "50%";
+      el.style.left = along;
       el.style.transform = "translate(-50%, 50%)";
       break;
   }
@@ -318,30 +335,6 @@ function stageBox(el: Element, stage: Element): StageBox {
     w: a.width,
     h: a.height,
   };
-}
-
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(hi, Math.max(lo, n));
-}
-
-/**
- * Project a route terminal onto the connected's border box.
- * Side is chosen by the first/last segment direction (glyph → buffer/gutter);
- * the along-edge coordinate is kept from `p` (Java rect-edge slideable).
- */
-function projectOntoBorder(
-  p: { x: number; y: number },
-  toward: { x: number; y: number },
-  box: StageBox,
-): { x: number; y: number } {
-  const dx = toward.x - p.x;
-  const dy = toward.y - p.y;
-  if (Math.abs(dy) >= Math.abs(dx)) {
-    const y = dy < 0 ? box.y : box.y + box.h;
-    return { x: clamp(p.x, box.x, box.x + box.w), y };
-  }
-  const x = dx < 0 ? box.x : box.x + box.w;
-  return { x, y: clamp(p.y, box.y, box.y + box.h) };
 }
 
 /** Keep painted routes Manhattan after border snap (insert elbows on diagonals). */
@@ -390,103 +383,63 @@ function orthogonalizePaintedRoute(
   return out;
 }
 
-function linkEndRef(linkEl: Element, end: "from" | "to"): string | null {
-  const child = Array.from(linkEl.children).find(
-    (c) => c.localName.toLowerCase() === end,
+/**
+ * Port/hub terminal in stage space from the **painted** host (or socket).
+ * Synthetic hubs use `onId` host box + edge/along; DOM sockets use their centre.
+ */
+function paintedAnchor(
+  diagram: Element,
+  stage: Element,
+  adj: AdjustableLayout,
+  id: string,
+): { x: number; y: number } | null {
+  const placement = adj.placements[id];
+  if (!placement || !hasPortOrHub(placement)) return null;
+
+  const selfEl = diagram.querySelector(
+    `#${CSS.escape(id)}`,
+  ) as HTMLElement | null;
+  if (selfEl && selfEl.getBoundingClientRect().width > 0) {
+    const box = stageBox(selfEl, stage);
+    return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  }
+
+  const host = diagram.querySelector(
+    `#${CSS.escape(placement.onId)}`,
+  ) as HTMLElement | null;
+  if (!host || host.getBoundingClientRect().width <= 0) return null;
+  return anchorOnBox(
+    stageBox(host, stage),
+    placement.edge,
+    placement.along,
+    placement.type,
   );
-  return child?.getAttribute("reference") ?? null;
 }
 
 /**
- * Snap route terminals onto painted hub/port (preferred) or connected borders.
- * Prefers `startId`/`endId` when those elements exist in the DOM. When the
- * layout already resolved synthetic hub anchors (no DOM node), leave points
- * alone so mid-edge side links stay straight.
+ * Rematerialize routes from painted hosts/sockets, then orthogonalize.
+ * Glyphs without fixed layout `size` are measured after CSS layout so
+ * terminals stay on the real border as the element resizes.
  */
 function attachRoutesToConnectedBorders(
   diagram: Element,
   stage: Element,
   adj: AdjustableLayout,
-  sink?: LayoutData,
+  _sink?: LayoutData,
 ): void {
+  adj.rematerializeRoutes((id) => paintedAnchor(diagram, stage, adj, id));
+
   for (const [id, route] of Object.entries(adj.routes)) {
     let pts = route.points;
     if (!pts || pts.length === 0) continue;
-    // Zero-length / single-point side seams still need two paint points.
     if (pts.length === 1) {
       pts = [pts[0]!, { ...pts[0]! }];
     }
-    const linkEl = diagram.querySelector(`#${CSS.escape(id)}`);
-    if (!linkEl) continue;
-
-    const startId = (route as { startId?: string }).startId;
-    const endId = (route as { endId?: string }).endId;
-
-    const startEl = startId
-      ? (diagram.querySelector(`#${CSS.escape(startId)}`) as HTMLElement | null)
-      : null;
-    const endEl = endId
-      ? (diagram.querySelector(`#${CSS.escape(endId)}`) as HTMLElement | null)
-      : null;
-
-    const startPainted =
-      !!startEl && startEl.getBoundingClientRect().width > 0;
-    const endPainted = !!endEl && endEl.getBoundingClientRect().width > 0;
-
-    // Layout already placed terminals on synthetic hubs — don't re-snap to
-    // parent glyph corners (that introduced the mid-edge jog).
-    if (startId && endId && !startPainted && !endPainted) {
-      adj.routes[id] = {
-        ...route,
-        points: orthogonalizePaintedRoute(pts.map((p) => ({ ...p }))),
-      };
-      continue;
-    }
-
-    const fromId = linkEndRef(linkEl, "from");
-    const toId = linkEndRef(linkEl, "to");
-    const fromEl = startPainted
-      ? startEl
-      : fromId
-        ? (diagram.querySelector(
-            `#${CSS.escape(fromId)}`,
-          ) as HTMLElement | null)
-        : null;
-    const toEl = endPainted
-      ? endEl
-      : toId
-        ? (diagram.querySelector(`#${CSS.escape(toId)}`) as HTMLElement | null)
-        : null;
-
-    const next = pts.map((p) => ({ ...p }));
-
-    if (fromEl && fromEl.getBoundingClientRect().width > 0) {
-      const box = stageBox(fromEl, stage);
-      if (startPainted) {
-        next[0] = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
-      } else {
-        next[0] = projectOntoBorder(next[0]!, next[1]!, box);
-      }
-    }
-    if (toEl && toEl.getBoundingClientRect().width > 0) {
-      const last = next.length - 1;
-      const box = stageBox(toEl, stage);
-      if (endPainted) {
-        next[last] = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
-      } else {
-        next[last] = projectOntoBorder(
-          next[last]!,
-          next[last - 1]!,
-          box,
-        );
-      }
-    }
-    // Paint polyline only — model `sink.routes` keeps GridVertex `route`.
     adj.routes[id] = {
       ...route,
-      points: orthogonalizePaintedRoute(next),
+      points: orthogonalizePaintedRoute(pts.map((p) => ({ ...p }))),
     };
-    void sink;
+    void id;
   }
 }
 
