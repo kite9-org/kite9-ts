@@ -136,86 +136,6 @@ function covers(
   return col >= c0 && col <= c1 && row >= r0 && row <= r1;
 }
 
-/**
- * Break a full-span segment wherever it coincides with a container edge
- * (route would run on top of the container border).
- *
- * Perimeter seams (`after` 0 / `afterMax`) stay continuous — hubs and
- * around-the-outside routes need them. Along a non-perimeter container edge,
- * keep indices where a non-container rect abuts the seam (shared glyph/
- * container boundary) so mid-edge hubs still get intersections.
- */
-function breakAgainstContainerEdges(
-  axis: TrackAxis,
-  after: number,
-  fullFrom: number,
-  fullTo: number,
-  rects: Iterable<RectangularConnectedLayoutPlacement>,
-  containerIds: Set<string>,
-  /** Max seam `after` on this axis (`contentCols` for v, `contentRows` for h). */
-  afterMax: number,
-): TrackSegment[] {
-  if (after === 0 || after === afterMax) {
-    return [{ from: fullFrom, to: fullTo }];
-  }
-
-  const rectList = [...rects];
-  const abuttedByNonContainer = (along: number): boolean => {
-    for (const p of rectList) {
-      if (containerIds.has(p.id)) continue;
-      const c0 = p.col;
-      const c1 = p.colEnd ?? p.col;
-      const r0 = p.row;
-      const r1 = p.rowEnd ?? p.row;
-      if (axis === "v") {
-        if (along < r0 || along > r1) continue;
-        // Glyph right edge or left edge sits on this vertical seam.
-        if (after === c1 || after === c0 - 1) return true;
-      } else {
-        if (along < c0 || along > c1) continue;
-        if (after === r1 || after === r0 - 1) return true;
-      }
-    }
-    return false;
-  };
-
-  const breaks = new Set<number>();
-  for (const r of rectList) {
-    if (!containerIds.has(r.id)) continue;
-    const c0 = r.col;
-    const c1 = r.colEnd ?? r.col;
-    const r0 = r.row;
-    const r1 = r.rowEnd ?? r.row;
-    if (axis === "v") {
-      // Vertical track at after=c0-1 (left edge) or after=c1 (right edge)
-      if (after === c0 - 1 || after === c1) {
-        for (let row = r0; row <= r1; row++) {
-          if (!abuttedByNonContainer(row)) breaks.add(row);
-        }
-      }
-    } else if (after === r0 - 1 || after === r1) {
-      for (let col = c0; col <= c1; col++) {
-        if (!abuttedByNonContainer(col)) breaks.add(col);
-      }
-    }
-  }
-
-  const segments: TrackSegment[] = [];
-  let start: number | null = null;
-  for (let i = fullFrom; i <= fullTo; i++) {
-    if (breaks.has(i)) {
-      if (start != null && start <= i - 1) {
-        segments.push({ from: start, to: i - 1 });
-      }
-      start = null;
-    } else if (start == null) {
-      start = i;
-    }
-  }
-  if (start != null) segments.push({ from: start, to: fullTo });
-  return segments;
-}
-
 function segmentCovers(seg: TrackSegment, index: number): boolean {
   return index >= seg.from && index <= seg.to;
 }
@@ -258,45 +178,27 @@ export function buildTrackGraph(
   const tracks: Track[] = [];
 
   // Vertical seams: after 0..contentCols (between / outside content cols).
-  // Keep tracks even when segments are empty (fully broken on container
-  // borders) so compaction can still draw every row/column seam.
+  // Seams are grid channels between cells — glyphs/containers live inside
+  // cells and do not occupy seams, so each seam spans the full opposite axis.
   for (let after = 0; after <= contentCols; after++) {
-    const segments = breakAgainstContainerEdges(
-      "v",
-      after,
-      1,
-      contentRows,
-      rects.values(),
-      containerIds,
-      contentCols,
-    );
     tracks.push({
       id: `v-seam-${after}`,
       axis: "v",
       kind: "seam",
       after,
-      segments,
+      segments: [{ from: 1, to: contentRows }],
       usedBy: new Set(),
     });
   }
 
   // Horizontal seams: after 0..contentRows → contentRows+1 tracks
   for (let after = 0; after <= contentRows; after++) {
-    const segments = breakAgainstContainerEdges(
-      "h",
-      after,
-      1,
-      contentCols,
-      rects.values(),
-      containerIds,
-      contentRows,
-    );
     tracks.push({
       id: `h-seam-${after}`,
       axis: "h",
       kind: "seam",
       after,
-      segments,
+      segments: [{ from: 1, to: contentCols }],
       usedBy: new Set(),
     });
   }

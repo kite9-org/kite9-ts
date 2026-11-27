@@ -147,6 +147,7 @@ window.__runFunctionalLayout = (
       const lo = along.length > 0 ? Math.min(...along) : undefined;
       const hi = along.length > 0 ? Math.max(...along) : undefined;
       const span = lo != null && hi != null && hi > lo;
+      const used = t.usedBy.size > 0;
       return {
         id: t.id,
         axis: t.axis,
@@ -154,9 +155,11 @@ window.__runFunctionalLayout = (
           (t.axis === "v" ? remap.vPx.get(t.after) : remap.hPx.get(t.after)) ??
           0,
         after: t.after,
+        // Clip to intersection span so strokes meet dots (incl. outward-nudged
+        // perimeter seams that sit outside 0…content).
         alongFrom: span ? lo : undefined,
         alongTo: span ? hi : undefined,
-        used: t.usedBy.size > 0,
+        used,
         kind: t.kind,
       };
     });
