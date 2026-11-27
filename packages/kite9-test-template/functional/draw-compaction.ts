@@ -8,6 +8,7 @@ import type {
   LayoutData,
   LayoutPlacement,
   Point2D,
+  PortOrHubLayoutPlacement,
   RectangularConnectedLayoutPlacement,
 } from "@kite9/model";
 import { hubAnchorPoint, resolveRouteToPoints } from "@kite9/ui";
@@ -46,6 +47,10 @@ function isRect(
   p: LayoutPlacement,
 ): p is RectangularConnectedLayoutPlacement {
   return "col" in p && "row" in p;
+}
+
+function isPortOrHub(p: LayoutPlacement): p is PortOrHubLayoutPlacement {
+  return "onId" in p && "edge" in p;
 }
 
 function edgeCoords(sizes: readonly number[]): number[] {
@@ -152,25 +157,15 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
   const ox = pad;
   const oy = pad;
 
-  // Cells: light outline for full occupancy, fill for margin-inset content
-  // so routing lanes are visually clear of the glyph.
+  // Content cells only (solid). Dotted strokes are reserved for tracks.
   for (const p of layout.placements) {
     if (!isRect(p)) continue;
-    const full = cellRect(grid, p);
     const r = contentRect(grid, p);
-    ctx.strokeStyle = "rgba(180,180,180,0.5)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeRect(
-      ox + full.x * scale,
-      oy + full.y * scale,
-      full.w * scale,
-      full.h * scale,
-    );
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(119,119,119,0.18)";
     ctx.fillRect(ox + r.x * scale, oy + r.y * scale, r.w * scale, r.h * scale);
     ctx.strokeStyle = "rgba(80,80,80,0.55)";
+    ctx.lineWidth = 1;
     ctx.strokeRect(ox + r.x * scale, oy + r.y * scale, r.w * scale, r.h * scale);
     ctx.fillStyle = "#333";
     ctx.font = "11px sans-serif";
@@ -219,9 +214,25 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
     ctx.fill();
   }
 
-  // Routes — pastel cycle at 30% opacity
+  // Hub / port anchors on glyph edges (distinct from track intersections)
   const placementMap: Record<string, LayoutPlacement> = {};
   for (const p of layout.placements) placementMap[p.id] = p;
+  for (const p of layout.placements) {
+    if (!isPortOrHub(p)) continue;
+    const pt = hubAnchorPoint(grid, placementMap, p.id);
+    if (!pt) continue;
+    const x = ox + pt.x * scale;
+    const y = oy + pt.y * scale;
+    ctx.fillStyle = "rgba(29, 78, 216, 0.85)";
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Routes — pastel cycle at 30% opacity
   let routeIndex = 0;
   for (const route of Object.values(layout.routes ?? {})) {
     if (!route.route || route.route.length < 1) continue;

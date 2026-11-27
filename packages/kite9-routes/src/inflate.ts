@@ -36,8 +36,10 @@ export type RoutedConnection = {
 
 /**
  * Maps pre-inflate seam `after` into the inflated grid.
- * - `*Edge`: grid-edge index for {@link GridVertex}
+ * - `*Edge`: grid-edge index for {@link GridVertex} (lane **centre** when used)
  * - `*Px`: pixel position for debug draw (lane **centre** when used, else edge)
+ *
+ * Used seams insert two half-lanes so the centre is a real grid edge.
  */
 export type SeamRemap = {
   vEdge: Map<number, number>;
@@ -45,6 +47,39 @@ export type SeamRemap = {
   vPx: Map<number, number>;
   hPx: Map<number, number>;
 };
+
+/** Physical columns/rows inserted per used seam (two halves → centre edge). */
+const LANE_TRACKS = 2;
+
+function halfLaneSizes(px: number): [number, number] {
+  const a = Math.floor(px / 2);
+  return [a, px - a];
+}
+
+/** Bump rectangular placements after inserting `count` tracks at `after`. */
+function bumpPlacementsAfterInsert(
+  placements: LayoutPlacement[],
+  axis: "col" | "row",
+  after: number,
+  count: number,
+): void {
+  for (const p of placements) {
+    if (!isRect(p)) continue;
+    if (axis === "col") {
+      if (p.col > after) p.col += count;
+      if (p.colEnd != null && p.colEnd > after) p.colEnd += count;
+      if (p.col <= after && (p.colEnd ?? p.col) > after) {
+        p.colEnd = (p.colEnd ?? p.col) + count;
+      }
+    } else {
+      if (p.row > after) p.row += count;
+      if (p.rowEnd != null && p.rowEnd > after) p.rowEnd += count;
+      if (p.row <= after && (p.rowEnd ?? p.row) > after) {
+        p.rowEnd = (p.rowEnd ?? p.row) + count;
+      }
+    }
+  }
+}
 
 export type InflateResult = {
   layout: LayoutData;
@@ -95,36 +130,23 @@ export function inflateLayout(
   }
 
   // Insert high→low so earlier indices stay stable while splicing.
+  // Two half-lanes per used seam → centre is a grid edge for {xi}/{yi}.
   const vInserts = [...usedV.entries()].sort((a, b) => b[0] - a[0]);
   for (const [after, px] of vInserts) {
-    const insertAt = after;
-    grid.colSizes.splice(insertAt, 0, px);
-    grid.contentColSizes.splice(insertAt, 0, px);
-    grid.contentCols += 1;
-    for (const p of layout.placements) {
-      if (!isRect(p)) continue;
-      if (p.col > after) p.col += 1;
-      if (p.colEnd != null && p.colEnd > after) p.colEnd += 1;
-      if (p.col <= after && (p.colEnd ?? p.col) > after) {
-        p.colEnd = (p.colEnd ?? p.col) + 1;
-      }
-    }
+    const [left, right] = halfLaneSizes(px);
+    grid.colSizes.splice(after, 0, left, right);
+    grid.contentColSizes.splice(after, 0, left, right);
+    grid.contentCols += LANE_TRACKS;
+    bumpPlacementsAfterInsert(layout.placements, "col", after, LANE_TRACKS);
   }
 
   const hInserts = [...usedH.entries()].sort((a, b) => b[0] - a[0]);
   for (const [after, px] of hInserts) {
-    const insertAt = after;
-    grid.rowSizes.splice(insertAt, 0, px);
-    grid.contentRowSizes.splice(insertAt, 0, px);
-    grid.contentRows += 1;
-    for (const p of layout.placements) {
-      if (!isRect(p)) continue;
-      if (p.row > after) p.row += 1;
-      if (p.rowEnd != null && p.rowEnd > after) p.rowEnd += 1;
-      if (p.row <= after && (p.rowEnd ?? p.row) > after) {
-        p.rowEnd = (p.rowEnd ?? p.row) + 1;
-      }
-    }
+    const [top, bottom] = halfLaneSizes(px);
+    grid.rowSizes.splice(after, 0, top, bottom);
+    grid.contentRowSizes.splice(after, 0, top, bottom);
+    grid.contentRows += LANE_TRACKS;
+    bumpPlacementsAfterInsert(layout.placements, "row", after, LANE_TRACKS);
   }
 
   const remap = buildSeamRemap(
@@ -231,10 +253,9 @@ function clearanceForSeam(
 
 /**
  * Pre-inflate seam `after` → inflated edge index + draw pixel.
- * Used seams: edge = left of inserted lane; pixel = lane centre.
+ * Used seams: two half-lanes; edge + pixel = lane **centre**.
  * Unused seams: edge = content boundary; pixel nudged **outward** by
- * half {@link DEFAULT_LANE_PX} so the dotted track is not painted on the
- * glyph/cell border.
+ * half {@link DEFAULT_LANE_PX} so unused debug tracks stay off glyph borders.
  */
 function buildSeamRemap(
   originalCols: number,
@@ -253,19 +274,16 @@ function buildSeamRemap(
   const vPx = new Map<number, number>();
   for (let after = 0; after <= originalCols; after++) {
     const before = vSorted.filter((a) => a < after).length;
-    const edge = after + before;
-    vEdge.set(after, edge);
+    // Left edge of this seam's slot (or content boundary if unused).
+    const leftEdge = after + before * LANE_TRACKS;
     if (usedV.has(after)) {
-      const lane = edge;
-      const left = xs[lane] ?? 0;
-      const size = inflated.colSizes[lane] ?? 0;
-      vPx.set(after, left + size / 2);
+      const centre = leftEdge + 1;
+      vEdge.set(after, centre);
+      vPx.set(after, xs[centre] ?? 0);
     } else {
+      vEdge.set(after, leftEdge);
       const edgePx =
-        xs[Math.max(0, Math.min(edge, xs.length - 1))] ?? 0;
-      // Outer seams: push outside the diagram. Internal unused: push toward
-      // the gap that would exist if a lane were inserted (away from both cells
-      // is impossible on a shared edge — bias left/up for stability).
+        xs[Math.max(0, Math.min(leftEdge, xs.length - 1))] ?? 0;
       const outward =
         after === 0 ? -clear : after === originalCols ? clear : -clear;
       vPx.set(after, edgePx + outward);
@@ -276,16 +294,15 @@ function buildSeamRemap(
   const hPx = new Map<number, number>();
   for (let after = 0; after <= originalRows; after++) {
     const before = hSorted.filter((a) => a < after).length;
-    const edge = after + before;
-    hEdge.set(after, edge);
+    const topEdge = after + before * LANE_TRACKS;
     if (usedH.has(after)) {
-      const lane = edge;
-      const top = ys[lane] ?? 0;
-      const size = inflated.rowSizes[lane] ?? 0;
-      hPx.set(after, top + size / 2);
+      const centre = topEdge + 1;
+      hEdge.set(after, centre);
+      hPx.set(after, ys[centre] ?? 0);
     } else {
+      hEdge.set(after, topEdge);
       const edgePx =
-        ys[Math.max(0, Math.min(edge, ys.length - 1))] ?? 0;
+        ys[Math.max(0, Math.min(topEdge, ys.length - 1))] ?? 0;
       const outward =
         after === 0 ? -clear : after === originalRows ? clear : -clear;
       hPx.set(after, edgePx + outward);
