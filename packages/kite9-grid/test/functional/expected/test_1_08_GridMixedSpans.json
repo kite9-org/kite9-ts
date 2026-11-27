@@ -1,0 +1,94 @@
+{
+  "grid": {
+    "contentCols": 3,
+    "contentRows": 3,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      54,
+      55,
+      55
+    ],
+    "contentRowSizes": [
+      61,
+      40,
+      61
+    ],
+    "colSizes": [
+      54,
+      55,
+      55
+    ],
+    "rowSizes": [
+      61,
+      40,
+      61
+    ],
+    "contentColStarts": [
+      0,
+      1,
+      2
+    ],
+    "contentRowStarts": [
+      0,
+      1,
+      2
+    ],
+    "contentColCounts": [
+      1,
+      1,
+      1
+    ],
+    "contentRowCounts": [
+      1,
+      1,
+      1
+    ]
+  },
+  "placements": {
+    "a": {
+      "col": 1,
+      "row": 1,
+      "colEnd": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    "b": {
+      "col": 3,
+      "row": 1,
+      "rowEnd": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    "c": {
+      "col": 1,
+      "row": 2,
+      "rowEnd": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    "d": {
+      "col": 2,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    }
+  }
+}

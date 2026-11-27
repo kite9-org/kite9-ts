@@ -54,6 +54,114 @@ describe("AdjustableLayout", () => {
     expect(layout.grid.contentColSizes[0]).toBe(130);
   });
 
+  it("multi-span resize grows leaf tracks only — nested padding stays fixed", () => {
+    // Flattened nest: pad | leaf | pad | side  (gutter 0, pads are content tracks)
+    const layout = AdjustableLayout.from({
+      grid: {
+        contentCols: 4,
+        contentRows: 4,
+        gutter: 0,
+        minCol: 40,
+        minRow: 40,
+        contentColSizes: [12, 55, 12, 72],
+        contentRowSizes: [12, 61, 61, 12],
+        colSizes: [12, 55, 12, 72],
+        rowSizes: [12, 61, 61, 12],
+        contentColStarts: [0, 1, 2, 3],
+        contentRowStarts: [0, 1, 2, 3],
+      },
+      placements: {
+        a: {
+          col: 2,
+          row: 2,
+          size: { w: 35, h: 41 },
+          margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        },
+        b: {
+          col: 2,
+          row: 3,
+          size: { w: 35, h: 41 },
+          margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        },
+        stack: { col: 1, row: 1, colEnd: 3, rowEnd: 4 },
+        side: {
+          col: 4,
+          row: 1,
+          rowEnd: 4,
+          margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        },
+      },
+    });
+
+    expect(layout.resizeElement("a", { w: 55, h: 61 })).toBe(true);
+    // Occupied 75×81 — only leaf col/row 2 grow; pads untouched
+    expect(layout.grid.contentColSizes).toEqual([12, 75, 12, 72]);
+    expect(layout.grid.contentRowSizes[0]).toBe(12);
+    expect(layout.grid.contentRowSizes[1]).toBe(81);
+    expect(layout.grid.contentRowSizes[3]).toBe(12);
+
+    // Multi-span stack resize must not inflate padding tracks
+    expect(
+      layout.resizeElement("stack", { w: 120, h: 200 }),
+    ).toBe(true);
+    expect(layout.grid.contentColSizes[0]).toBe(12);
+    expect(layout.grid.contentColSizes[2]).toBe(12);
+    expect(layout.grid.contentColSizes[1]).toBeGreaterThanOrEqual(75);
+    expect(layout.grid.contentRowSizes[0]).toBe(12);
+    expect(layout.grid.contentRowSizes[3]).toBe(12);
+  });
+
+  it("multi-span resize finds leaf tracks even without placement.size", () => {
+    const layout = AdjustableLayout.from({
+      grid: {
+        contentCols: 4,
+        contentRows: 4,
+        gutter: 0,
+        minCol: 40,
+        minRow: 40,
+        contentColSizes: [12, 55, 12, 72],
+        contentRowSizes: [12, 61, 61, 12],
+        colSizes: [12, 55, 12, 72],
+        rowSizes: [12, 61, 61, 12],
+        contentColStarts: [0, 1, 2, 3],
+        contentRowStarts: [0, 1, 2, 3],
+      },
+      placements: {
+        // Content-sized leaves (no size) — still mark col/row 2–3 as flex
+        a: { col: 2, row: 2 },
+        b: { col: 2, row: 3 },
+        stack: { col: 1, row: 1, colEnd: 3, rowEnd: 4 },
+        side: { col: 4, row: 1, rowEnd: 4 },
+      },
+    });
+
+    expect(layout.resizeElement("stack", { w: 99, h: 166 })).toBe(true);
+    expect(layout.grid.contentColSizes).toEqual([12, 75, 12, 72]);
+    expect(layout.grid.contentRowSizes[0]).toBe(12);
+    expect(layout.grid.contentRowSizes[3]).toBe(12);
+    expect(
+      (layout.grid.contentRowSizes[1] ?? 0) + (layout.grid.contentRowSizes[2] ?? 0),
+    ).toBe(142); // 166 - 12 - 12
+  });
+
+  it("respects grid.minWidth / minHeight when shrinking content", () => {
+    const source = sampleLayout();
+    // Physical width = 16+16+100+16+80+16+16 = 260
+    source.grid.minWidth = 260;
+    source.grid.minHeight = 124; // 16+16+60+16+16
+    const layout = AdjustableLayout.from(source);
+
+    expect(layout.resizeElement("a", { w: 50, h: 40 })).toBe(true);
+    // Content col for `a` would want 50, but minWidth keeps total ≥ 260
+    const colSum = layout.grid.colSizes.reduce((a, b) => a + b, 0);
+    const rowSum = layout.grid.rowSizes.reduce((a, b) => a + b, 0);
+    expect(colSum).toBeGreaterThanOrEqual(260);
+    expect(rowSum).toBeGreaterThanOrEqual(124);
+    // Pads/gutters unchanged
+    expect(layout.grid.colSizes[0]).toBe(16);
+    expect(layout.grid.colSizes[3]).toBe(16);
+  });
+
   it("setMargin records insets and grows tracks by occupied size", () => {
     const layout = AdjustableLayout.from(sampleLayout());
     expect(

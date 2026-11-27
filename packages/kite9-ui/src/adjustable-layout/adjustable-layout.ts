@@ -145,7 +145,7 @@ export class AdjustableLayout {
   private constructor(data: LayoutData) {
     this.grid = data.grid;
     this.placements = data.placements;
-    this.routes = normalizeRoutes(data.grid, data.routes);
+    this.routes = normalizeRoutes(data.grid, data.routes ?? {});
   }
 
   /** Deep-clone `data` into a mutable session layout. */
@@ -163,7 +163,7 @@ export class AdjustableLayout {
       JSON.stringify({
         grid: this.grid,
         placements: this.placements,
-        routes: this.routes,
+        ...(Object.keys(this.routes).length > 0 ? { routes: this.routes } : {}),
       }),
     ) as LayoutData;
   }
@@ -194,6 +194,23 @@ export class AdjustableLayout {
     return true;
   }
 
+  clearMargin(id: string): boolean {
+    const placement = this.placements[id];
+    if (!placement || !isCellPlacement(placement)) return false;
+    delete placement.margin;
+    this.recomputeTracksForPlacement(placement);
+    return true;
+  }
+
+  /**
+   * Ensure placement size is at least `min` (does not shrink). Alias of
+   * {@link growToAtLeast} — used by ancestor-fit during nested resize.
+   */
+  growToFit(id: string, min: Size): boolean {
+    return this.growToAtLeast(id, min);
+  }
+
+  /** Ensure placement size is at least `min` (does not shrink). */
   growToAtLeast(id: string, min: Size): boolean {
     const placement = this.placements[id];
     if (!placement || !isCellPlacement(placement)) return false;
@@ -262,9 +279,86 @@ export class AdjustableLayout {
   }
 
   /**
+   * 1-based content indices in `[start, end]` that host a single-cell
+   * placement (sized or content-sized). Nested padding tracks only appear
+   * under multi-span containers — keep them fixed when redistributing.
+   */
+  private leafContentIndices(
+    axis: "col" | "row",
+    start: number,
+    end: number,
+  ): number[] {
+    const hits = new Set<number>();
+    for (const p of Object.values(this.placements)) {
+      if (!isCellPlacement(p)) continue;
+      const span = axis === "col" ? colSpan(p) : rowSpan(p);
+      if (span.count === 1 && span.start >= start && span.start <= end) {
+        hits.add(span.start);
+      }
+    }
+    return [...hits].sort((a, b) => a - b);
+  }
+
+  /**
+   * Grow/shrink multi-span content tracks to `need`, preferring leaf-occupied
+   * tracks so nested padding chrome stays put.
+   */
+  private distributeSpanNeed(
+    sizes: number[],
+    start: number,
+    end: number,
+    need: number,
+    gutter: number,
+    leafIndices: number[],
+    floorOf: (index1: number) => number,
+  ): void {
+    let span = gutter * Math.max(0, end - start);
+    for (let i = start; i <= end; i++) {
+      span += sizes[i - 1] ?? 0;
+    }
+    const delta = need - span;
+    if (Math.abs(delta) < 1e-6) return;
+
+    const all: number[] = [];
+    for (let i = start; i <= end; i++) all.push(i);
+    const targets = leafIndices.length > 0 ? leafIndices : all;
+    if (targets.length === 0) return;
+
+    if (delta > 0) {
+      const each = delta / targets.length;
+      for (const t of targets) {
+        sizes[t - 1] = (sizes[t - 1] ?? 0) + each;
+      }
+      return;
+    }
+
+    // Shrink flex tracks, not below leaf floors (padding stays fixed).
+    let remaining = -delta;
+    // Even pass first, then drain leftovers onto tracks with room.
+    const each = remaining / targets.length;
+    for (const t of targets) {
+      const cur = sizes[t - 1] ?? 0;
+      const floor = floorOf(t);
+      const take = Math.min(Math.max(0, cur - floor), each);
+      sizes[t - 1] = cur - take;
+      remaining -= take;
+    }
+    for (const t of targets) {
+      if (remaining <= 1e-6) break;
+      const cur = sizes[t - 1] ?? 0;
+      const floor = floorOf(t);
+      const take = Math.min(Math.max(0, cur - floor), remaining);
+      sizes[t - 1] = cur - take;
+      remaining -= take;
+    }
+  }
+
+  /**
    * Update tracks spanned by a cell placement from current placement sizes.
    * Preserves gutter / outer pad tracks already in `colSizes` / `rowSizes`.
-   * Content-sized placements (no `size`) leave measured tracks alone.
+   * Multi-span growth prefers leaf-occupied content tracks so nested padding
+   * chrome is not inflated. Content-sized placements (no `size`) leave
+   * measured tracks alone.
    */
   private recomputeTracksForPlacement(placement: CellPlacement): void {
     if (!placement.size) return;
@@ -276,37 +370,72 @@ export class AdjustableLayout {
     if (cs.count === 1) {
       grid.contentColSizes[cs.start - 1] = this.maxWidthInContentCol(cs.start);
     } else {
-      const need = AdjustableLayout.occupiedSize(placement).w;
-      let span = grid.gutter * (cs.count - 1);
-      for (let c = cs.start; c <= cs.end; c++) {
-        span += grid.contentColSizes[c - 1] ?? grid.minCol;
-      }
-      if (need > span) {
-        const grow = (need - span) / cs.count;
-        for (let c = cs.start; c <= cs.end; c++) {
-          grid.contentColSizes[c - 1] =
-            (grid.contentColSizes[c - 1] ?? grid.minCol) + grow;
-        }
-      }
+      this.distributeSpanNeed(
+        grid.contentColSizes,
+        cs.start,
+        cs.end,
+        AdjustableLayout.occupiedSize(placement).w,
+        grid.gutter,
+        this.leafContentIndices("col", cs.start, cs.end),
+        (c) => this.maxWidthInContentCol(c),
+      );
     }
 
     if (rs.count === 1) {
       grid.contentRowSizes[rs.start - 1] = this.maxHeightInContentRow(rs.start);
     } else {
-      const need = AdjustableLayout.occupiedSize(placement).h;
-      let span = grid.gutter * (rs.count - 1);
-      for (let r = rs.start; r <= rs.end; r++) {
-        span += grid.contentRowSizes[r - 1] ?? grid.minRow;
-      }
-      if (need > span) {
-        const grow = (need - span) / rs.count;
-        for (let r = rs.start; r <= rs.end; r++) {
-          grid.contentRowSizes[r - 1] =
-            (grid.contentRowSizes[r - 1] ?? grid.minRow) + grow;
-        }
-      }
+      this.distributeSpanNeed(
+        grid.contentRowSizes,
+        rs.start,
+        rs.end,
+        AdjustableLayout.occupiedSize(placement).h,
+        grid.gutter,
+        this.leafContentIndices("row", rs.start, rs.end),
+        (r) => this.maxHeightInContentRow(r),
+      );
     }
 
     syncPhysicalContentTracks(grid);
+    if (this.enforceAuthoredMins()) {
+      syncPhysicalContentTracks(grid);
+    }
+  }
+
+  /**
+   * Keep physical grid at least {@link GridLayout.minWidth} /
+   * {@link GridLayout.minHeight} (CSS min-width / min-height on the diagram).
+   * Extra is split across content tracks so gutters/pads stay fixed.
+   * Call after {@link syncPhysicalContentTracks} so `colSizes`/`rowSizes` match
+   * current content tracks. Returns true when content tracks grew.
+   */
+  private enforceAuthoredMins(): boolean {
+    const { grid } = this;
+    let changed = false;
+    if (grid.minWidth != null && grid.minWidth > 0) {
+      const sum = grid.colSizes.reduce((a, b) => a + b, 0);
+      if (sum < grid.minWidth) {
+        growContentTracks(grid.contentColSizes, grid.minWidth - sum);
+        changed = true;
+      }
+    }
+    if (grid.minHeight != null && grid.minHeight > 0) {
+      const sum = grid.rowSizes.reduce((a, b) => a + b, 0);
+      if (sum < grid.minHeight) {
+        growContentTracks(grid.contentRowSizes, grid.minHeight - sum);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+}
+
+/** Split `extra` px across content tracks (integer-ish, leftover on the last). */
+function growContentTracks(sizes: number[], extra: number): void {
+  if (extra <= 0 || sizes.length === 0) return;
+  const each = Math.floor(extra / sizes.length);
+  let rem = extra - each * sizes.length;
+  for (let i = 0; i < sizes.length; i++) {
+    sizes[i] = (sizes[i] ?? 0) + each + (rem > 0 ? 1 : 0);
+    if (rem > 0) rem -= 1;
   }
 }

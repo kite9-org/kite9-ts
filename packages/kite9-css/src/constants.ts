@@ -19,11 +19,17 @@ export const ELEMENT_VERTICAL_SIZING_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}ver
 
 export const LAYOUT_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}layout`;
 
+/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
 export const GRID_OCCUPIES_X_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies-x`;
+/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
 export const GRID_OCCUPIES_Y_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies-y`;
+/** @deprecated Prefer CSS `grid-template-rows`. */
 export const GRID_ROWS_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-rows`;
+/** @deprecated Prefer CSS `grid-template-columns`. */
 export const GRID_COLUMNS_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-columns`;
+/** @deprecated Prefer CSS `grid-template-columns` / `grid-template-rows`. */
 export const GRID_SIZE_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-size`;
+/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
 export const GRID_OCCUPIES_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies`;
 
 export const KITE9_CSS_TRAVERSAL_PROPERTY_PREFIX = `${KITE9_CSS_PROPERTY_PREFIX}traversal-`;
@@ -40,10 +46,14 @@ export const PORT_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}port-position`;
 
 export const MARKER_RESERVE = `${KITE9_CSS_PROPERTY_PREFIX}marker-reserve`;
 
+/** @deprecated Prefer CSS `align-self` / `place-self`. */
 export const VERTICAL_ALIGN_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}vertical-align-position`;
+/** @deprecated Prefer CSS `justify-self` / `place-self`. */
 export const HORIZONTAL_ALIGN_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}horizontal-align-position`;
 
+/** @deprecated Prefer CSS `align-self` / `align-items`. */
 export const VERTICAL_ALIGNMENT = `${KITE9_CSS_PROPERTY_PREFIX}vertical-align`;
+/** @deprecated Prefer CSS `justify-self` / `justify-items`. */
 export const HORIZONTAL_ALIGNMENT = `${KITE9_CSS_PROPERTY_PREFIX}horizontal-align`;
 
 export const LINK_INSET = `${KITE9_CSS_PROPERTY_PREFIX}link-inset`;

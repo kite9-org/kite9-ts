@@ -1,0 +1,34 @@
+{
+  "grid": {
+    "contentCols": 1,
+    "contentRows": 1,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      40
+    ],
+    "contentRowSizes": [
+      40
+    ],
+    "colSizes": [
+      40
+    ],
+    "rowSizes": [
+      40
+    ],
+    "contentColStarts": [
+      0
+    ],
+    "contentRowStarts": [
+      0
+    ],
+    "contentColCounts": [
+      1
+    ],
+    "contentRowCounts": [
+      1
+    ]
+  },
+  "placements": {}
+}

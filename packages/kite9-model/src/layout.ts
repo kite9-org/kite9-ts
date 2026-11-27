@@ -60,6 +60,8 @@ export type GridLayout = {
   contentRowSizes: number[];
   colSizes: number[];
   rowSizes: number[];
+  minWidth?: number;
+  minHeight?: number;
   /**
    * Physical 0-based start index into {@link colSizes} for each content column.
    * Omitted → legacy `2 * (col)` (1-based col). Raised when connection lanes
@@ -78,5 +80,6 @@ export type GridLayout = {
 export type LayoutData = {
   grid: GridLayout;
   placements: Record<string, LayoutPlacement>;
-  routes: Record<string, RouteLayout>;
+  /** Omitted by grid-only placers (`@kite9/grid`); always set by `@kite9/layout`. */
+  routes?: Record<string, RouteLayout>;
 };

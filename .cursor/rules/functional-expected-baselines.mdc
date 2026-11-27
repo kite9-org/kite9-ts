@@ -1,0 +1,16 @@
+---
+description: Never update functional test expected baselines; user Accepts them
+alwaysApply: true
+---
+
+# Functional expected baselines
+
+Never modify, overwrite, create, or Accept files under `**/test/functional/expected/**` (including copying `*-layout.json` outputs into expected).
+
+When baselines need updating:
+
+1. Leave the test failing against the current expected JSON (or missing expected).
+2. Tell the user to Accept from the results page (`pnpm test:results`).
+3. Do not refresh expected JSON to make tests pass.
+
+Fix production/test harness code so checks catch real regressions; do not “fix” failures by updating baselines unless the user explicitly asks to Accept or update expected files.

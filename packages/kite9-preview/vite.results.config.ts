@@ -19,16 +19,46 @@ import {
 
 const previewRoot = path.dirname(fileURLToPath(import.meta.url));
 const packages = path.resolve(previewRoot, "..");
-/** Functional outputs live in `@kite9/layout`; this server browses them with edit/resize. */
+/** Layout functional outputs (`display` / `layout` / …). */
 const layoutPkg = path.resolve(packages, "kite9-layout");
-const outputsRoot = path.join(layoutPkg, "outputs");
-const expectedRoot = path.join(layoutPkg, "test/functional/expected");
+const layoutOutputsRoot = path.join(layoutPkg, "outputs");
+const layoutExpectedRoot = path.join(layoutPkg, "test/functional/expected");
+/** Grid functional outputs (flat `outputs/{suite}/{name}/`). */
+const gridPkg = path.resolve(packages, "kite9-grid");
+const gridOutputsRoot = path.join(gridPkg, "outputs");
+const gridExpectedRoot = path.join(gridPkg, "test/functional/expected");
 
-const KINDS = ["display", "layout", "thorough", "performance"] as const;
+const KINDS = ["display", "layout", "thorough", "performance", "grid"] as const;
 type FunctionalKind = (typeof KINDS)[number];
 
 function isKind(s: string): s is FunctionalKind {
   return (KINDS as readonly string[]).includes(s);
+}
+
+function expectedRootFor(kind: FunctionalKind): string {
+  return kind === "grid" ? gridExpectedRoot : layoutExpectedRoot;
+}
+
+/** Absolute dir for a result: layout nests kind; grid does not. */
+function resultDir(
+  kind: FunctionalKind,
+  suite: string,
+  name: string,
+): string {
+  return kind === "grid"
+    ? path.join(gridOutputsRoot, suite, name)
+    : path.join(layoutOutputsRoot, kind, suite, name);
+}
+
+/** Public URL prefix for artifacts. */
+function publicBase(
+  kind: FunctionalKind,
+  suite: string,
+  name: string,
+): string {
+  return kind === "grid"
+    ? `/grid-outputs/${suite}/${name}/${name}`
+    : `/outputs/${kind}/${suite}/${name}/${name}`;
 }
 
 type ResultRow = {
@@ -63,23 +93,23 @@ function actualLayoutPath(
   suite: string,
   name: string,
 ): string {
-  return path.join(outputsRoot, kind, suite, name, `${name}-layout.json`);
+  return path.join(resultDir(kind, suite, name), `${name}-layout.json`);
 }
 
-function expectedLayoutPath(name: string): string {
-  return path.join(expectedRoot, `${name}.json`);
+function expectedLayoutPath(kind: FunctionalKind, name: string): string {
+  return path.join(expectedRootFor(kind), `${name}.json`);
 }
 
-/** Display baselines only — Accept promotes actual → expected. */
+/** Display + Grid baselines — Accept promotes actual → expected. */
 function canAcceptLayout(
   kind: FunctionalKind,
   suite: string,
   name: string,
 ): boolean {
-  if (kind !== "display") return false;
+  if (kind !== "display" && kind !== "grid") return false;
   const actualPath = actualLayoutPath(kind, suite, name);
   if (!existsSync(actualPath)) return false;
-  const expectedPath = expectedLayoutPath(name);
+  const expectedPath = expectedLayoutPath(kind, name);
   if (!existsSync(expectedPath)) return true;
   try {
     const actual = JSON.parse(readFileSync(actualPath, "utf8"));
@@ -126,7 +156,7 @@ function scanKindSuite(
       }
     }
 
-    const base = `/outputs/${kind}/${suite}/${name}/${name}`;
+    const base = publicBase(kind, suite, name);
     const png = path.join(dir, `${name}.png`);
     const positions = path.join(dir, `${name}-positions.png`);
     const compaction = path.join(dir, `${name}-compaction.png`);
@@ -159,18 +189,26 @@ function scanKindSuite(
 }
 
 function scanResults(): ResultRow[] {
-  if (!existsSync(outputsRoot)) return [];
   const rows: ResultRow[] = [];
 
-  for (const kindName of readdirSync(outputsRoot)) {
-    const kindDir = path.join(outputsRoot, kindName);
-    if (!statSync(kindDir).isDirectory() || kindName.startsWith(".")) continue;
-    if (!isKind(kindName)) continue;
+  if (existsSync(layoutOutputsRoot)) {
+    for (const kindName of readdirSync(layoutOutputsRoot)) {
+      const kindDir = path.join(layoutOutputsRoot, kindName);
+      if (!statSync(kindDir).isDirectory() || kindName.startsWith(".")) continue;
+      if (!isKind(kindName) || kindName === "grid") continue;
+      for (const suite of readdirSync(kindDir)) {
+        const suiteDir = path.join(kindDir, suite);
+        if (!statSync(suiteDir).isDirectory() || suite.startsWith(".")) continue;
+        scanKindSuite(kindName, suite, suiteDir, rows);
+      }
+    }
+  }
 
-    for (const suite of readdirSync(kindDir)) {
-      const suiteDir = path.join(kindDir, suite);
+  if (existsSync(gridOutputsRoot)) {
+    for (const suite of readdirSync(gridOutputsRoot)) {
+      const suiteDir = path.join(gridOutputsRoot, suite);
       if (!statSync(suiteDir).isDirectory() || suite.startsWith(".")) continue;
-      scanKindSuite(kindName, suite, suiteDir, rows);
+      scanKindSuite("grid", suite, suiteDir, rows);
     }
   }
 
@@ -199,8 +237,8 @@ function acceptLayout(
   suite: string,
   name: string,
 ): { ok: true } | { error: string } {
-  if (kind !== "display") {
-    return { error: "Accept is only for display baselines" };
+  if (kind !== "display" && kind !== "grid") {
+    return { error: "Accept is only for display and grid baselines" };
   }
   if (!isSafeSegment(suite) || !isSafeSegment(name)) {
     return { error: "Invalid suite or name" };
@@ -216,20 +254,15 @@ function acceptLayout(
     return { error: "Actual layout is not valid JSON" };
   }
 
+  const expectedRoot = expectedRootFor(kind);
   mkdirSync(expectedRoot, { recursive: true });
   writeFileSync(
-    expectedLayoutPath(name),
+    expectedLayoutPath(kind, name),
     `${JSON.stringify(layout, null, 2)}\n`,
     "utf8",
   );
 
-  const metaFile = path.join(
-    outputsRoot,
-    kind,
-    suite,
-    name,
-    "result.json",
-  );
+  const metaFile = path.join(resultDir(kind, suite, name), "result.json");
   if (existsSync(metaFile)) {
     try {
       const meta = JSON.parse(readFileSync(metaFile, "utf8")) as Record<
@@ -280,10 +313,7 @@ function resultsIndexPlugin(): Plugin {
             return;
           }
           const inputPath = path.join(
-            outputsRoot,
-            kind,
-            suite,
-            name,
+            resultDir(kind, suite, name),
             `${name}-input.html`,
           );
           if (!existsSync(inputPath)) {
@@ -346,7 +376,7 @@ function resultsIndexPlugin(): Plugin {
   };
 }
 
-/** Serve `@kite9/layout` functional `outputs/` + pass/fail index (edit/resize via bootScene). */
+/** Serve layout + grid functional `outputs/` + pass/fail index (edit/resize via bootScene). */
 export default defineConfig({
   root: layoutPkg,
   publicDir: false,
@@ -362,7 +392,61 @@ export default defineConfig({
     open: "/",
     fs: { allow: [packages] },
   },
-  plugins: [resultsIndexPlugin()],
+  plugins: [
+    resultsIndexPlugin(),
+    {
+      /**
+       * Serve `@kite9/grid` outputs at `/grid-outputs/...`.
+       * HTML goes through `transformIndexHtml` so `bootScene` / JSON imports
+       * resolve (same as layout views under Vite root `/outputs/`).
+       * Other assets rewrite to `/@fs/...` for module graph + static files.
+       */
+      name: "kite9-grid-outputs",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          const raw = req.url ?? "";
+          const q = raw.indexOf("?");
+          const pathname = q >= 0 ? raw.slice(0, q) : raw;
+          const search = q >= 0 ? raw.slice(q) : "";
+          if (!pathname.startsWith("/grid-outputs/")) {
+            next();
+            return;
+          }
+          const rel = decodeURIComponent(pathname.slice("/grid-outputs/".length));
+          if (rel.includes("..")) {
+            res.statusCode = 400;
+            res.end("Bad path");
+            return;
+          }
+          const filePath = path.join(gridOutputsRoot, rel);
+          if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+            res.statusCode = 404;
+            res.end("Not found");
+            return;
+          }
+          const ext = path.extname(filePath).toLowerCase();
+          if (ext === ".html") {
+            try {
+              const html = readFileSync(filePath, "utf8");
+              const transformed = await server.transformIndexHtml(
+                pathname,
+                html,
+              );
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              res.end(transformed);
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(e instanceof Error ? e.message : String(e));
+            }
+            return;
+          }
+          // JSON/PNG/etc. — let Vite serve via /@fs (JSON imports need this).
+          req.url = `/@fs${filePath}${search}`;
+          next();
+        });
+      },
+    },
+  ],
   resolve: {
     alias: [
       {

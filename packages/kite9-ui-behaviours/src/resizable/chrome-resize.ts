@@ -40,6 +40,17 @@ function ensureHostPositioned(host: Element): void {
   }
 }
 
+/** Read `width`/`height` only when the inline style is px; else use the box. */
+function pxSizeOrBox(host: HTMLElement, dim: "width" | "height"): number {
+  const raw = dim === "width" ? host.style.width : host.style.height;
+  if (raw.endsWith("px")) {
+    const n = parseFloat(raw);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  const box = host.getBoundingClientRect();
+  return dim === "width" ? box.width : box.height;
+}
+
 /**
  * Floor size so a container resize (bottom-right handle) cannot clip light-DOM
  * children: keep top/left chrome, hug content on the trailing edges.
@@ -95,12 +106,9 @@ export function activateChromeResize(ctx: BehaviourContext): () => void {
 
       const startX = event.clientX;
       const startY = event.clientY;
-      const startW =
-        parseFloat((host as HTMLElement).style.width) ||
-        host.getBoundingClientRect().width;
-      const startH =
-        parseFloat((host as HTMLElement).style.height) ||
-        host.getBoundingClientRect().height;
+      // Prefer authored px; never parseFloat("100%") — that yields 100.
+      const startW = pxSizeOrBox((host as HTMLElement), "width");
+      const startH = pxSizeOrBox((host as HTMLElement), "height");
       const id = host.getAttribute("id");
       if (!id) return;
       // Capture once — live DOM during drag already reflects clamped sizes.

@@ -1,0 +1,69 @@
+{
+  "grid": {
+    "contentCols": 2,
+    "contentRows": 1,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      200,
+      200
+    ],
+    "contentRowSizes": [
+      100
+    ],
+    "colSizes": [
+      200,
+      200
+    ],
+    "rowSizes": [
+      100
+    ],
+    "contentColStarts": [
+      0,
+      1
+    ],
+    "contentRowStarts": [
+      0
+    ],
+    "contentColCounts": [
+      1,
+      1
+    ],
+    "contentRowCounts": [
+      1
+    ],
+    "minWidth": 400,
+    "minHeight": 100
+  },
+  "placements": {
+    "leftish": {
+      "col": 1,
+      "row": 1,
+      "size": {
+        "w": 50,
+        "h": 50
+      },
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    "rightish": {
+      "col": 2,
+      "row": 1,
+      "size": {
+        "w": 50,
+        "h": 50
+      },
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    }
+  }
+}

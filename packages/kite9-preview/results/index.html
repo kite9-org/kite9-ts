@@ -3,17 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@kite9/layout test results</title>
+    <title>Kite9 test results</title>
     <link rel="stylesheet" href="__RESULTS_CSS__" />
   </head>
   <body>
     <h1>Layout test results</h1>
-    <p class="lead">Functional outputs under <code>outputs/</code>. Icons open diagram / positions / compaction / source HTML (hover icons to preview). Click a column header to sort. Use <strong>Accept</strong> on the Display tab when actual differs from expected.</p>
+    <p class="lead">Functional outputs under <code>outputs/</code> (layout) and <code>@kite9/grid</code> outputs. Icons open diagram / positions / compaction / source HTML (hover icons to preview). Click a column header to sort. Use <strong>Accept</strong> on the Display and Grid tabs when actual differs from expected.</p>
     <nav class="tabs" id="tabs" aria-label="Test suite">
       <button type="button" data-kind="display" class="active">Display</button>
       <button type="button" data-kind="layout">Layout</button>
       <button type="button" data-kind="thorough">Thorough</button>
       <button type="button" data-kind="performance">Performance</button>
+      <button type="button" data-kind="grid">Grid</button>
     </nav>
     <p class="empty" id="empty" hidden>No outputs yet for this suite. Run the matching test project first.</p>
     <div id="table-wrap" hidden>

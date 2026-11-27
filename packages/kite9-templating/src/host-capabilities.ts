@@ -2,12 +2,10 @@ import { DiagramElementType } from "@kite9/css";
 
 /** Read a display title from common host attributes. */
 export function hostTitle(host: Element): string {
-  return (
-    host.getAttribute("label") ||
-    host.getAttribute("title") ||
-    host.getAttribute("id") ||
-    host.localName
-  );
+  // Explicit `label=""` (or `title=""`) wins — do not fall back to id.
+  if (host.hasAttribute("label")) return host.getAttribute("label") ?? "";
+  if (host.hasAttribute("title")) return host.getAttribute("title") ?? "";
+  return host.getAttribute("id") || host.localName;
 }
 
 /** Collapsed text content of a host (e.g. label chrome). */

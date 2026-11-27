@@ -56,20 +56,20 @@ Registered by `kite9PropertyDefs()` / `registerKite9Properties()`. Soft-skipped 
 | `--kite9-transform` | enum | `normal` | no | Content transform |
 | `--kite9-horizontal-sizing` | enum | `minimize` | no | |
 | `--kite9-vertical-sizing` | enum | `minimize` | no | |
-| `--kite9-occupies-x` | `<integer>+` | `0` | no | Grid cell range (x) |
-| `--kite9-occupies-y` | `<integer>+` | `0` | no | Grid cell range (y) |
-| `--kite9-grid-rows` | `<integer>` | `0` | no | |
-| `--kite9-grid-columns` | `<integer>` | `0` | no | |
+| `--kite9-occupies-x` | `<integer>+` | `0` | no | **Deprecated** — use `grid-column` |
+| `--kite9-occupies-y` | `<integer>+` | `0` | no | **Deprecated** — use `grid-row` |
+| `--kite9-grid-rows` | `<integer>` | `0` | no | **Deprecated** — use `grid-template-rows` |
+| `--kite9-grid-columns` | `<integer>` | `0` | no | **Deprecated** — use `grid-template-columns` |
 | `--kite9-traversal` | enum | `leaving` | no | Border traversal |
 | `--kite9-traversal-top` | enum \| `none` | `none` | no | |
 | `--kite9-traversal-right` | enum \| `none` | `none` | no | |
 | `--kite9-traversal-bottom` | enum \| `none` | `none` | no | |
 | `--kite9-traversal-left` | enum \| `none` | `none` | no | |
 | `--kite9-connections` | enum | `same-side` | no | Connection separation |
-| `--kite9-vertical-align` | enum | `center` | no | Content alignment |
-| `--kite9-horizontal-align` | enum | `center` | no | |
-| `--kite9-vertical-align-position` | `<length-percentage>` | `50%` | no | |
-| `--kite9-horizontal-align-position` | `<length-percentage>` | `50%` | no | |
+| `--kite9-vertical-align` | enum | `center` | no | **Deprecated** — use `align-self` |
+| `--kite9-horizontal-align` | enum | `center` | no | **Deprecated** — use `justify-self` |
+| `--kite9-vertical-align-position` | `<length-percentage>` | `50%` | no | **Deprecated** — use `align-self` |
+| `--kite9-horizontal-align-position` | `<length-percentage>` | `50%` | no | **Deprecated** — use `justify-self` |
 | `--kite9-direction` | enum + `none` | `none` | yes | Port / flow direction |
 | `--kite9-link-inset` | `<length>` | `0` | no | |
 | `--kite9-link-minimum-length` | `<length>` | `0` | no | |
@@ -107,8 +107,10 @@ Used directly on light-DOM hosts — **not** registered as custom properties. Ed
 | `padding-right` | |
 | `padding-bottom` | |
 | `padding-left` | |
-| `justify-self` | Grid-cell alignment (`start` when margins are asymmetric) |
-| `align-self` | Grid-cell alignment |
+| `justify-self` | Grid-cell alignment (`start` / `end` / `center`; preferred over `--kite9-horizontal-align*`) |
+| `align-self` | Grid-cell alignment (`start` / `end` / `center`; preferred over `--kite9-vertical-align*`) |
+| `grid-column` / `grid-row` | Cell placement / span (preferred over `--kite9-occupies*`) |
+| `grid-template-columns` / `grid-template-rows` | Track counts / sizes (preferred over `--kite9-grid-columns` / `--kite9-grid-rows`) |
 | `text-align` | Text alignment inside labels / bodies |
 
 Occupancy in `AdjustableLayout` is content `width`/`height` plus `margin-*`. Templates and `applyLayout` do not invent a parallel margin/padding vocabulary.

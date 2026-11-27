@@ -13,9 +13,18 @@
     "./fixtures/grid/card.json": "./fixtures/grid/card.json",
     "./fixtures/grid/empty.json": "./fixtures/grid/empty.json",
     "./e2e": "./fixtures/e2e/open-card-edit.ts",
-    "./e2e/vite": "./fixtures/e2e/create-e2e-vite-config.ts"
+    "./e2e/vite": "./fixtures/e2e/create-e2e-vite-config.ts",
+    "./functional": "./functional/index.ts",
+    "./functional/create-functional-vite-config.ts": "./functional/create-functional-vite-config.ts",
+    "./functional/*": "./functional/*"
   },
-  "files": ["dist", "src", "fixtures", "README.md"],
+  "files": [
+    "dist",
+    "src",
+    "fixtures",
+    "functional",
+    "README.md"
+  ],
   "scripts": {
     "build": "vite build && tsc -b --force",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -42,6 +51,8 @@
     "@playwright/test": "catalog:"
   },
   "peerDependenciesMeta": {
-    "@playwright/test": { "optional": true }
+    "@playwright/test": {
+      "optional": true
+    }
   }
 }

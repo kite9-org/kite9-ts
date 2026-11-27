@@ -1,6 +1,11 @@
 /** Client script for the functional results index page. */
 
-type FunctionalKind = "display" | "layout" | "thorough" | "performance";
+type FunctionalKind =
+  | "display"
+  | "layout"
+  | "thorough"
+  | "performance"
+  | "grid";
 
 type ResultRow = {
   kind: FunctionalKind;
@@ -32,6 +37,7 @@ const KINDS: FunctionalKind[] = [
   "layout",
   "thorough",
   "performance",
+  "grid",
 ];
 const allowed = new Set(["name", "status", "at", "failSummary"]);
 

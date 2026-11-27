@@ -1,0 +1,45 @@
+{
+  "grid": {
+    "contentCols": 1,
+    "contentRows": 1,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      54
+    ],
+    "contentRowSizes": [
+      61
+    ],
+    "colSizes": [
+      54
+    ],
+    "rowSizes": [
+      61
+    ],
+    "contentColStarts": [
+      0
+    ],
+    "contentRowStarts": [
+      0
+    ],
+    "contentColCounts": [
+      1
+    ],
+    "contentRowCounts": [
+      1
+    ]
+  },
+  "placements": {
+    "a": {
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    }
+  }
+}

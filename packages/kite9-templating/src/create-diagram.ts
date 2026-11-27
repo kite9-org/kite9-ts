@@ -94,6 +94,55 @@ function parseDirection(raw: string | null): Direction | null {
   return (Direction as Record<string, Direction>)[key] ?? null;
 }
 
+/** Count tracks in a computed `grid-template-*` value (`none` / `auto` → 0). */
+function countGridTemplateTracks(value: string): number {
+  const v = value.trim();
+  if (!v || v === "none" || v === "auto") return 0;
+  const repeat = /^repeat\(\s*(\d+)\s*,/i.exec(v);
+  if (repeat) {
+    const n = Number.parseInt(repeat[1]!, 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+  // Computed values are usually space-separated lengths (e.g. "100px 100px").
+  return v.split(/\s+/).filter(Boolean).length;
+}
+
+/**
+ * Map CSS Grid line placement (`grid-column` / `grid-row`, 1-based lines) to a
+ * 0-based inclusive kite9 occupies range. Returns null for `auto` / unset.
+ */
+function cssGridLinesToOccupies(
+  value: string,
+): ReturnType<typeof gridContainerPosition> | null {
+  const v = value.trim().toLowerCase();
+  if (!v || v === "auto" || v === "auto / auto") return null;
+  const parts = v.split("/").map((p) => p.trim());
+  const parseLine = (raw: string): number | null => {
+    if (!raw || raw === "auto") return null;
+    const span = /^span\s+(\d+)$/i.exec(raw);
+    if (span) return null; // needs a start line; handled below
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  };
+  const startLine = parseLine(parts[0] ?? "");
+  if (startLine == null) return null;
+  let endLine: number | null = null;
+  if (parts[1]) {
+    const span = /^span\s+(\d+)$/i.exec(parts[1]);
+    if (span) {
+      const n = Number.parseInt(span[1]!, 10);
+      endLine = startLine + (Number.isFinite(n) ? n : 1);
+    } else {
+      endLine = parseLine(parts[1]);
+    }
+  }
+  // CSS end line is exclusive; kite9 occupies to is inclusive.
+  const from = startLine - 1;
+  const to = endLine != null ? endLine - 2 : from;
+  if (from < 0 || to < from) return null;
+  return gridContainerPosition(from, to);
+}
+
 function nextId(ctx: BuildContext, el: Element): string {
   const id = attr(el, "id");
   if (id) return id;
@@ -225,6 +274,10 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
       attr(this.el, "grid-columns") ?? attr(this.el, "content-cols") ?? "",
     );
     if (attrN > 0) return attrN;
+    const fromTemplate = countGridTemplateTracks(
+      getComputedStyle(this.el as Element).gridTemplateColumns,
+    );
+    if (fromTemplate > 0) return fromTemplate;
     const cssN = Number.parseInt(
       getComputedStyle(this.el as Element)
         .getPropertyValue("--kite9-grid-columns")
@@ -239,6 +292,10 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
       attr(this.el, "grid-rows") ?? attr(this.el, "content-rows") ?? "",
     );
     if (attrN > 0) return attrN;
+    const fromTemplate = countGridTemplateTracks(
+      getComputedStyle(this.el as Element).gridTemplateRows,
+    );
+    if (fromTemplate > 0) return fromTemplate;
     const cssN = Number.parseInt(
       getComputedStyle(this.el as Element)
         .getPropertyValue("--kite9-grid-rows")
@@ -363,6 +420,11 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
 
   getContainerPosition(d: Dimension): ContainerPosition | null {
     const cs = getComputedStyle(this.el as Element);
+    const fromCssGrid = cssGridLinesToOccupies(
+      d === Dimension.H ? cs.gridColumn : cs.gridRow,
+    );
+    if (fromCssGrid) return fromCssGrid;
+
     const axisProp =
       d === Dimension.H ? "--kite9-occupies-x" : "--kite9-occupies-y";
     let raw = cs.getPropertyValue(axisProp).trim();
@@ -399,17 +461,32 @@ export class ConnectedRectangularAdapter
   }
 
   getVerticalAlignment(): VerticalAlignment {
-    const raw = getComputedStyle(this.el as Element)
-      .getPropertyValue("--kite9-vertical-align")
-      .trim()
-      .toLowerCase();
+    const cs = getComputedStyle(this.el as Element);
+    const self = cs.alignSelf.trim().toLowerCase();
+    if (self === "start" || self === "flex-start" || self === "self-start") {
+      return VerticalAlignment.TOP;
+    }
+    if (self === "end" || self === "flex-end" || self === "self-end") {
+      return VerticalAlignment.BOTTOM;
+    }
+    if (self === "center") return VerticalAlignment.CENTER;
+    const raw = cs.getPropertyValue("--kite9-vertical-align").trim().toLowerCase();
     if (raw === VerticalAlignment.TOP) return VerticalAlignment.TOP;
     if (raw === VerticalAlignment.BOTTOM) return VerticalAlignment.BOTTOM;
     return VerticalAlignment.CENTER;
   }
 
   getHorizontalAlignment(): HorizontalAlignment {
-    const raw = getComputedStyle(this.el as Element)
+    const cs = getComputedStyle(this.el as Element);
+    const self = cs.justifySelf.trim().toLowerCase();
+    if (self === "start" || self === "flex-start" || self === "self-start" || self === "left") {
+      return HorizontalAlignment.LEFT;
+    }
+    if (self === "end" || self === "flex-end" || self === "self-end" || self === "right") {
+      return HorizontalAlignment.RIGHT;
+    }
+    if (self === "center") return HorizontalAlignment.CENTER;
+    const raw = cs
       .getPropertyValue("--kite9-horizontal-align")
       .trim()
       .toLowerCase();

@@ -12,46 +12,29 @@ function requireLayoutSession(ctx: BehaviourContext, who: string) {
 }
 
 /**
- * Grow light-DOM ancestor rectangulars so a nested content resize isn't
- * clipped. Uses the current parent−child box delta as chrome padding.
- * Call with the child's *content* size only — not occupied (content+margin),
- * or pad compounds with prior track growth and sizes run away.
+ * Previously grew ancestor placements from painted parent−child chrome so a
+ * nested resize wasn't clipped. On a flattened shared grid that double-counts:
+ * the leaf resize already expands the same tracks, and multi-span ancestors
+ * distribute extra into padding tracks that never shrink — the diagram runs
+ * away. Containers stretch to their cell, so ancestor size is unnecessary.
  */
 export function growAncestorsToFit(
-  ctx: BehaviourContext,
-  host: Element,
-  childW: number,
-  childH: number,
+  _ctx: BehaviourContext,
+  _host: Element,
+  _childW: number,
+  _childH: number,
 ): void {
-  const session = requireLayoutSession(ctx, "growAncestorsToFit");
-  let ancestor: Element | null = host.parentElement;
-  while (ancestor && ancestor !== ctx.root) {
-    const aid = ancestor.getAttribute("id");
-    if (aid && session.layout.placements[aid]) {
-      const parentBox = ancestor.getBoundingClientRect();
-      const childBox = host.getBoundingClientRect();
-      const padW = Math.max(0, parentBox.width - childBox.width);
-      const padH = Math.max(0, parentBox.height - childBox.height);
-      session.layout.growToFit(aid, {
-        w: childW + padW,
-        h: childH + padH,
-      });
-    }
-    ancestor = ancestor.parentElement;
-  }
+  // Intentionally a no-op for flattened LayoutData (see applySizeToLayout).
 }
 
-/** Mutate placement size, grow ancestors if needed, re-apply layout. */
+/** Mutate placement size and re-apply layout. */
 export function applySizeToLayout(
   ctx: BehaviourContext,
   id: string,
   size: Size,
-  host?: Element | null,
+  _host?: Element | null,
 ): void {
   const session = requireLayoutSession(ctx, "applySizeToLayout");
-  const el =
-    host ?? ctx.root.querySelector(`#${CSS.escape(id)}`);
-  if (el) growAncestorsToFit(ctx, el, size.w, size.h);
   if (!session.layout.resizeElement(id, size)) {
     throw new Error(`No cell placement in layout for #${id}`);
   }

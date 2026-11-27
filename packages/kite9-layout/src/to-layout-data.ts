@@ -12,7 +12,7 @@ import type {
   RouteLayout,
   Size,
 } from "@kite9/model";
-import { DiagramElementType } from "@kite9/model";
+import { DiagramElementType, Direction } from "@kite9/model";
 import {
   contentColSpan,
   contentRowSpan,
@@ -291,18 +291,31 @@ function mapRoutePointToGrid(
 }
 
 /**
- * Snap near-equal coords and drop collinear middles so RI→grid remap noise
- * does not create micro-jogs (which paint as Z-bends under corner radius).
+ * Force Manhattan polylines: snap near-axis noise, insert an elbow on true
+ * diagonals (remap / terminal-snap can otherwise leave a 2-point diagonal),
+ * then drop collinear middles.
  */
 function orthogonalizeRoutePoints(points: Point2D[], eps = 1): Point2D[] {
   if (points.length < 2) return points.map((p) => ({ ...p }));
+
   const snapped: Point2D[] = [{ ...points[0]! }];
   for (let i = 1; i < points.length; i++) {
     const prev = snapped[snapped.length - 1]!;
     const cur = { ...points[i]! };
-    if (Math.abs(cur.x - prev.x) <= eps) cur.x = prev.x;
-    else if (Math.abs(cur.y - prev.y) <= eps) cur.y = prev.y;
-    snapped.push(cur);
+    const dx = Math.abs(cur.x - prev.x);
+    const dy = Math.abs(cur.y - prev.y);
+    if (dx <= eps) {
+      cur.x = prev.x;
+      snapped.push(cur);
+    } else if (dy <= eps) {
+      cur.y = prev.y;
+      snapped.push(cur);
+    } else {
+      // Diagonal: vertical then horizontal from `prev` (keeps departure axis
+      // when leaving a top/bottom glyph edge toward a side-shifted peer).
+      snapped.push({ x: prev.x, y: cur.y });
+      snapped.push(cur);
+    }
   }
 
   const out: Point2D[] = [snapped[0]!];
@@ -312,9 +325,13 @@ function orthogonalizeRoutePoints(points: Point2D[], eps = 1): Point2D[] {
     const next = snapped[i + 1]!;
     if (cur.x === prev.x && cur.y === prev.y) continue;
     const sameVert =
-      cur.x === prev.x && next.x === cur.x && Math.sign(cur.y - prev.y) === Math.sign(next.y - cur.y);
+      cur.x === prev.x &&
+      next.x === cur.x &&
+      Math.sign(cur.y - prev.y) === Math.sign(next.y - cur.y);
     const sameHoriz =
-      cur.y === prev.y && next.y === cur.y && Math.sign(cur.x - prev.x) === Math.sign(next.x - cur.x);
+      cur.y === prev.y &&
+      next.y === cur.y &&
+      Math.sign(cur.x - prev.x) === Math.sign(next.x - cur.x);
     if (sameVert || sameHoriz) continue;
     out.push(cur);
   }
@@ -322,6 +339,162 @@ function orthogonalizeRoutePoints(points: Point2D[], eps = 1): Point2D[] {
   const tip = out[out.length - 1]!;
   if (last.x !== tip.x || last.y !== tip.y) out.push(last);
   return out;
+}
+
+/**
+ * After per-box affine remap, restore each RI segment's axis.
+ * Horizontal RI runs share one mapped y; vertical runs share one mapped x.
+ * Without this, mapping endpoints through different glyph boxes shears a
+ * compaction L into a painted S-bend (FourPointCross A1→C).
+ */
+function straightenMappedToRiTopology(
+  riPoints: Point2D[],
+  mapped: Point2D[],
+  eps = 1.5,
+): Point2D[] {
+  if (mapped.length !== riPoints.length || mapped.length < 2) {
+    return mapped.map((p) => ({ ...p }));
+  }
+  const out = mapped.map((p) => ({ ...p }));
+
+  let i = 0;
+  while (i < riPoints.length) {
+    let j = i;
+    while (
+      j + 1 < riPoints.length &&
+      Math.abs(riPoints[j + 1]!.y - riPoints[i]!.y) <= eps
+    ) {
+      j++;
+    }
+    if (j > i) {
+      let sum = 0;
+      for (let k = i; k <= j; k++) sum += out[k]!.y;
+      const y = sum / (j - i + 1);
+      for (let k = i; k <= j; k++) out[k]!.y = y;
+    }
+    i = Math.max(j, i + 1);
+  }
+
+  i = 0;
+  while (i < riPoints.length) {
+    let j = i;
+    while (
+      j + 1 < riPoints.length &&
+      Math.abs(riPoints[j + 1]!.x - riPoints[i]!.x) <= eps
+    ) {
+      j++;
+    }
+    if (j > i) {
+      let sum = 0;
+      for (let k = i; k <= j; k++) sum += out[k]!.x;
+      const x = sum / (j - i + 1);
+      for (let k = i; k <= j; k++) out[k]!.x = x;
+    }
+    i = Math.max(j, i + 1);
+  }
+
+  return out;
+}
+
+/**
+ * True when no other content cell intersects the open rectangle between `a` and
+ * `b` along the corridor of their overlap on the perpendicular axis.
+ */
+function clearCorridor(
+  a: Box,
+  b: Box,
+  axis: "h" | "v",
+  placements: LayoutData["placements"],
+  grid: GridLayout,
+  fromId: string,
+  toId: string,
+): boolean {
+  if (axis === "h") {
+    const y0 = Math.max(a.y, b.y);
+    const y1 = Math.min(a.y + a.h, b.y + b.h);
+    if (y1 <= y0) return false;
+    const left = a.x + a.w <= b.x ? a : b;
+    const right = a.x + a.w <= b.x ? b : a;
+    if (right.x < left.x + left.w - 0.5) return false;
+    const x0 = left.x + left.w;
+    const x1 = right.x;
+    for (const [id, p] of Object.entries(placements)) {
+      if (id === fromId || id === toId || !isCellPlace(p)) continue;
+      const box = gridCellBox(grid, p);
+      if (box.x + box.w <= x0 + 0.5 || box.x >= x1 - 0.5) continue;
+      if (Math.max(y0, box.y) < Math.min(y1, box.y + box.h)) return false;
+    }
+    return true;
+  }
+
+  const x0 = Math.max(a.x, b.x);
+  const x1 = Math.min(a.x + a.w, b.x + b.w);
+  if (x1 <= x0) return false;
+  const top = a.y + a.h <= b.y ? a : b;
+  const bottom = a.y + a.h <= b.y ? b : a;
+  if (bottom.y < top.y + top.h - 0.5) return false;
+  const y0 = top.y + top.h;
+  const y1 = bottom.y;
+  for (const [id, p] of Object.entries(placements)) {
+    if (id === fromId || id === toId || !isCellPlace(p)) continue;
+    const box = gridCellBox(grid, p);
+    if (box.y + box.h <= y0 + 0.5 || box.y >= y1 - 0.5) continue;
+    if (Math.max(x0, box.x) < Math.min(x1, box.x + box.w)) return false;
+  }
+  return true;
+}
+
+/**
+ * When two cells face each other across a clear gutter corridor, paint a single
+ * straight stub on the overlap mid — glyphs fill the cell, so unequal RI mids
+ * (A1 41px vs C 91px) must not become an S-bend. Detours around a sibling keep
+ * RI topology because the corridor is blocked.
+ */
+function adjacentBandStraight(
+  fromId: string,
+  toId: string,
+  fromGrid: Box,
+  toGrid: Box,
+  drawDir: Direction | null | undefined,
+  placements: LayoutData["placements"],
+  grid: GridLayout,
+): Point2D[] | null {
+  const horizDir =
+    drawDir === Direction.LEFT ||
+    drawDir === Direction.RIGHT ||
+    drawDir == null;
+  const vertDir =
+    drawDir === Direction.UP || drawDir === Direction.DOWN || drawDir == null;
+
+  if (
+    horizDir &&
+    clearCorridor(fromGrid, toGrid, "h", placements, grid, fromId, toId)
+  ) {
+    const y0 = Math.max(fromGrid.y, toGrid.y);
+    const y1 = Math.min(fromGrid.y + fromGrid.h, toGrid.y + toGrid.h);
+    const y = (y0 + y1) / 2;
+    const fromRight = fromGrid.x + fromGrid.w <= toGrid.x + 0.5;
+    return [
+      { x: fromRight ? fromGrid.x + fromGrid.w : fromGrid.x, y },
+      { x: fromRight ? toGrid.x : toGrid.x + toGrid.w, y },
+    ];
+  }
+
+  if (
+    vertDir &&
+    clearCorridor(fromGrid, toGrid, "v", placements, grid, fromId, toId)
+  ) {
+    const x0 = Math.max(fromGrid.x, toGrid.x);
+    const x1 = Math.min(fromGrid.x + fromGrid.w, toGrid.x + toGrid.w);
+    const x = (x0 + x1) / 2;
+    const fromAbove = fromGrid.y + fromGrid.h <= toGrid.y + 0.5;
+    return [
+      { x, y: fromAbove ? fromGrid.y + fromGrid.h : fromGrid.y },
+      { x, y: fromAbove ? toGrid.y : toGrid.y + toGrid.h },
+    ];
+  }
+
+  return null;
 }
 
 /**
@@ -355,12 +528,35 @@ function routesOnGrid(
     const toRi = riBox(toEl);
     const fromGrid = gridCellBox(grid, fromP);
     const toGrid = gridCellBox(grid, toP);
-    const mapped = points.map((p) =>
-      mapRoutePointToGrid(p, fromRi, toRi, fromGrid, toGrid),
+
+    const bandStraight = adjacentBandStraight(
+      fromEl.getID(),
+      toEl.getID(),
+      fromGrid,
+      toGrid,
+      c.getDrawDirection?.() ?? null,
+      placements,
+      grid,
     );
-    const ortho = orthogonalizeRoutePoints(mapped);
+    if (bandStraight) {
+      routes[c.getID()] = { points: bandStraight, labels: {} };
+      continue;
+    }
+
+    const mapped = straightenMappedToRiTopology(
+      points,
+      points.map((p) =>
+        mapRoutePointToGrid(p, fromRi, toRi, fromGrid, toGrid),
+      ),
+    );
+    const attached = attachTerminalsToCellEdges(mapped, fromGrid, toGrid);
     routes[c.getID()] = {
-      points: attachTerminalsToCellEdges(ortho, fromGrid, toGrid),
+      points: orthogonalizeRoutePoints(
+        straightenMappedToRiTopology(
+          attached.length === points.length ? points : attached,
+          attached,
+        ),
+      ),
       labels: {},
     };
   }
@@ -371,7 +567,7 @@ function routesOnGrid(
  * Snap route terminals onto the from/to content-cell border (glyph boundary
  * once the host fills the cell). Side follows the first/last segment so the
  * stub leaves via the intersection toward the buffer gutter — Java rect-edge
- * → orbit slideable.
+ * → orbit slideable. May leave a diagonal until {@link orthogonalizeRoutePoints}.
  */
 function attachTerminalsToCellEdges(
   points: Point2D[],
