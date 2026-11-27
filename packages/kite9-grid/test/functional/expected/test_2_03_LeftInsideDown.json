@@ -1,89 +1,77 @@
 {
   "grid": {
-    "contentCols": 4,
-    "contentRows": 4,
+    "contentCols": 6,
+    "contentRows": 6,
     "gutter": 0,
     "minCol": 40,
     "minRow": 40,
     "contentColSizes": [
       54,
+      12,
       55,
       54,
-      12
+      12,
+      10
     ],
     "contentRowSizes": [
+      10,
       12,
       61,
       12,
+      10,
       61
     ],
     "colSizes": [
       54,
+      12,
       55,
       54,
-      12
+      12,
+      10
     ],
     "rowSizes": [
+      10,
       12,
       61,
       12,
+      10,
       61
-    ],
-    "contentColStarts": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "contentColCounts": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1,
-      1
     ]
   },
-  "placements": {
-    "b": {
+  "placements": [
+    {
+      "id": "b",
+      "col": 3,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "a",
+      "col": 4,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "row",
       "col": 2,
       "row": 2,
-      "margin": {
-        "top": 10,
-        "right": 10,
-        "bottom": 10,
-        "left": 10
-      }
+      "colEnd": 5,
+      "rowEnd": 4
     },
-    "a": {
-      "col": 3,
-      "row": 2,
-      "margin": {
-        "top": 10,
-        "right": 10,
-        "bottom": 10,
-        "left": 10
-      }
-    },
-    "row": {
+    {
+      "id": "c",
       "col": 1,
-      "row": 1,
-      "colEnd": 4,
-      "rowEnd": 3
-    },
-    "c": {
-      "col": 1,
-      "row": 4,
+      "row": 6,
       "margin": {
         "top": 10,
         "right": 10,
@@ -91,5 +79,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

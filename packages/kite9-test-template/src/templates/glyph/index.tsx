@@ -31,11 +31,18 @@ export function GlyphChrome({ title }: GlyphChromeProps) {
   );
 }
 
+/** Non-port light-DOM children → open body chrome (`data-has-body`). */
+function syncHasBody(host: Element): void {
+  const hasBody = Array.from(host.children).some((c) => c.slot !== "port");
+  host.toggleAttribute("data-has-body", hasBody);
+}
+
 /** {@link RenderHtmlFn} for glyph / arrow chrome (view only). */
 export const renderGlyphChrome: RenderHtmlFn = (host, shadow) => {
   applyHostCapabilities(host, {
     type: DiagramElementType.CONNECTED_RECTANGULAR,
     ui: "selectable size",
   });
+  syncHasBody(host);
   render(<GlyphChrome title={hostTitle(host)} />, shadow);
 };

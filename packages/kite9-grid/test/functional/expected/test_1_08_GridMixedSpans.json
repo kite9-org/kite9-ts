@@ -24,30 +24,11 @@
       61,
       40,
       61
-    ],
-    "contentColStarts": [
-      0,
-      1,
-      2
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2
-    ],
-    "contentColCounts": [
-      1,
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1
     ]
   },
-  "placements": {
-    "a": {
+  "placements": [
+    {
+      "id": "a",
       "col": 1,
       "row": 1,
       "colEnd": 2,
@@ -58,7 +39,8 @@
         "left": 10
       }
     },
-    "b": {
+    {
+      "id": "b",
       "col": 3,
       "row": 1,
       "rowEnd": 2,
@@ -69,7 +51,8 @@
         "left": 10
       }
     },
-    "c": {
+    {
+      "id": "c",
       "col": 1,
       "row": 2,
       "rowEnd": 3,
@@ -80,7 +63,8 @@
         "left": 10
       }
     },
-    "d": {
+    {
+      "id": "d",
       "col": 2,
       "row": 3,
       "margin": {
@@ -90,5 +74,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

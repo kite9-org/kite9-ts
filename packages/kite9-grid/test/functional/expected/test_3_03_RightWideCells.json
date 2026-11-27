@@ -19,25 +19,12 @@
     "rowSizes": [
       100
     ],
-    "contentColStarts": [
-      0,
-      1
-    ],
-    "contentRowStarts": [
-      0
-    ],
-    "contentColCounts": [
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1
-    ],
     "minWidth": 400,
     "minHeight": 100
   },
-  "placements": {
-    "leftish": {
+  "placements": [
+    {
+      "id": "leftish",
       "col": 1,
       "row": 1,
       "size": {
@@ -51,7 +38,8 @@
         "left": 10
       }
     },
-    "rightish": {
+    {
+      "id": "rightish",
       "col": 2,
       "row": 1,
       "size": {
@@ -65,5 +53,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

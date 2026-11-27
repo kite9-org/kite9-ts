@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import type { Plugin, ViteDevServer } from "vite";
 import { classifyTestError } from "./fail-reason.js";
 import {
+  renderExpectedView,
   renderResultsIndex,
   renderSourceText,
   renderSourceView,
@@ -92,6 +93,10 @@ type ResultRow = {
   positionsUrl?: string;
   compactionUrl?: string;
   sourceUrl?: string;
+  /** Baseline layout JSON when present under test/functional/expected. */
+  expectedUrl?: string;
+  /** Diagram viewer painted with the expected layout baseline. */
+  expectedViewUrl?: string;
   canAccept: boolean;
   metrics?: {
     totalMs?: number;
@@ -114,6 +119,26 @@ function actualLayoutPath(
 
 function expectedLayoutPath(kind: FunctionalKind, name: string): string {
   return path.join(expectedRootFor(kind), `${name}.json`);
+}
+
+/** Expected baselines may still use id→placement maps; bootScene needs an array. */
+function normalizeExpectedLayout(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const data = raw as Record<string, unknown>;
+  const placements = data.placements;
+  if (
+    placements &&
+    !Array.isArray(placements) &&
+    typeof placements === "object"
+  ) {
+    return {
+      ...data,
+      placements: Object.entries(placements as Record<string, object>).map(
+        ([id, p]) => ({ id, ...p }),
+      ),
+    };
+  }
+  return raw;
 }
 
 function canAcceptLayout(
@@ -197,6 +222,13 @@ function scanKindSuite(
       sourceUrl: existsSync(inputHtml)
         ? `/source/${kind}/${suite}/${name}`
         : undefined,
+      expectedUrl: existsSync(expectedLayoutPath(kind, name))
+        ? `/expected/${kind}/${name}`
+        : undefined,
+      expectedViewUrl:
+        existsSync(expectedLayoutPath(kind, name)) && existsSync(inputHtml)
+          ? `/expected-view/${kind}/${suite}/${name}`
+          : undefined,
       canAccept: canAcceptLayout(kind, suite, name),
       metrics,
     });
@@ -314,6 +346,7 @@ function mountOutputsTree(
   server: ViteDevServer,
   urlPrefix: string,
   outputsRoot: string,
+  fixedKind?: FunctionalKind,
 ): void {
   const base = urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
   server.middlewares.use(async (req, res, next) => {
@@ -340,7 +373,33 @@ function mountOutputsTree(
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".html") {
       try {
-        const html = readFileSync(filePath, "utf8");
+        const name = path.basename(filePath, ".html");
+        const dir = path.dirname(filePath);
+        const inputPath = path.join(dir, `${name}-input.html`);
+        const layoutPath = path.join(dir, `${name}-layout.json`);
+        let html: string;
+        if (existsSync(inputPath) && existsSync(layoutPath)) {
+          const kind: FunctionalKind =
+            fixedKind ??
+            (isKind(rel.split("/")[0] ?? "")
+              ? (rel.split("/")[0] as FunctionalKind)
+              : "display");
+          const layoutJsonUrl =
+            fixedKind === "grid" || fixedKind === "routes"
+              ? `/@fs${layoutPath.split(path.sep).join("/")}`
+              : `./${name}-layout.json`;
+          const { buildViewHtml } = await import(
+            "@kite9/test-template/functional/write-artifacts.ts"
+          );
+          html = buildViewHtml(
+            name,
+            readFileSync(inputPath, "utf8"),
+            kind,
+            layoutJsonUrl,
+          );
+        } else {
+          html = readFileSync(filePath, "utf8");
+        }
         const transformed = await server.transformIndexHtml(pathname, html);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(transformed);
@@ -401,6 +460,87 @@ export function kite9ResultsPlugin(): Plugin {
           return;
         }
 
+        const expectedMatch = url?.match(/^\/expected\/([^/]+)\/([^/]+)\/?$/);
+        if (expectedMatch) {
+          const kind = decodeURIComponent(expectedMatch[1]!);
+          const name = decodeURIComponent(expectedMatch[2]!);
+          if (!isKind(kind) || !isSafeSegment(name)) {
+            res.statusCode = 400;
+            res.end("Invalid kind or name");
+            return;
+          }
+          const expectedPath = expectedLayoutPath(kind, name);
+          if (!existsSync(expectedPath)) {
+            res.statusCode = 404;
+            res.end("Expected layout missing");
+            return;
+          }
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(readFileSync(expectedPath, "utf8"));
+          return;
+        }
+
+        const expectedViewMatch = url?.match(
+          /^\/expected-view\/([^/]+)\/([^/]+)\/([^/]+)\/?$/,
+        );
+        if (expectedViewMatch) {
+          const kind = decodeURIComponent(expectedViewMatch[1]!);
+          const suite = decodeURIComponent(expectedViewMatch[2]!);
+          const name = decodeURIComponent(expectedViewMatch[3]!);
+          if (
+            !isKind(kind) ||
+            !isSafeSegment(suite) ||
+            !isSafeSegment(name)
+          ) {
+            res.statusCode = 400;
+            res.end("Invalid kind, suite, or name");
+            return;
+          }
+          const expectedPath = expectedLayoutPath(kind, name);
+          const inputPath = path.join(
+            resultDir(kind, suite, name),
+            `${name}-input.html`,
+          );
+          if (!existsSync(expectedPath)) {
+            res.statusCode = 404;
+            res.end("Expected layout missing");
+            return;
+          }
+          if (!existsSync(inputPath)) {
+            res.statusCode = 404;
+            res.end("Input HTML missing");
+            return;
+          }
+          let layoutData: unknown;
+          try {
+            layoutData = normalizeExpectedLayout(
+              JSON.parse(readFileSync(expectedPath, "utf8")),
+            );
+          } catch {
+            res.statusCode = 500;
+            res.end("Expected layout is not valid JSON");
+            return;
+          }
+          const html = renderExpectedView({
+            kind,
+            suite,
+            name,
+            inputHtml: readFileSync(inputPath, "utf8"),
+            layoutData,
+          });
+          void server
+            .transformIndexHtml(url, html)
+            .then((transformed) => {
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              res.end(transformed);
+            })
+            .catch((e) => {
+              res.statusCode = 500;
+              res.end(e instanceof Error ? e.message : String(e));
+            });
+          return;
+        }
+
         if (url === "/api/accept" && req.method === "POST") {
           void readJsonBody(req)
             .then((body) => {
@@ -447,8 +587,8 @@ export function kite9ResultsPlugin(): Plugin {
       });
 
       mountOutputsTree(server, "/outputs", layoutOutputsRoot);
-      mountOutputsTree(server, "/grid-outputs", gridOutputsRoot);
-      mountOutputsTree(server, "/routes-outputs", routesOutputsRoot);
+      mountOutputsTree(server, "/grid-outputs", gridOutputsRoot, "grid");
+      mountOutputsTree(server, "/routes-outputs", routesOutputsRoot, "routes");
     },
   };
 }

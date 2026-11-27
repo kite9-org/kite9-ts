@@ -139,8 +139,9 @@ function readPadding(de: Rectangular): BoxInsets {
 
 /**
  * Wrap a laid-out child block with the container's CSS padding as extra
- * leading/trailing tracks. Nested siblings in a parent grid that share the
- * same logical cells then span pad+content together (see placeGrid splice).
+ * leading/trailing tracks inside the painted border. Child margins stay on
+ * placements (CSS box model: gap ≈ padding + facing margin). Nested siblings
+ * in a parent grid that share the same logical cells then span pad+content.
  */
 function withPaddingChrome(container: Rectangular, block: Block): Block {
   const pad = readPadding(container);
@@ -179,6 +180,44 @@ function withPaddingChrome(container: Rectangular, block: Block): Block {
   };
 
   return { cols, rows, placements, colSizes, rowSizes };
+}
+
+/**
+ * Margin tracks outside the painted border. Unlike padding chrome, the
+ * container span does **not** cover these tracks — they push the frame away
+ * from the parent edge / siblings (CSS margin outside border).
+ */
+function withMarginChrome(container: Rectangular, block: Block): Block {
+  const margin = readMargins(container);
+  if (!margin) return block;
+
+  let { cols, rows, colSizes, rowSizes, placements } = block;
+
+  if (margin.left > 0) {
+    colSizes = [margin.left, ...colSizes];
+    placements = offsetPlacements(placements, 1, 0);
+    cols += 1;
+  }
+  if (margin.right > 0) {
+    colSizes = [...colSizes, margin.right];
+    cols += 1;
+  }
+  if (margin.top > 0) {
+    rowSizes = [margin.top, ...rowSizes];
+    placements = offsetPlacements(placements, 0, 1);
+    rows += 1;
+  }
+  if (margin.bottom > 0) {
+    rowSizes = [...rowSizes, margin.bottom];
+    rows += 1;
+  }
+
+  return { cols, rows, placements, colSizes, rowSizes };
+}
+
+/** Padding inside the border, then margin outside it. */
+function withContainerChrome(container: Rectangular, block: Block): Block {
+  return withMarginChrome(container, withPaddingChrome(container, block));
 }
 
 function occupiedSize(
@@ -234,7 +273,7 @@ function placeDirectional(
   const horizontal = layout === Layout.LEFT || layout === Layout.RIGHT;
 
   if (childBlocks.length === 0) {
-    return withPaddingChrome(container, leafBlock(container, sizer));
+    return withContainerChrome(container, leafBlock(container, sizer));
   }
 
   if (horizontal) {
@@ -267,7 +306,7 @@ function placeDirectional(
       ...(cols > 1 ? { colEnd: cols } : {}),
       ...(rows > 1 ? { rowEnd: rows } : {}),
     };
-    return withPaddingChrome(container, {
+    return withContainerChrome(container, {
       cols,
       rows,
       placements,
@@ -303,7 +342,7 @@ function placeDirectional(
     ...(cols > 1 ? { colEnd: cols } : {}),
     ...(rows > 1 ? { rowEnd: rows } : {}),
   };
-  return withPaddingChrome(container, {
+  return withContainerChrome(container, {
     cols,
     rows,
     placements,
@@ -510,17 +549,9 @@ function placeGrid(container: Rectangular, sizer: ElementSizer): Block {
         ...(p.margin ? { margin: p.margin } : {}),
       };
     }
-
-    // Ensure the entry element itself spans its full occupies → physical range.
-    const prev = e.block.placements[e.de.getID()];
-    placements[e.de.getID()] = {
-      col: cRange.start + 1,
-      row: rRange.start + 1,
-      ...(cRange.end > cRange.start ? { colEnd: cRange.end + 1 } : {}),
-      ...(rRange.end > rRange.start ? { rowEnd: rRange.end + 1 } : {}),
-      ...(prev?.size ? { size: prev.size } : {}),
-      ...(prev?.margin ? { margin: prev.margin } : {}),
-    };
+    // Keep the nested container's mapped span (pad+content only). Do not
+    // expand it to the full occupies physical range — margin chrome tracks
+    // sit outside the painted border.
 
     // Merge nested track sizes: each local track's budget must fit its slice.
     for (let i = 0; i < e.block.cols; i++) {
@@ -564,7 +595,7 @@ function placeGrid(container: Rectangular, sizer: ElementSizer): Block {
     ...(cols > 1 ? { colEnd: cols } : {}),
     ...(rows > 1 ? { rowEnd: rows } : {}),
   };
-  return withPaddingChrome(container, result);
+  return withContainerChrome(container, result);
 }
 
 function placeElement(de: Rectangular, sizer: ElementSizer): Block {

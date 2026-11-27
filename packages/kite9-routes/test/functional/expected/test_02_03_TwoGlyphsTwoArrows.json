@@ -1,35 +1,31 @@
 {
   "grid": {
-    "contentCols": 7,
+    "contentCols": 5,
     "contentRows": 2,
     "gutter": 0,
     "minCol": 40,
     "minRow": 40,
     "contentColSizes": [
       72,
-      40,
       73,
       40,
       75,
-      40,
       63
     ],
     "contentRowSizes": [
       40,
-      66
+      61
     ],
     "colSizes": [
       72,
-      40,
       73,
       40,
       75,
-      40,
       63
     ],
     "rowSizes": [
       40,
-      66
+      61
     ]
   },
   "placements": [
@@ -46,7 +42,7 @@
     },
     {
       "id": "Two",
-      "col": 3,
+      "col": 2,
       "row": 2,
       "margin": {
         "top": 10,
@@ -57,7 +53,7 @@
     },
     {
       "id": "meets",
-      "col": 5,
+      "col": 4,
       "row": 2,
       "margin": {
         "top": 10,
@@ -68,7 +64,7 @@
     },
     {
       "id": "eats",
-      "col": 7,
+      "col": 5,
       "row": 2,
       "margin": {
         "top": 10,
@@ -78,8 +74,8 @@
       }
     },
     {
-      "id": "meets__hub__left",
-      "onId": "meets",
+      "id": "One__hub__left",
+      "onId": "One",
       "edge": "left",
       "along": 50,
       "type": "percentage"
@@ -92,9 +88,72 @@
       "type": "percentage"
     },
     {
+      "id": "One__hub__up",
+      "onId": "One",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__down",
+      "onId": "One",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__left",
+      "onId": "Two",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
       "id": "Two__hub__right",
       "onId": "Two",
       "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__up",
+      "onId": "Two",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__down",
+      "onId": "Two",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__left",
+      "onId": "meets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__right",
+      "onId": "meets",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__up",
+      "onId": "meets",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__down",
+      "onId": "meets",
+      "edge": "down",
       "along": 50,
       "type": "percentage"
     },
@@ -104,18 +163,39 @@
       "edge": "left",
       "along": 50,
       "type": "percentage"
+    },
+    {
+      "id": "eats__hub__right",
+      "onId": "eats",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "eats__hub__up",
+      "onId": "eats",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "eats__hub__down",
+      "onId": "eats",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
     }
   ],
   "routes": {
     "l1": {
-      "startId": "meets__hub__left",
-      "endId": "One__hub__right",
+      "startId": "meets__hub__up",
+      "endId": "One__hub__up",
       "route": [
         {
-          "xi": 3
+          "yi": 0
         },
         {
-          "yi": 0
+          "xi": 2
         },
         {
           "xi": 1
@@ -127,22 +207,22 @@
       "endId": "Two__hub__right",
       "route": [
         {
-          "xi": 3
+          "xi": 2
         }
       ]
     },
     "l3": {
-      "startId": "eats__hub__left",
-      "endId": "One__hub__right",
+      "startId": "eats__hub__up",
+      "endId": "One__hub__up",
       "route": [
-        {
-          "xi": 5
-        },
         {
           "yi": 0
         },
         {
-          "xi": 3
+          "xi": 4
+        },
+        {
+          "xi": 2
         },
         {
           "xi": 1
@@ -150,17 +230,17 @@
       ]
     },
     "l4": {
-      "startId": "eats__hub__left",
-      "endId": "Two__hub__right",
+      "startId": "eats__hub__up",
+      "endId": "Two__hub__up",
       "route": [
-        {
-          "xi": 5
-        },
         {
           "yi": 0
         },
         {
-          "xi": 3
+          "xi": 4
+        },
+        {
+          "xi": 2
         }
       ]
     }

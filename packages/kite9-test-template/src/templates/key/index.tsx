@@ -34,5 +34,6 @@ export const renderKeyChrome: RenderHtmlFn = (host, shadow) => {
     type: DiagramElementType.CONNECTED_RECTANGULAR,
     ui: "selectable size",
   });
+  host.toggleAttribute("data-has-body", host.childElementCount > 0);
   render(<KeyChrome title={hostTitle(host)} />, shadow);
 };

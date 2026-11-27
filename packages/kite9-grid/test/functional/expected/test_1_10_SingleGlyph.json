@@ -16,22 +16,11 @@
     ],
     "rowSizes": [
       61
-    ],
-    "contentColStarts": [
-      0
-    ],
-    "contentRowStarts": [
-      0
-    ],
-    "contentColCounts": [
-      1
-    ],
-    "contentRowCounts": [
-      1
     ]
   },
-  "placements": {
-    "a": {
+  "placements": [
+    {
+      "id": "a",
       "col": 1,
       "row": 1,
       "margin": {
@@ -41,5 +30,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

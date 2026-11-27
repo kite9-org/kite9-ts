@@ -16,19 +16,7 @@
     ],
     "rowSizes": [
       40
-    ],
-    "contentColStarts": [
-      0
-    ],
-    "contentRowStarts": [
-      0
-    ],
-    "contentColCounts": [
-      1
-    ],
-    "contentRowCounts": [
-      1
     ]
   },
-  "placements": {}
+  "placements": []
 }

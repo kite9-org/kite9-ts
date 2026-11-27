@@ -21,27 +21,12 @@
       120,
       120
     ],
-    "contentColStarts": [
-      0
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2
-    ],
-    "contentColCounts": [
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1
-    ],
     "minWidth": 200,
     "minHeight": 360
   },
-  "placements": {
-    "a": {
+  "placements": [
+    {
+      "id": "a",
       "col": 1,
       "row": 1,
       "size": {
@@ -55,7 +40,8 @@
         "left": 10
       }
     },
-    "b": {
+    {
+      "id": "b",
       "col": 1,
       "row": 2,
       "size": {
@@ -69,7 +55,8 @@
         "left": 10
       }
     },
-    "c": {
+    {
+      "id": "c",
       "col": 1,
       "row": 3,
       "size": {
@@ -83,5 +70,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

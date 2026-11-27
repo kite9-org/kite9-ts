@@ -14,7 +14,9 @@ Unsupported (`null`, `horizontal`, `vertical`): throws — use `@kite9/layout` (
 
 ## Nested flatten
 
-One physical `GridLayout` for the diagram, any nesting depth. Each container is laid out in local tracks (directional / grid), then **spliced** into its parent occupies span — nested tracks subdivide parent cells rather than inventing extra logical columns. Container CSS padding becomes leading/trailing tracks so siblings that share the same logical cells (e.g. `bl` under a padded `row`) span pad+content together. `routes` is omitted.
+One physical `GridLayout` for the diagram, any nesting depth. Each container is laid out in local columns/rows (directional / grid), then **spliced** into its parent occupies span — nested sizes subdivide parent cells rather than inventing extra logical columns. Container CSS padding adds leading/trailing columns and rows **inside** the painted border so siblings that share the same logical cells (e.g. `bl` under a padded `row`) span pad+content together. `routes` is omitted.
+
+**Margin outside / padding inside (CSS box model):** container margin adds empty columns/rows **outside** the container’s painted cells; padding adds columns/rows **inside** the border. Gap from the container border to a child is `padding + child facing margin`.
 
 ## API
 

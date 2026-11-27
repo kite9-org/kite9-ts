@@ -20,26 +20,11 @@
     "rowSizes": [
       61,
       61
-    ],
-    "contentColStarts": [
-      0,
-      1
-    ],
-    "contentRowStarts": [
-      0,
-      1
-    ],
-    "contentColCounts": [
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1
     ]
   },
-  "placements": {
-    "tl": {
+  "placements": [
+    {
+      "id": "tl",
       "col": 1,
       "row": 1,
       "margin": {
@@ -49,7 +34,8 @@
         "left": 10
       }
     },
-    "tr": {
+    {
+      "id": "tr",
       "col": 2,
       "row": 1,
       "margin": {
@@ -59,7 +45,8 @@
         "left": 10
       }
     },
-    "bl": {
+    {
+      "id": "bl",
       "col": 1,
       "row": 2,
       "margin": {
@@ -69,7 +56,8 @@
         "left": 10
       }
     },
-    "br": {
+    {
+      "id": "br",
       "col": 2,
       "row": 2,
       "margin": {
@@ -79,5 +67,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

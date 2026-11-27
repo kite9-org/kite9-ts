@@ -23,6 +23,8 @@ type ResultRow = {
   positionsUrl?: string;
   compactionUrl?: string;
   sourceUrl?: string;
+  expectedUrl?: string;
+  expectedViewUrl?: string;
   canAccept: boolean;
   metrics?: {
     totalMs?: number;
@@ -51,6 +53,10 @@ const ICON_COMPACTION =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12M5 2v12M11 2v12" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2-2 2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_SOURCE =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3L1 8l4 5M11 3l4 5-4 5M9 2L7 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_EXPECTED =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h6l2 2V13.5H4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 2.5V5h2.5M6 8h4M6 10.5h4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+const ICON_EXPECTED_VIEW =
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="5" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 5h3v5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M11 2.5l1 1 2-2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 const dataEl = document.getElementById("results-data");
 const rows = JSON.parse(dataEl?.textContent ?? "[]") as ResultRow[];
@@ -327,6 +333,8 @@ function render(): void {
   ${viewIcon(r.positionsUrl, r.positionsUrl, "Positions", ICON_POSITIONS)}
   ${viewIcon(r.compactionUrl, r.compactionUrl, "Compaction", ICON_COMPACTION)}
   ${viewIcon(r.sourceUrl, sourcePreview, "Source HTML", ICON_SOURCE, "code")}
+  ${viewIcon(r.expectedUrl, r.expectedUrl, "Expected layout JSON", ICON_EXPECTED, "code")}
+  ${viewIcon(r.expectedViewUrl, undefined, "Expected diagram", ICON_EXPECTED_VIEW)}
 </span>`;
       const nameCell = r.viewUrl
         ? `<a class="name" href="${esc(r.viewUrl)}"><strong>${esc(r.name)}</strong></a>`

@@ -19,7 +19,7 @@
   gap: 0;
 }
 
-:host:has(> *) .key-card {
+:host([data-has-body]) .key-card {
   gap: 0.35rem;
 }
 
@@ -37,7 +37,7 @@
   font-size: 12px;
 }
 
-:host:has(> *) .body {
+:host([data-has-body]) .body {
   display: block;
   flex: 1 1 auto;
 }

@@ -20,26 +20,11 @@
       61,
       61,
       61
-    ],
-    "contentColStarts": [
-      0
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2
-    ],
-    "contentColCounts": [
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1
     ]
   },
-  "placements": {
-    "a": {
+  "placements": [
+    {
+      "id": "a",
       "col": 1,
       "row": 1,
       "margin": {
@@ -49,7 +34,8 @@
         "left": 10
       }
     },
-    "b": {
+    {
+      "id": "b",
       "col": 1,
       "row": 2,
       "margin": {
@@ -59,7 +45,8 @@
         "left": 10
       }
     },
-    "c": {
+    {
+      "id": "c",
       "col": 1,
       "row": 3,
       "margin": {
@@ -69,5 +56,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }

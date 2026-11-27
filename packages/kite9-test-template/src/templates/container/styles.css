@@ -4,7 +4,6 @@
   position: relative;
   justify-self: center;
   align-self: center;
-  /* Host margin/padding — layout reads these via getMargin/getPadding. */
   margin: 10px;
   padding: 12px;
   box-sizing: border-box;
@@ -14,13 +13,13 @@
 
 .container-card {
   box-sizing: border-box;
+  height: 100%;
   border: 1px dashed #94a3b8;
   border-radius: 8px;
-  /* Inner inset so the title isn't flush with the dashed border. */
+  /* Title inset only — layout padding is pad tracks inside this border. */
   padding: 0.75rem 0.5rem 0.35rem;
   background: #f8fafc;
   min-height: 2rem;
-  height: 100%;
   text-align: center;
 }
 
@@ -28,6 +27,5 @@
   font-weight: 500;
   font-size: 12px;
   text-align: center;
-  /* Keep the title clear of slotted children. */
   margin-bottom: 1rem;
 }

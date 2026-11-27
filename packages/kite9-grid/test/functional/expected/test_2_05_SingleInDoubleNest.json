@@ -1,71 +1,60 @@
 {
   "grid": {
-    "contentCols": 5,
-    "contentRows": 5,
+    "contentCols": 9,
+    "contentRows": 9,
     "gutter": 0,
     "minCol": 40,
     "minRow": 40,
     "contentColSizes": [
+      10,
       12,
+      10,
       12,
       54,
       12,
-      12
+      10,
+      12,
+      10
     ],
     "contentRowSizes": [
+      10,
       12,
+      10,
       12,
       61,
       12,
-      12
+      10,
+      12,
+      10
     ],
     "colSizes": [
+      10,
       12,
+      10,
       12,
       54,
       12,
-      12
+      10,
+      12,
+      10
     ],
     "rowSizes": [
+      10,
       12,
+      10,
       12,
       61,
       12,
-      12
-    ],
-    "contentColStarts": [
-      0,
-      1,
-      2,
-      3,
-      4
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2,
-      3,
-      4
-    ],
-    "contentColCounts": [
-      1,
-      1,
-      1,
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1,
-      1,
-      1
+      10,
+      12,
+      10
     ]
   },
-  "placements": {
-    "a": {
-      "col": 3,
-      "row": 3,
+  "placements": [
+    {
+      "id": "a",
+      "col": 5,
+      "row": 5,
       "margin": {
         "top": 10,
         "right": 10,
@@ -73,17 +62,19 @@
         "left": 10
       }
     },
-    "inner": {
+    {
+      "id": "inner",
+      "col": 4,
+      "row": 4,
+      "colEnd": 6,
+      "rowEnd": 6
+    },
+    {
+      "id": "outer",
       "col": 2,
       "row": 2,
-      "colEnd": 4,
-      "rowEnd": 4
-    },
-    "outer": {
-      "col": 1,
-      "row": 1,
-      "colEnd": 5,
-      "rowEnd": 5
+      "colEnd": 8,
+      "rowEnd": 8
     }
-  }
+  ]
 }

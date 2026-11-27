@@ -8,9 +8,12 @@ import { editablePack } from "./editable-pack.js";
 /**
  * Paint template chrome, apply layout, and when `mode="edit"` activate
  * the editable BehaviourPack (select, context menu, styles, resize).
+ * Pass `root` when the page has more than one diagram (actual vs expected).
  */
-export function bootScene(layoutSource: LayoutData): void {
-  const root = document.querySelector("kite9-diagram");
+export function bootScene(
+  layoutSource: LayoutData,
+  root: Element | null = document.querySelector("kite9-diagram"),
+): void {
   if (!root) {
     throw new Error("No <kite9-diagram> in document");
   }
@@ -57,8 +60,8 @@ export function bootScene(layoutSource: LayoutData): void {
   const mo = new MutationObserver((records) => {
     if (records.some((r) => r.attributeName === "mode")) {
       syncBehaviours();
-      refreshJson();
     }
+    refreshJson();
   });
   mo.observe(root, { attributes: true, attributeFilter: ["mode"] });
 }

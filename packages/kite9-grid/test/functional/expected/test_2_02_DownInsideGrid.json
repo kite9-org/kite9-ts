@@ -1,72 +1,47 @@
 {
   "grid": {
-    "contentCols": 4,
-    "contentRows": 4,
+    "contentCols": 6,
+    "contentRows": 6,
     "gutter": 0,
     "minCol": 40,
     "minRow": 40,
     "contentColSizes": [
+      10,
       12,
       55,
       12,
+      10,
       72
     ],
     "contentRowSizes": [
+      10,
       12,
       61,
       61,
-      12
+      12,
+      10
     ],
     "colSizes": [
+      10,
       12,
       55,
       12,
+      10,
       72
     ],
     "rowSizes": [
+      10,
       12,
       61,
       61,
-      12
-    ],
-    "contentColStarts": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "contentRowStarts": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "contentColCounts": [
-      1,
-      1,
-      1,
-      1
-    ],
-    "contentRowCounts": [
-      1,
-      1,
-      1,
-      1
+      12,
+      10
     ]
   },
-  "placements": {
-    "a": {
-      "col": 2,
-      "row": 2,
-      "margin": {
-        "top": 10,
-        "right": 10,
-        "bottom": 10,
-        "left": 10
-      }
-    },
-    "b": {
-      "col": 2,
+  "placements": [
+    {
+      "id": "a",
+      "col": 3,
       "row": 3,
       "margin": {
         "top": 10,
@@ -75,16 +50,29 @@
         "left": 10
       }
     },
-    "stack": {
-      "col": 1,
-      "row": 1,
-      "colEnd": 3,
-      "rowEnd": 4
+    {
+      "id": "b",
+      "col": 3,
+      "row": 4,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
     },
-    "side": {
-      "col": 4,
+    {
+      "id": "stack",
+      "col": 2,
+      "row": 2,
+      "colEnd": 4,
+      "rowEnd": 5
+    },
+    {
+      "id": "side",
+      "col": 6,
       "row": 1,
-      "rowEnd": 4,
+      "rowEnd": 6,
       "margin": {
         "top": 10,
         "right": 10,
@@ -92,5 +80,5 @@
         "left": 10
       }
     }
-  }
+  ]
 }
