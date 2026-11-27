@@ -173,17 +173,23 @@ export function inflateLayout(
       prevXi = xi;
       prevYi = yi;
     }
-    // Side-adjacent (single intersection): keep only the seam between hubs.
+    // Side-adjacent (single intersection): keep only the shared seam when both
+    // hubs face the same axis. Mixed edges (e.g. right → up) keep both tracks.
     if (r.steps.length === 1 && vertices.length >= 2) {
-      const horiz =
-        isHorizontalDirection(r.start.edge) ||
-        isHorizontalDirection(r.end.edge);
-      const only = horiz
-        ? vertices.find((v) => "xi" in v)
-        : vertices.find((v) => "yi" in v);
-      if (only) {
-        vertices.length = 0;
-        vertices.push(only);
+      const startH = isHorizontalDirection(r.start.edge);
+      const endH = isHorizontalDirection(r.end.edge);
+      if (startH && endH) {
+        const only = vertices.find((v) => "xi" in v);
+        if (only) {
+          vertices.length = 0;
+          vertices.push(only);
+        }
+      } else if (!startH && !endH) {
+        const only = vertices.find((v) => "yi" in v);
+        if (only) {
+          vertices.length = 0;
+          vertices.push(only);
+        }
       }
     }
     routes[r.id] = {

@@ -28,5 +28,5 @@ const layout = arrangeGrid(diagram, new DomElementSizer());
 
 ```bash
 pnpm --filter @kite9/grid test
-pnpm --filter @kite9/preview test:results   # Grid tab + Accept baselines
+pnpm --filter @kite9/preview start   # http://127.0.0.1:5174/results/ — Grid tab + Accept
 ```

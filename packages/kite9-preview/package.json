@@ -23,7 +23,7 @@
     "start": "vite --config vite.preview.config.ts",
     "dev": "vite --config vite.preview.config.ts",
     "preview": "vite --config vite.preview.config.ts",
-    "test:results": "vite --config vite.results.config.ts",
+    "test:results": "vite --config vite.preview.config.ts --open /results/",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",

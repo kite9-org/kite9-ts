@@ -207,7 +207,7 @@ function registerLayoutTest(
         const expectedFile = path.join(expectedRoot, `${name}.json`);
         if (!existsSync(expectedFile)) {
           throw new Error(
-            `No expected layout for ${name} — Accept from the results page (pnpm test:results) or add test/functional/expected/${name}.json`,
+            `No expected layout for ${name} — Accept from http://127.0.0.1:5174/results/ (pnpm --filter @kite9/preview start) or add test/functional/expected/${name}.json`,
           );
         }
         expect(layoutData).toEqual(loadExpected(expectedRoot, `${name}.json`));

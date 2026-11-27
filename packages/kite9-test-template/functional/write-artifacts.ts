@@ -57,7 +57,7 @@ export function buildViewHtml(
     </style>
   </head>
   <body>
-    <a class="back" href="/?kind=${kind}">← all results</a>
+    <a class="back" href="/results/?kind=${kind}">← all results</a>
     <h1>${name}</h1>
     <div id="mount">
 ${inputHtml}

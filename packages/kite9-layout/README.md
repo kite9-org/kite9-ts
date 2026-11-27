@@ -30,7 +30,7 @@ pnpm --filter @kite9/layout test:layout
 pnpm --filter @kite9/layout test:thorough             # local
 pnpm --filter @kite9/layout test:performance          # local
 pnpm --filter @kite9/layout test:functional:all       # all four projects
-pnpm --filter @kite9/layout test:results              # browse outputs/ (tabs per suite)
+pnpm --filter @kite9/layout test:results              # same as preview start → /results/
 ```
 
 Artifacts: `outputs/{display|layout|thorough|performance}/{suite}/{name}/`. The results UI has four tabs matching those suites; **Accept** only applies on Display baselines.

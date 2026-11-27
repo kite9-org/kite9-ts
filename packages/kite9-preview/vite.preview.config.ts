@@ -1,12 +1,17 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import {
+  kite9ResultsPlugin,
+  previewPackagesRoot,
+  previewRoot,
+} from "./results/vite-plugin.js";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
-const packages = path.resolve(rootDir, "..");
+const packages = previewPackagesRoot;
 
 export default defineConfig({
-  root: rootDir,
+  root: previewRoot,
   publicDir: false,
   appType: "mpa",
   esbuild: {
@@ -18,13 +23,29 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     open: "/preview/index.html",
+    fs: { allow: [packages] },
   },
   plugins: [
+    kite9ResultsPlugin(),
     {
       name: "redirect-root-to-preview-index",
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url === "/" || req.url === "/index.html") {
+          const raw = req.url ?? "/";
+          const q = raw.indexOf("?");
+          const pathname = q >= 0 ? raw.slice(0, q) : raw;
+          const search = q >= 0 ? raw.slice(q) : "";
+          // Legacy artifact "← all results" links used /?kind=… when results lived at /
+          if (
+            (pathname === "/" || pathname === "/index.html") &&
+            search.includes("kind=")
+          ) {
+            res.statusCode = 302;
+            res.setHeader("Location", `/results/${search}`);
+            res.end();
+            return;
+          }
+          if (pathname === "/" || pathname === "/index.html") {
             res.statusCode = 302;
             res.setHeader("Location", "/preview/index.html");
             res.end();
@@ -136,7 +157,10 @@ export default defineConfig({
         find: "@kite9/css",
         replacement: path.resolve(packages, "kite9-css/src/index.ts"),
       },
+      {
+        find: "@kite9/layout",
+        replacement: path.resolve(packages, "kite9-layout/src/index.ts"),
+      },
     ],
   },
 });
-

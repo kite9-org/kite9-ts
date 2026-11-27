@@ -1,16 +1,18 @@
 # `@kite9/preview`
 
-Scene demos: `@kite9/test-template` chrome + selectable/resizable behaviours.
+Scene demos + functional test results in one Vite app.
 
 ```bash
 pnpm --filter @kite9/preview start
-# same as: pnpm --filter @kite9/preview dev
+# same as: pnpm --filter @kite9/preview preview
 ```
 
 Opens **http://127.0.0.1:5174/preview/index.html**.
 
-| Scene | URL |
+| Page | URL |
 | --- | --- |
+| Scenes | http://127.0.0.1:5174/preview/index.html |
+| Test results | http://127.0.0.1:5174/results/ |
 | empty | http://127.0.0.1:5174/fixtures/html/empty.html |
 | simple | http://127.0.0.1:5174/fixtures/html/simple.html |
 | card | http://127.0.0.1:5174/fixtures/html/card.html |
@@ -19,9 +21,4 @@ When `<kite9-diagram mode="edit">`, `bootScene` applies the local `editablePack`
 
 ### Functional test results
 
-```bash
-pnpm --filter @kite9/preview test:results
-# or: pnpm --filter @kite9/layout test:results
-```
-
-Opens **http://127.0.0.1:5175/** — browses test results.
+Same server — open **http://127.0.0.1:5174/results/** (or `pnpm --filter @kite9/preview test:results` to open that path). Accept baselines from the Display / Grid / Routes tabs when actual differs from expected.

@@ -16,5 +16,5 @@ const layout = routeConnections(diagram, placed);
 
 ```bash
 pnpm --filter @kite9/routes test
-pnpm --filter @kite9/preview test:results   # Routes tab + Accept baselines
+pnpm --filter @kite9/preview start   # http://127.0.0.1:5174/results/ — Routes tab + Accept
 ```

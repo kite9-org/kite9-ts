@@ -21,7 +21,7 @@ export function outputsDir(
 
 /**
  * Browser viewer: light-DOM + `@kite9/preview` bootScene (edit/resize).
- * Served by `pnpm test:results` (preview vite.results.config).
+ * Served by `pnpm --filter @kite9/preview start` at `/results/`.
  */
 export function buildViewHtml(
   name: string,
@@ -42,7 +42,7 @@ export function buildViewHtml(
     </style>
   </head>
   <body>
-    <a class="back" href="/?kind=${kind}">← all results</a>
+    <a class="back" href="/results/?kind=${kind}">← all results</a>
     <h1>${name}</h1>
     <div id="mount">
 ${inputHtml}

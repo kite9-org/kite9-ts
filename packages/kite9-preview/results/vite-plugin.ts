@@ -1,3 +1,8 @@
+/**
+ * Vite middleware: functional test results index, Accept API, and
+ * `/outputs` / `/grid-outputs` / `/routes-outputs` artifact serving.
+ */
+
 import {
   readdirSync,
   readFileSync,
@@ -9,30 +14,37 @@ import {
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig, type Plugin } from "vite";
-import { classifyTestError } from "./results/fail-reason.js";
+import type { Plugin, ViteDevServer } from "vite";
+import { classifyTestError } from "./fail-reason.js";
 import {
   renderResultsIndex,
   renderSourceText,
   renderSourceView,
-} from "./results/pages.js";
+} from "./pages.js";
 
-const previewRoot = path.dirname(fileURLToPath(import.meta.url));
+const previewRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const packages = path.resolve(previewRoot, "..");
-/** Layout functional outputs (`display` / `layout` / …). */
 const layoutPkg = path.resolve(packages, "kite9-layout");
 const layoutOutputsRoot = path.join(layoutPkg, "outputs");
 const layoutExpectedRoot = path.join(layoutPkg, "test/functional/expected");
-/** Grid functional outputs (flat `outputs/{suite}/{name}/`). */
 const gridPkg = path.resolve(packages, "kite9-grid");
 const gridOutputsRoot = path.join(gridPkg, "outputs");
 const gridExpectedRoot = path.join(gridPkg, "test/functional/expected");
-/** Routes functional outputs (flat `outputs/{suite}/{name}/`). */
 const routesPkg = path.resolve(packages, "kite9-routes");
 const routesOutputsRoot = path.join(routesPkg, "outputs");
 const routesExpectedRoot = path.join(routesPkg, "test/functional/expected");
 
-const KINDS = ["display", "layout", "thorough", "performance", "grid", "routes"] as const;
+const KINDS = [
+  "display",
+  "layout",
+  "thorough",
+  "performance",
+  "grid",
+  "routes",
+] as const;
 type FunctionalKind = (typeof KINDS)[number];
 
 function isKind(s: string): s is FunctionalKind {
@@ -45,7 +57,6 @@ function expectedRootFor(kind: FunctionalKind): string {
   return layoutExpectedRoot;
 }
 
-/** Absolute dir for a result: layout nests kind; grid does not. */
 function resultDir(
   kind: FunctionalKind,
   suite: string,
@@ -56,7 +67,6 @@ function resultDir(
   return path.join(layoutOutputsRoot, kind, suite, name);
 }
 
-/** Public URL prefix for artifacts. */
 function publicBase(
   kind: FunctionalKind,
   suite: string,
@@ -106,7 +116,6 @@ function expectedLayoutPath(kind: FunctionalKind, name: string): string {
   return path.join(expectedRootFor(kind), `${name}.json`);
 }
 
-/** Display + Grid baselines — Accept promotes actual → expected. */
 function canAcceptLayout(
   kind: FunctionalKind,
   suite: string,
@@ -301,9 +310,55 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.end(JSON.stringify(body));
 }
 
-function resultsIndexPlugin(): Plugin {
+function mountOutputsTree(
+  server: ViteDevServer,
+  urlPrefix: string,
+  outputsRoot: string,
+): void {
+  const base = urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
+  server.middlewares.use(async (req, res, next) => {
+    const raw = req.url ?? "";
+    const q = raw.indexOf("?");
+    const pathname = q >= 0 ? raw.slice(0, q) : raw;
+    const search = q >= 0 ? raw.slice(q) : "";
+    if (!pathname.startsWith(`${base}/`)) {
+      next();
+      return;
+    }
+    const rel = decodeURIComponent(pathname.slice(base.length + 1));
+    if (rel.includes("..")) {
+      res.statusCode = 400;
+      res.end("Bad path");
+      return;
+    }
+    const filePath = path.join(outputsRoot, rel);
+    if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+      res.statusCode = 404;
+      res.end("Not found");
+      return;
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === ".html") {
+      try {
+        const html = readFileSync(filePath, "utf8");
+        const transformed = await server.transformIndexHtml(pathname, html);
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(transformed);
+      } catch (e) {
+        res.statusCode = 500;
+        res.end(e instanceof Error ? e.message : String(e));
+      }
+      return;
+    }
+    req.url = `/@fs${filePath}${search}`;
+    next();
+  });
+}
+
+/** Results index (`/results`), Accept API, source views, artifact trees. */
+export function kite9ResultsPlugin(): Plugin {
   return {
-    name: "kite9-preview-results-index",
+    name: "kite9-preview-results",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const rawUrl = req.url ?? "";
@@ -379,200 +434,23 @@ function resultsIndexPlugin(): Plugin {
           sendJson(res, 200, scanResults());
           return;
         }
-        if (url === "/" || url === "/index.html") {
+        if (
+          url === "/results" ||
+          url === "/results/" ||
+          url === "/results/index.html"
+        ) {
           res.setHeader("Content-Type", "text/html; charset=utf-8");
           res.end(renderResultsIndex(scanResults()));
           return;
         }
         next();
       });
+
+      mountOutputsTree(server, "/outputs", layoutOutputsRoot);
+      mountOutputsTree(server, "/grid-outputs", gridOutputsRoot);
+      mountOutputsTree(server, "/routes-outputs", routesOutputsRoot);
     },
   };
 }
 
-/** Serve layout + grid functional `outputs/` + pass/fail index (edit/resize via bootScene). */
-export default defineConfig({
-  root: layoutPkg,
-  publicDir: false,
-  appType: "mpa",
-  esbuild: {
-    jsx: "automatic",
-    jsxImportSource: "preact",
-  },
-  server: {
-    host: "127.0.0.1",
-    port: 5175,
-    strictPort: true,
-    open: "/",
-    fs: { allow: [packages] },
-  },
-  plugins: [
-    resultsIndexPlugin(),
-    {
-      /**
-       * Serve `@kite9/grid` outputs at `/grid-outputs/...`.
-       * HTML goes through `transformIndexHtml` so `bootScene` / JSON imports
-       * resolve (same as layout views under Vite root `/outputs/`).
-       * Other assets rewrite to `/@fs/...` for module graph + static files.
-       */
-      name: "kite9-grid-outputs",
-      configureServer(server) {
-        server.middlewares.use(async (req, res, next) => {
-          const raw = req.url ?? "";
-          const q = raw.indexOf("?");
-          const pathname = q >= 0 ? raw.slice(0, q) : raw;
-          const search = q >= 0 ? raw.slice(q) : "";
-          if (!pathname.startsWith("/grid-outputs/")) {
-            next();
-            return;
-          }
-          const rel = decodeURIComponent(pathname.slice("/grid-outputs/".length));
-          if (rel.includes("..")) {
-            res.statusCode = 400;
-            res.end("Bad path");
-            return;
-          }
-          const filePath = path.join(gridOutputsRoot, rel);
-          if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-            res.statusCode = 404;
-            res.end("Not found");
-            return;
-          }
-          const ext = path.extname(filePath).toLowerCase();
-          if (ext === ".html") {
-            try {
-              const html = readFileSync(filePath, "utf8");
-              const transformed = await server.transformIndexHtml(
-                pathname,
-                html,
-              );
-              res.setHeader("Content-Type", "text/html; charset=utf-8");
-              res.end(transformed);
-            } catch (e) {
-              res.statusCode = 500;
-              res.end(e instanceof Error ? e.message : String(e));
-            }
-            return;
-          }
-          // JSON/PNG/etc. — let Vite serve via /@fs (JSON imports need this).
-          req.url = `/@fs${filePath}${search}`;
-          next();
-        });
-      },
-    },
-
-    {
-      name: "kite9-routes-outputs",
-      configureServer(server) {
-        server.middlewares.use(async (req, res, next) => {
-          const raw = req.url ?? "";
-          const q = raw.indexOf("?");
-          const pathname = q >= 0 ? raw.slice(0, q) : raw;
-          const search = q >= 0 ? raw.slice(q) : "";
-          if (!pathname.startsWith("/routes-outputs/")) {
-            next();
-            return;
-          }
-          const rel = decodeURIComponent(pathname.slice("/routes-outputs/".length));
-          if (rel.includes("..")) {
-            res.statusCode = 400;
-            res.end("Bad path");
-            return;
-          }
-          const filePath = path.join(routesOutputsRoot, rel);
-          if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-            res.statusCode = 404;
-            res.end("Not found");
-            return;
-          }
-          const ext = path.extname(filePath).toLowerCase();
-          if (ext === ".html") {
-            try {
-              const html = readFileSync(filePath, "utf8");
-              const transformed = await server.transformIndexHtml(
-                pathname,
-                html,
-              );
-              res.setHeader("Content-Type", "text/html; charset=utf-8");
-              res.end(transformed);
-            } catch (e) {
-              res.statusCode = 500;
-              res.end(e instanceof Error ? e.message : String(e));
-            }
-            return;
-          }
-          req.url = `/@fs${filePath}${search}`;
-          next();
-        });
-      },
-    },
-  ],
-  resolve: {
-    alias: [
-      {
-        find: "@kite9/preview",
-        replacement: path.resolve(previewRoot, "src/index.ts"),
-      },
-      {
-        find: "@kite9/test-template",
-        replacement: path.resolve(packages, "kite9-test-template/src/index.ts"),
-      },
-      {
-        find: "@kite9/templating",
-        replacement: path.resolve(packages, "kite9-templating/src/index.ts"),
-      },
-      {
-        find: "@kite9/model",
-        replacement: path.resolve(packages, "kite9-model/src/index.ts"),
-      },
-      {
-        find: "@kite9/css",
-        replacement: path.resolve(packages, "kite9-css/src/index.ts"),
-      },
-      {
-        find: "@kite9/ui",
-        replacement: path.resolve(packages, "kite9-ui/src/index.ts"),
-      },
-      {
-        find: "@kite9/command",
-        replacement: path.resolve(packages, "kite9-command/src/index.ts"),
-      },
-      {
-        find: "@kite9/ui-behaviours/selectable",
-        replacement: path.resolve(
-          packages,
-          "kite9-ui-behaviours/src/selectable/index.ts",
-        ),
-      },
-      {
-        find: "@kite9/ui-behaviours/actionable",
-        replacement: path.resolve(
-          packages,
-          "kite9-ui-behaviours/src/actionable/index.ts",
-        ),
-      },
-      {
-        find: "@kite9/ui-behaviours/styleable",
-        replacement: path.resolve(
-          packages,
-          "kite9-ui-behaviours/src/styleable/index.ts",
-        ),
-      },
-      {
-        find: "@kite9/ui-behaviours/resizable",
-        replacement: path.resolve(
-          packages,
-          "kite9-ui-behaviours/src/resizable/index.ts",
-        ),
-      },
-      {
-        find: "@kite9/ui-behaviours",
-        replacement: path.resolve(packages, "kite9-ui-behaviours/src/index.ts"),
-      },
-      {
-        find: "@kite9/layout",
-        replacement: path.resolve(layoutPkg, "src/index.ts"),
-      },
-    ],
-  },
-});
+export { packages as previewPackagesRoot, previewRoot };
