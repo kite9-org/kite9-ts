@@ -21,6 +21,12 @@ export type DrawTrack = {
    * Prefer this over {@link after} so pre-inflate seams align after lane insert.
    */
   coord: number;
+  /**
+   * Span along the track (y for v-tracks, x for h-tracks) so the stroke meets
+   * its intersection dots instead of running the full grid length.
+   */
+  alongFrom?: number;
+  alongTo?: number;
   /** @deprecated Prefer {@link coord}. */
   after?: number;
   used?: boolean;
@@ -172,7 +178,8 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
     ctx.fillText(p.id, ox + r.x * scale + 4, oy + r.y * scale + 14);
   }
 
-  // Tracks — always dotted; prefer remapped pixel `coord`
+  // Tracks — always dotted; clip to alongFrom/alongTo when provided so strokes
+  // meet intersection dots (full grid span otherwise).
   for (const t of tracks) {
     const used = t.used === true;
     ctx.strokeStyle = used
@@ -187,14 +194,22 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
       const x =
         ox +
         (t.coord ?? seamCoord(grid.colSizes, t.after ?? 0)) * scale;
-      ctx.moveTo(x, oy);
-      ctx.lineTo(x, oy + height);
+      const y0 =
+        t.alongFrom != null ? oy + t.alongFrom * scale : oy;
+      const y1 =
+        t.alongTo != null ? oy + t.alongTo * scale : oy + height;
+      ctx.moveTo(x, y0);
+      ctx.lineTo(x, y1);
     } else {
       const y =
         oy +
         (t.coord ?? seamCoord(grid.rowSizes, t.after ?? 0)) * scale;
-      ctx.moveTo(ox, y);
-      ctx.lineTo(ox + width, y);
+      const x0 =
+        t.alongFrom != null ? ox + t.alongFrom * scale : ox;
+      const x1 =
+        t.alongTo != null ? ox + t.alongTo * scale : ox + width;
+      ctx.moveTo(x0, y);
+      ctx.lineTo(x1, y);
     }
     ctx.stroke();
   }
