@@ -13,6 +13,8 @@ export {
   hasYi,
   hubAnchorPoint,
   initContentSpans,
+  approachAlongStub,
+  leaveAlongStub,
   orthogonalElbow,
   orthogonalPathD,
   placementCellRect,
@@ -24,4 +26,4 @@ export {
   vertexPoint,
   verticesToPoints,
 } from "./route-path.js";
-export type { EdgeBox } from "./route-path.js";
+export type { EdgeBox, ResolveRouteOpts } from "./route-path.js";

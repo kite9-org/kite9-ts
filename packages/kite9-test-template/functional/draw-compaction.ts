@@ -178,13 +178,16 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
   for (const t of tracks) {
     const used = t.used === true;
     ctx.strokeStyle = used
-      ? "rgba(60,60,60,0.65)"
+      ? t.kind === "stub"
+        ? "rgba(40,40,40,0.75)"
+        : "rgba(60,60,60,0.65)"
       : t.kind === "stub"
-        ? "rgba(100,100,100,0.4)"
+        ? "rgba(90,90,90,0.5)"
         : t.kind === "inner"
           ? "rgba(120,120,120,0.35)"
           : "rgba(120,120,120,0.45)";
-    ctx.lineWidth = used ? 2 : t.kind === "stub" ? 1.1 : 1.25;
+    // Stubs drawn slightly heavier so hub→seam spurs read under route pastels.
+    ctx.lineWidth = used ? (t.kind === "stub" ? 2.25 : 2) : t.kind === "stub" ? 1.35 : 1.25;
     ctx.setLineDash([...TRACK_DASH]);
     ctx.beginPath();
     if (t.axis === "v") {
@@ -237,11 +240,18 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
       hubAnchorPoint(grid, placementMap, route.startId) ?? { x: 0, y: 0 };
     const end =
       hubAnchorPoint(grid, placementMap, route.endId) ?? { ...start };
+    const startPl = placementMap[route.startId];
+    const endPl = placementMap[route.endId];
     const pts: Point2D[] = resolveRouteToPoints(
       grid,
       route.route,
       start,
       end,
+      {
+        startEdge:
+          startPl && "edge" in startPl ? startPl.edge : undefined,
+        endEdge: endPl && "edge" in endPl ? endPl.edge : undefined,
+      },
     );
     if (pts.length < 2) continue;
     ctx.strokeStyle = ROUTE_PASTELS[routeIndex % ROUTE_PASTELS.length]!;

@@ -120,6 +120,35 @@ describe("route-path", () => {
     }
   });
 
+  it("resolveRouteToPoints: UP hub is approached vertically (never along the top edge)", () => {
+    const grid: GridLayout = {
+      contentCols: 3,
+      contentRows: 2,
+      gutter: 0,
+      minCol: 40,
+      minRow: 40,
+      contentColSizes: [80, 40, 80],
+      contentRowSizes: [40, 60],
+      colSizes: [80, 40, 80],
+      rowSizes: [40, 60],
+    };
+    // Last track is a V lane left of the glyph; hub sits on the glyph top edge.
+    const start = { x: 20, y: 20 };
+    const hub = { x: 160, y: 50 }; // top edge of lower cell
+    const pts = resolveRouteToPoints(
+      grid,
+      [{ xi: 1 }, { yi: 0 }],
+      start,
+      hub,
+      { endEdge: Direction.UP },
+    );
+    expect(pts[pts.length - 1]).toEqual(hub);
+    const prev = pts[pts.length - 2]!;
+    // Last segment must be vertical (the stub), not horizontal along y=50.
+    expect(prev.x).toBe(hub.x);
+    expect(prev.y).not.toBe(hub.y);
+  });
+
   it("anchorOnBox uses the measured host box (not the cell)", () => {
     const p = anchorOnBox(
       { x: 20, y: 15, w: 50, h: 40 },

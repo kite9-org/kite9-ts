@@ -556,11 +556,8 @@ export function createHub(
   }
   if (!facing) return null;
 
-  // Zero-length stub (no margin): hub already sits on the seam — reuse any
-  // existing seam×seam intersection at this facing track nearest the hub.
-  const stubLen =
-    stubAxis === "h" ? Math.abs(jx - hubPt.x) : Math.abs(jy - hubPt.y);
-
+  // Always T-junction at the hub's along position on the facing seam — never
+  // snap to a neighbouring H∩V (that makes paint approach along the glyph edge).
   const stub: Track = {
     id: `${hubIdent}__stub`,
     axis: stubAxis,
@@ -570,37 +567,21 @@ export function createHub(
     usedBy: new Set(),
   };
 
-  let junction: Intersection;
-  if (stubLen < 0.5) {
-    // Snap to nearest existing intersection on the facing seam.
-    const onFacing = graph.intersections.filter((i) =>
-      stubAxis === "h" ? i.v === facing : i.h === facing,
-    );
-    const nearest = onFacing.sort((a, b) => {
-      const da = stubAxis === "h" ? Math.abs(a.y - hubPt.y) : Math.abs(a.x - hubPt.x);
-      const db = stubAxis === "h" ? Math.abs(b.y - hubPt.y) : Math.abs(b.x - hubPt.x);
-      return da - db;
-    })[0];
-    if (!nearest) return null;
-    junction = nearest;
-  } else {
-    // T-junction: stub × facing main track.
-    const hTrack = stubAxis === "h" ? stub : facing;
-    const vTrack = stubAxis === "v" ? stub : facing;
-    junction = {
-      id: `${hubIdent}|junction`,
-      h: hTrack,
-      v: vTrack,
-      alongH: [],
-      alongV: [],
-      alongKeyV,
-      alongKeyH,
-      x: jx,
-      y: jy,
-    };
-    graph.tracks.push(stub);
-    graph.intersections.push(junction);
-  }
+  const hTrack = stubAxis === "h" ? stub : facing;
+  const vTrack = stubAxis === "v" ? stub : facing;
+  const junction: Intersection = {
+    id: `${hubIdent}|junction`,
+    h: hTrack,
+    v: vTrack,
+    alongH: [],
+    alongV: [],
+    alongKeyV,
+    alongKeyH,
+    x: jx,
+    y: jy,
+  };
+  graph.tracks.push(stub);
+  graph.intersections.push(junction);
 
   return {
     id: hubIdent,

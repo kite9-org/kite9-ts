@@ -58,8 +58,14 @@ function normalizeRoutes(
         hubAnchorPoint(grid, placements, model.startId) ?? { x: 0, y: 0 };
       const end =
         hubAnchorPoint(grid, placements, model.endId) ?? { ...start };
+      const startPl = placements[model.startId];
+      const endPl = placements[model.endId];
       out[id] = {
-        points: resolveRouteToPoints(grid, model.route, start, end),
+        points: resolveRouteToPoints(grid, model.route, start, end, {
+          startEdge:
+            startPl && "edge" in startPl ? startPl.edge : undefined,
+          endEdge: endPl && "edge" in endPl ? endPl.edge : undefined,
+        }),
         ...(model.cornerRadius !== undefined
           ? { cornerRadius: model.cornerRadius }
           : {}),
@@ -338,11 +344,18 @@ export class AdjustableLayout {
         hubAnchorPoint(this.grid, this.placements, route.endId) ?? {
           ...start,
         };
+      const startPl = this.placements[route.startId];
+      const endPl = this.placements[route.endId];
       route.points = resolveRouteToPoints(
         this.grid,
         route.vertices,
         start,
         end,
+        {
+          startEdge:
+            startPl && "edge" in startPl ? startPl.edge : undefined,
+          endEdge: endPl && "edge" in endPl ? endPl.edge : undefined,
+        },
       );
     }
   }

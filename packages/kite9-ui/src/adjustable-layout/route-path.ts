@@ -2,6 +2,7 @@
 
 import {
   Direction,
+  isHorizontalDirection,
   type GridLayout,
   type GridVertex,
   type LayoutPlacement,
@@ -207,19 +208,84 @@ export function orthogonalElbow(
 }
 
 /**
+ * Final hop onto a hub: last segment must be the stub (perpendicular to the
+ * glyph edge), never parallel to the edge (which would run along the border).
+ * - LEFT/RIGHT hub → last move is horizontal; align Y first if needed
+ * - UP/DOWN hub → last move is vertical; align X first if needed
+ */
+export function approachAlongStub(
+  from: Point2D,
+  hub: Point2D,
+  edge: Direction,
+): Point2D[] {
+  if (from.x === hub.x && from.y === hub.y) return [];
+  if (isHorizontalDirection(edge)) {
+    if (from.y !== hub.y && from.x !== hub.x) {
+      return [
+        { x: from.x, y: hub.y },
+        { ...hub },
+      ];
+    }
+    return [{ ...hub }];
+  }
+  if (from.x !== hub.x && from.y !== hub.y) {
+    return [
+      { x: hub.x, y: from.y },
+      { ...hub },
+    ];
+  }
+  return [{ ...hub }];
+}
+
+/** First hop off a hub: leave along the stub before joining other tracks. */
+export function leaveAlongStub(
+  hub: Point2D,
+  toward: Point2D,
+  edge: Direction,
+): Point2D[] {
+  if (hub.x === toward.x && hub.y === toward.y) return [];
+  if (isHorizontalDirection(edge)) {
+    // Stub is horizontal — first move changes X only.
+    if (hub.x !== toward.x) return [{ x: toward.x, y: hub.y }];
+    return [];
+  }
+  if (hub.y !== toward.y) return [{ x: hub.x, y: toward.y }];
+  return [];
+}
+
+export type ResolveRouteOpts = {
+  /** Edge the start hub sits on — first paint segment must be its stub. */
+  startEdge?: Direction;
+  /** Edge the end hub sits on — last paint segment must be its stub. */
+  endEdge?: Direction;
+};
+
+/**
  * Resolve single-axis track targets to a pixel polyline.
  * Seed at `start`, move perpendicular onto each vertex, then finish at `end`
- * with an orthogonal elbow (never a diagonal stub).
+ * with an orthogonal elbow (never a diagonal stub). When hub edges are known,
+ * leave/approach only along the stub so routes never run along a glyph border.
  */
 export function resolveRouteToPoints(
   grid: GridLayout,
   vertices: readonly GridVertex[],
   start: Point2D,
   end: Point2D,
+  opts?: ResolveRouteOpts,
 ): Point2D[] {
   const pts: Point2D[] = [{ ...start }];
   let cur = { ...start };
   let lastAxis: "x" | "y" | null = null;
+
+  if (opts?.startEdge && vertices.length > 0) {
+    const firstTarget = applyVertex(grid, vertices[0]!, cur);
+    for (const p of leaveAlongStub(cur, firstTarget, opts.startEdge)) {
+      pts.push(p);
+      cur = p;
+      lastAxis = isHorizontalDirection(opts.startEdge) ? "x" : "y";
+    }
+  }
+
   for (const v of vertices) {
     const next = applyVertex(grid, v, cur);
     if (next.x !== cur.x || next.y !== cur.y) {
@@ -228,8 +294,14 @@ export function resolveRouteToPoints(
       cur = next;
     }
   }
-  for (const p of orthogonalElbow(cur, end, lastAxis)) {
-    pts.push(p);
+  if (opts?.endEdge) {
+    for (const p of approachAlongStub(cur, end, opts.endEdge)) {
+      pts.push(p);
+    }
+  } else {
+    for (const p of orthogonalElbow(cur, end, lastAxis)) {
+      pts.push(p);
+    }
   }
   return simplifyPoints(pts);
 }
