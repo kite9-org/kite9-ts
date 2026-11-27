@@ -1,7 +1,6 @@
 /** Insert used routing lanes into the grid and remap placements / routes. */
 
 import {
-  isHorizontalDirection,
   type GridLayout,
   type GridVertex,
   type LayoutData,
@@ -107,6 +106,8 @@ export function inflateLayout(
 
   for (const t of graph.tracks) {
     if (t.usedBy.size === 0) continue;
+    // Stubs are short hub→seam spurs inside existing cells — never insert lanes.
+    if (t.kind === "stub" || t.after < 0) continue;
     let need = DEFAULT_LANE_PX;
     for (const cid of t.usedBy) {
       const r = routed.find((x) => x.id === cid);
@@ -147,13 +148,22 @@ export function inflateLayout(
     grid,
   );
 
-  const usedHubs = new Map<string, PortOrHubLayoutPlacement>();
+  // All hubs (used or not) so compaction can draw every spur + hub dot.
+  const allHubs = new Map<string, PortOrHubLayoutPlacement>();
+  for (const hub of graph.hubs) {
+    allHubs.set(hub.id, {
+      id: hub.id,
+      onId: hub.onId,
+      edge: hub.edge,
+      along: hub.along,
+      type: hub.type,
+    });
+  }
   const routes: Record<string, RouteLayout> = {};
 
   for (const r of routed) {
     for (const hub of [r.start, r.end]) {
-      if (usedHubs.has(hub.id)) continue;
-      usedHubs.set(hub.id, {
+      allHubs.set(hub.id, {
         id: hub.id,
         onId: hub.onId,
         edge: hub.edge,
@@ -163,44 +173,40 @@ export function inflateLayout(
     }
 
     // Emit single-axis track targets: push {xi} / {yi} when that axis changes.
+    // Stub T-junctions only contribute the facing main-track axis (the stub
+    // itself is the orthogonal hop from the hub onto that track).
     const vertices: GridVertex[] = [];
     let prevXi: number | undefined;
     let prevYi: number | undefined;
     for (const step of r.steps) {
-      const xi =
-        remap.vEdge.get(step.intersection.v.after) ??
-        step.intersection.v.after;
-      const yi =
-        remap.hEdge.get(step.intersection.h.after) ??
-        step.intersection.h.after;
+      const ix = step.intersection;
+      const onStubH = ix.h.kind === "stub";
+      const onStubV = ix.v.kind === "stub";
+      const xi = onStubV
+        ? undefined
+        : (remap.vEdge.get(ix.v.after) ?? ix.v.after);
+      const yi = onStubH
+        ? undefined
+        : (remap.hEdge.get(ix.h.after) ?? ix.h.after);
+
       if (prevXi === undefined && prevYi === undefined) {
-        // First corner: record both axes as successive single-axis hits so
-        // paint can seed from the hub then reach this intersection.
-        vertices.push({ xi });
-        vertices.push({ yi });
-      } else {
-        if (xi !== prevXi) vertices.push({ xi });
-        if (yi !== prevYi) vertices.push({ yi });
-      }
-      prevXi = xi;
-      prevYi = yi;
-    }
-    // Side-adjacent (single intersection): keep only the shared seam when both
-    // hubs face the same axis. Mixed edges (e.g. right → up) keep both tracks.
-    if (r.steps.length === 1 && vertices.length >= 2) {
-      const startH = isHorizontalDirection(r.start.edge);
-      const endH = isHorizontalDirection(r.end.edge);
-      if (startH && endH) {
-        const only = vertices.find((v) => "xi" in v);
-        if (only) {
-          vertices.length = 0;
-          vertices.push(only);
+        // First junction: only the facing axis — hub→junction is the stub.
+        if (xi != null) {
+          vertices.push({ xi });
+          prevXi = xi;
         }
-      } else if (!startH && !endH) {
-        const only = vertices.find((v) => "yi" in v);
-        if (only) {
-          vertices.length = 0;
-          vertices.push(only);
+        if (yi != null) {
+          vertices.push({ yi });
+          prevYi = yi;
+        }
+      } else {
+        if (xi != null && xi !== prevXi) {
+          vertices.push({ xi });
+          prevXi = xi;
+        }
+        if (yi != null && yi !== prevYi) {
+          vertices.push({ yi });
+          prevYi = yi;
         }
       }
     }
@@ -211,7 +217,7 @@ export function inflateLayout(
     };
   }
 
-  layout.placements.push(...usedHubs.values());
+  layout.placements.push(...allHubs.values());
   layout.routes = routes;
   return { layout, remap };
 }

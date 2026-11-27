@@ -14,7 +14,8 @@ import {
 
 export type TrackAxis = "h" | "v";
 
-export type TrackKind = "seam" | "inner";
+/** `stub` = short hub→main-track spur ("intersection track"). */
+export type TrackKind = "seam" | "inner" | "stub";
 
 /** Continuous run of a track between breaks. */
 export type TrackSegment = {
@@ -29,12 +30,13 @@ export type TrackSegment = {
  * - Vertical track (`axis: "v"`): runs vertically; `after` is the content col
  *   index after which it sits (0 = before col 1, contentCols = after last).
  * - Horizontal track (`axis: "h"`): runs horizontally; `after` is content row.
+ * - Stub tracks use `after: -1`; span is carried by junction/hub pixels.
  */
 export type Track = {
   id: string;
   axis: TrackAxis;
   kind: TrackKind;
-  /** Seam after this 0-based content index (0..contentCols/Rows). */
+  /** Seam after this 0-based content index (0..contentCols/Rows); `-1` for stubs. */
   after: number;
   containerId?: string;
   segments: TrackSegment[];
@@ -46,10 +48,17 @@ export type Intersection = {
   id: string;
   h: Track;
   v: Track;
-  /** Neighbours along the horizontal track (ordered by v.after). */
+  /** Neighbours along the horizontal track (ordered by {@link alongKeyH}). */
   alongH: Intersection[];
-  /** Neighbours along the vertical track (ordered by h.after). */
+  /** Neighbours along the vertical track (ordered by {@link alongKeyV}). */
   alongV: Intersection[];
+  /** Sort key along a V track (normally `h.after`; fractional for stub T-junctions). */
+  alongKeyV: number;
+  /** Sort key along an H track (normally `v.after`; fractional for stub T-junctions). */
+  alongKeyH: number;
+  /** Pre-inflate pixel position. */
+  x: number;
+  y: number;
 };
 
 export type HubTerminal = {
@@ -58,14 +67,21 @@ export type HubTerminal = {
   edge: Direction;
   along: number;
   type: "percentage";
-  /** Intersection used as the route terminal for this hub. */
+  /** T-junction where the stub meets the facing main seam. */
   intersection: Intersection;
+  /** Short spur from the hub on the content edge to {@link intersection}. */
+  stub: Track;
+  /** Hub pixel on the content-box edge (pre-inflate). */
+  x: number;
+  y: number;
 };
 
 export type TrackGraph = {
   layout: LayoutData;
   tracks: Track[];
   intersections: Intersection[];
+  /** All mid-edge hubs (and their stubs), whether routed or not. */
+  hubs: HubTerminal[];
   /** Rectangular placements keyed by id. */
   rects: Map<string, RectangularConnectedLayoutPlacement>;
 };
@@ -327,6 +343,9 @@ export function buildTrackGraph(
     }
   }
 
+  const xs = edgeCoords(layout.grid.colSizes);
+  const ys = edgeCoords(layout.grid.rowSizes);
+
   const hTracks = tracks.filter((t) => t.axis === "h");
   const vTracks = tracks.filter((t) => t.axis === "v");
   const intersections: Intersection[] = [];
@@ -346,33 +365,67 @@ export function buildTrackGraph(
         v,
         alongH: [],
         alongV: [],
+        alongKeyV: h.after,
+        alongKeyH: v.after,
+        x: xs[v.after] ?? 0,
+        y: ys[h.after] ?? 0,
       });
     }
   }
 
-  // Wire neighbours along each track
-  for (const h of hTracks) {
-    const onH = intersections
-      .filter((i) => i.h === h)
-      .sort((a, b) => a.v.after - b.v.after);
+  wireIntersectionNeighbours(intersections);
+
+  const graph: TrackGraph = {
+    layout,
+    tracks,
+    intersections,
+    hubs: [],
+    rects,
+  };
+  attachAllHubs(graph);
+  return graph;
+}
+
+/** Clear and rewire alongH / alongV neighbour lists from sort keys. */
+export function wireIntersectionNeighbours(
+  intersections: Intersection[],
+): void {
+  for (const i of intersections) {
+    i.alongH.length = 0;
+    i.alongV.length = 0;
+  }
+  const byH = new Map<Track, Intersection[]>();
+  const byV = new Map<Track, Intersection[]>();
+  for (const i of intersections) {
+    let hh = byH.get(i.h);
+    if (!hh) {
+      hh = [];
+      byH.set(i.h, hh);
+    }
+    hh.push(i);
+    let vv = byV.get(i.v);
+    if (!vv) {
+      vv = [];
+      byV.set(i.v, vv);
+    }
+    vv.push(i);
+  }
+  for (const onH of byH.values()) {
+    onH.sort((a, b) => a.alongKeyH - b.alongKeyH);
     for (let i = 0; i < onH.length; i++) {
       const cur = onH[i]!;
       if (i > 0) cur.alongH.push(onH[i - 1]!);
       if (i < onH.length - 1) cur.alongH.push(onH[i + 1]!);
     }
   }
-  for (const v of vTracks) {
-    const onV = intersections
-      .filter((i) => i.v === v)
-      .sort((a, b) => a.h.after - b.h.after);
+  for (const onV of byV.values()) {
+    onV.sort((a, b) => a.alongKeyV - b.alongKeyV);
     for (let i = 0; i < onV.length; i++) {
       const cur = onV[i]!;
       if (i > 0) cur.alongV.push(onV[i - 1]!);
       if (i < onV.length - 1) cur.alongV.push(onV[i + 1]!);
     }
   }
-
-  return { layout, tracks, intersections, rects };
 }
 
 /** Hub id for a mid-edge terminal on a rectangular. */
@@ -380,137 +433,215 @@ export function hubId(onId: string, edge: Direction): string {
   return `${onId}__hub__${edge}`;
 }
 
+/** Content box (cell inset by margin) in pre-inflate pixels. */
+function contentBoxPx(
+  grid: GridLayout,
+  rect: RectangularConnectedLayoutPlacement,
+): { x: number; y: number; w: number; h: number } {
+  const full = cellPixelRect(grid, rect);
+  const m = rect.margin;
+  const left = Math.max(0, m?.left ?? 0);
+  const right = Math.max(0, m?.right ?? 0);
+  const top = Math.max(0, m?.top ?? 0);
+  const bottom = Math.max(0, m?.bottom ?? 0);
+  return {
+    x: full.x + left,
+    y: full.y + top,
+    w: Math.max(0, full.w - left - right),
+    h: Math.max(0, full.h - top - bottom),
+  };
+}
+
+function hubPointOnBox(
+  box: { x: number; y: number; w: number; h: number },
+  edge: Direction,
+  along: number,
+): { x: number; y: number } {
+  const t = Math.min(1, Math.max(0, along / 100));
+  switch (edge) {
+    case Direction.LEFT:
+      return { x: box.x, y: box.y + box.h * t };
+    case Direction.RIGHT:
+      return { x: box.x + box.w, y: box.y + box.h * t };
+    case Direction.UP:
+      return { x: box.x + box.w * t, y: box.y };
+    case Direction.DOWN:
+      return { x: box.x + box.w * t, y: box.y + box.h };
+    default:
+      return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  }
+}
+
 /**
- * Intersections that sit on the given edge of a rectangular placement
- * (for hub terminals at 50%).
+ * Build a hub with a stub spur to the facing main seam (T-junction).
+ * Returns null when the facing seam track is missing.
  */
-export function hubsOnRectangular(
+export function createHub(
   graph: TrackGraph,
   rect: RectangularConnectedLayoutPlacement,
-): HubTerminal[] {
+  edge: Direction,
+  along: number = 50,
+  id?: string,
+): HubTerminal | null {
   const c0 = rect.col;
   const c1 = rect.colEnd ?? rect.col;
   const r0 = rect.row;
   const r1 = rect.rowEnd ?? rect.row;
-  const midCol = Math.floor((c0 + c1) / 2);
-  const midRow = Math.floor((r0 + r1) / 2);
+  const grid = graph.layout.grid;
+  const xs = edgeCoords(grid.colSizes);
+  const ys = edgeCoords(grid.rowSizes);
+  const box = contentBoxPx(grid, rect);
+  const hubPt = hubPointOnBox(box, edge, along);
+  const hubIdent = id ?? hubId(rect.id, edge);
 
-  const find = (
-    edge: Direction,
-    pred: (i: Intersection) => boolean,
-  ): HubTerminal | null => {
-    const hit = graph.intersections.find(pred);
-    if (!hit) return null;
-    return {
-      id: hubId(rect.id, edge),
-      onId: rect.id,
-      edge,
-      along: 50,
-      type: "percentage",
-      intersection: hit,
-    };
+  let facing: Track | undefined;
+  let jx: number;
+  let jy: number;
+  let stubAxis: TrackAxis;
+  let alongKeyV: number;
+  let alongKeyH: number;
+
+  const fracAlong =
+    edge === Direction.LEFT || edge === Direction.RIGHT
+      ? r0 - 1 + (along / 100) * (r1 - r0 + 1)
+      : c0 - 1 + (along / 100) * (c1 - c0 + 1);
+
+  switch (edge) {
+    case Direction.LEFT: {
+      facing = graph.tracks.find(
+        (t) => t.kind === "seam" && t.axis === "v" && t.after === c0 - 1,
+      );
+      jx = xs[c0 - 1] ?? 0;
+      jy = hubPt.y;
+      stubAxis = "h";
+      alongKeyV = fracAlong;
+      alongKeyH = c0 - 1;
+      break;
+    }
+    case Direction.RIGHT: {
+      facing = graph.tracks.find(
+        (t) => t.kind === "seam" && t.axis === "v" && t.after === c1,
+      );
+      jx = xs[c1] ?? 0;
+      jy = hubPt.y;
+      stubAxis = "h";
+      alongKeyV = fracAlong;
+      alongKeyH = c1;
+      break;
+    }
+    case Direction.UP: {
+      facing = graph.tracks.find(
+        (t) => t.kind === "seam" && t.axis === "h" && t.after === r0 - 1,
+      );
+      jx = hubPt.x;
+      jy = ys[r0 - 1] ?? 0;
+      stubAxis = "v";
+      alongKeyH = fracAlong;
+      alongKeyV = r0 - 1;
+      break;
+    }
+    case Direction.DOWN: {
+      facing = graph.tracks.find(
+        (t) => t.kind === "seam" && t.axis === "h" && t.after === r1,
+      );
+      jx = hubPt.x;
+      jy = ys[r1] ?? 0;
+      stubAxis = "v";
+      alongKeyH = fracAlong;
+      alongKeyV = r1;
+      break;
+    }
+    default:
+      return null;
+  }
+  if (!facing) return null;
+
+  // Zero-length stub (no margin): hub already sits on the seam — reuse any
+  // existing seam×seam intersection at this facing track nearest the hub.
+  const stubLen =
+    stubAxis === "h" ? Math.abs(jx - hubPt.x) : Math.abs(jy - hubPt.y);
+
+  const stub: Track = {
+    id: `${hubIdent}__stub`,
+    axis: stubAxis,
+    kind: "stub",
+    after: -1,
+    segments: [],
+    usedBy: new Set(),
   };
 
-  const out: HubTerminal[] = [];
-  const left = find(
-    Direction.LEFT,
-    (i) => i.v.after === c0 - 1 && i.h.after >= r0 - 1 && i.h.after <= r1,
-  );
-  // Prefer intersection whose h track is nearest mid-row
-  const leftBest =
-    graph.intersections
-      .filter(
-        (i) =>
-          i.v.after === c0 - 1 &&
-          trackCoversAlong(i.v, midRow) &&
-          trackCoversAlong(i.h, c0),
-      )
-      .sort(
-        (a, b) =>
-          Math.abs(a.h.after - (midRow - 1)) -
-          Math.abs(b.h.after - (midRow - 1)),
-      )[0] ?? left?.intersection;
-  if (leftBest) {
-    out.push({
-      id: hubId(rect.id, Direction.LEFT),
-      onId: rect.id,
-      edge: Direction.LEFT,
-      along: 50,
-      type: "percentage",
-      intersection: leftBest,
-    });
+  let junction: Intersection;
+  if (stubLen < 0.5) {
+    // Snap to nearest existing intersection on the facing seam.
+    const onFacing = graph.intersections.filter((i) =>
+      stubAxis === "h" ? i.v === facing : i.h === facing,
+    );
+    const nearest = onFacing.sort((a, b) => {
+      const da = stubAxis === "h" ? Math.abs(a.y - hubPt.y) : Math.abs(a.x - hubPt.x);
+      const db = stubAxis === "h" ? Math.abs(b.y - hubPt.y) : Math.abs(b.x - hubPt.x);
+      return da - db;
+    })[0];
+    if (!nearest) return null;
+    junction = nearest;
+  } else {
+    // T-junction: stub × facing main track.
+    const hTrack = stubAxis === "h" ? stub : facing;
+    const vTrack = stubAxis === "v" ? stub : facing;
+    junction = {
+      id: `${hubIdent}|junction`,
+      h: hTrack,
+      v: vTrack,
+      alongH: [],
+      alongV: [],
+      alongKeyV,
+      alongKeyH,
+      x: jx,
+      y: jy,
+    };
+    graph.tracks.push(stub);
+    graph.intersections.push(junction);
   }
 
-  const rightBest = graph.intersections
-    .filter(
-      (i) =>
-        i.v.after === c1 &&
-        trackCoversAlong(i.v, midRow) &&
-        trackCoversAlong(i.h, c1),
-    )
-    .sort(
-      (a, b) =>
-        Math.abs(a.h.after - (midRow - 1)) -
-        Math.abs(b.h.after - (midRow - 1)),
-    )[0];
-  if (rightBest) {
-    out.push({
-      id: hubId(rect.id, Direction.RIGHT),
-      onId: rect.id,
-      edge: Direction.RIGHT,
-      along: 50,
-      type: "percentage",
-      intersection: rightBest,
-    });
-  }
+  return {
+    id: hubIdent,
+    onId: rect.id,
+    edge,
+    along,
+    type: "percentage",
+    intersection: junction,
+    stub,
+    x: hubPt.x,
+    y: hubPt.y,
+  };
+}
 
-  const upBest = graph.intersections
-    .filter(
-      (i) =>
-        i.h.after === r0 - 1 &&
-        trackCoversAlong(i.h, midCol) &&
-        trackCoversAlong(i.v, r0),
-    )
-    .sort(
-      (a, b) =>
-        Math.abs(a.v.after - (midCol - 1)) -
-        Math.abs(b.v.after - (midCol - 1)),
-    )[0];
-  if (upBest) {
-    out.push({
-      id: hubId(rect.id, Direction.UP),
-      onId: rect.id,
-      edge: Direction.UP,
-      along: 50,
-      type: "percentage",
-      intersection: upBest,
-    });
-  }
+/** Mid-edge hubs for a rectangular (looks up {@link TrackGraph.hubs}). */
+export function hubsOnRectangular(
+  graph: TrackGraph,
+  rect: RectangularConnectedLayoutPlacement,
+): HubTerminal[] {
+  return graph.hubs.filter((h) => h.onId === rect.id);
+}
 
-  const downBest = graph.intersections
-    .filter(
-      (i) =>
-        i.h.after === r1 &&
-        trackCoversAlong(i.h, midCol) &&
-        trackCoversAlong(i.v, r1),
-    )
-    .sort(
-      (a, b) =>
-        Math.abs(a.v.after - (midCol - 1)) -
-        Math.abs(b.v.after - (midCol - 1)),
-    )[0];
-  if (downBest) {
-    out.push({
-      id: hubId(rect.id, Direction.DOWN),
-      onId: rect.id,
-      edge: Direction.DOWN,
-      along: 50,
-      type: "percentage",
-      intersection: downBest,
-    });
+/**
+ * Create left/right/up/down hubs for every rectangular, with stub spurs to the
+ * facing main seams. Rewires neighbour lists so T-junctions sit on the graph.
+ */
+function attachAllHubs(graph: TrackGraph): void {
+  const hubs: HubTerminal[] = [];
+  for (const rect of graph.rects.values()) {
+    for (const edge of [
+      Direction.LEFT,
+      Direction.RIGHT,
+      Direction.UP,
+      Direction.DOWN,
+    ] as const) {
+      const hub = createHub(graph, rect, edge, 50);
+      if (hub) hubs.push(hub);
+    }
   }
-
-  return out;
+  graph.hubs = hubs;
+  wireIntersectionNeighbours(graph.intersections);
 }
 
 export { covers, edgeCoords };

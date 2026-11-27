@@ -6,8 +6,10 @@ export {
 export {
   buildTrackGraph,
   hubsOnRectangular,
+  createHub,
   hubId,
   cellPixelRect,
+  wireIntersectionNeighbours,
   type Track,
   type TrackGraph,
   type TrackSegment,

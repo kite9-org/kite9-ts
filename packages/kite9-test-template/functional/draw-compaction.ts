@@ -8,7 +8,6 @@ import type {
   LayoutData,
   LayoutPlacement,
   Point2D,
-  PortOrHubLayoutPlacement,
   RectangularConnectedLayoutPlacement,
 } from "@kite9/model";
 import { hubAnchorPoint, resolveRouteToPoints } from "@kite9/ui";
@@ -53,10 +52,6 @@ function isRect(
   p: LayoutPlacement,
 ): p is RectangularConnectedLayoutPlacement {
   return "col" in p && "row" in p;
-}
-
-function isPortOrHub(p: LayoutPlacement): p is PortOrHubLayoutPlacement {
-  return "onId" in p && "edge" in p;
 }
 
 function edgeCoords(sizes: readonly number[]): number[] {
@@ -184,10 +179,12 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
     const used = t.used === true;
     ctx.strokeStyle = used
       ? "rgba(60,60,60,0.65)"
-      : t.kind === "inner"
-        ? "rgba(120,120,120,0.35)"
-        : "rgba(120,120,120,0.45)";
-    ctx.lineWidth = used ? 2 : 1.25;
+      : t.kind === "stub"
+        ? "rgba(100,100,100,0.4)"
+        : t.kind === "inner"
+          ? "rgba(120,120,120,0.35)"
+          : "rgba(120,120,120,0.45)";
+    ctx.lineWidth = used ? 2 : t.kind === "stub" ? 1.1 : 1.25;
     ctx.setLineDash([...TRACK_DASH]);
     ctx.beginPath();
     if (t.axis === "v") {
@@ -215,7 +212,7 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
   }
   ctx.setLineDash([]);
 
-  // Intersections — prefer remapped pixel x/y
+  // Intersections + hubs (hubs are passed in the same list, same glyph).
   for (const ix of intersections) {
     const x =
       ox +
@@ -229,23 +226,8 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
     ctx.fill();
   }
 
-  // Hub / port anchors on glyph edges (distinct from track intersections)
   const placementMap: Record<string, LayoutPlacement> = {};
   for (const p of layout.placements) placementMap[p.id] = p;
-  for (const p of layout.placements) {
-    if (!isPortOrHub(p)) continue;
-    const pt = hubAnchorPoint(grid, placementMap, p.id);
-    if (!pt) continue;
-    const x = ox + pt.x * scale;
-    const y = oy + pt.y * scale;
-    ctx.fillStyle = "rgba(29, 78, 216, 0.85)";
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.9)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
 
   // Routes — pastel cycle at 30% opacity
   let routeIndex = 0;

@@ -2,6 +2,8 @@
 
 import {
   DiagramElementType,
+  Dimension,
+  Direction,
   type Connected,
   type Connection,
   type Diagram,
@@ -9,7 +11,6 @@ import {
   type LayoutData,
   type Port,
 } from "@kite9/model";
-import { Direction } from "@kite9/model";
 import {
   inflateLayout,
   DEFAULT_LANE_PX,
@@ -19,7 +20,9 @@ import {
 import { markTracksUsed, shortestPath } from "./routing/ssp.js";
 import {
   buildTrackGraph,
+  createHub,
   hubsOnRectangular,
+  wireIntersectionNeighbours,
   type HubTerminal,
   type TrackGraph,
 } from "./track-graph.js";
@@ -44,6 +47,12 @@ function collectConnections(diagram: Diagram): Connection[] {
   return out;
 }
 
+function portAlongPercent(port: Port): number {
+  // PortAdapter encodes `along` via getContainerPosition (PERCENTAGE amount).
+  const p = port.getContainerPosition(Dimension.H);
+  return Number.isFinite(p.amount) ? p.amount : 50;
+}
+
 function terminalsForConnected(
   graph: TrackGraph,
   c: Connected,
@@ -53,9 +62,20 @@ function terminalsForConnected(
     const rect = graph.rects.get(parent.getID());
     if (!rect) return [];
     const edge = c.getPortDirection();
-    const hubs = hubsOnRectangular(graph, rect).filter((h) => h.edge === edge);
-    // Re-id as the port id so routes reference the real port
-    return hubs.map((h) => ({ ...h, id: c.getID(), onId: parent.getID() }));
+    const along = portAlongPercent(c);
+    // Prefer an existing mid-edge hub on this side when along≈50; otherwise
+    // build a dedicated port hub + stub.
+    if (Math.abs(along - 50) < 0.5) {
+      const existing = hubsOnRectangular(graph, rect).filter(
+        (h) => h.edge === edge,
+      );
+      return existing.map((h) => ({ ...h, id: c.getID() }));
+    }
+    const hub = createHub(graph, rect, edge, along, c.getID());
+    if (!hub) return [];
+    graph.hubs.push(hub);
+    wireIntersectionNeighbours(graph.intersections);
+    return [hub];
   }
   const rect = graph.rects.get(c.getID());
   if (!rect) return [];

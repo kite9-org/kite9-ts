@@ -125,7 +125,7 @@ function facingTrack(hub: HubTerminal, ix: Intersection): Track {
   return isHorizontalDirection(hub.edge) ? ix.v : ix.h;
 }
 
-/** Mark tracks used by a routed path (travelled + facing terminal seams only). */
+/** Mark tracks used by a routed path (travelled + stubs + facing seams). */
 export function markTracksUsed(
   steps: RouteStep[],
   connectionId: string,
@@ -135,6 +135,8 @@ export function markTracksUsed(
   for (const s of steps) {
     if (s.along) s.along.usedBy.add(connectionId);
   }
+  start.stub.usedBy.add(connectionId);
+  end.stub.usedBy.add(connectionId);
   if (steps.length === 0) return;
   facingTrack(start, steps[0]!.intersection).usedBy.add(connectionId);
   facingTrack(end, steps[steps.length - 1]!.intersection).usedBy.add(

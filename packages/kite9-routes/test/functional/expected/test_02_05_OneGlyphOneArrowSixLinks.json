@@ -46,8 +46,8 @@
       }
     },
     {
-      "id": "meets__hub__left",
-      "onId": "meets",
+      "id": "one__hub__left",
+      "onId": "one",
       "edge": "left",
       "along": 50,
       "type": "percentage"
@@ -56,6 +56,48 @@
       "id": "one__hub__right",
       "onId": "one",
       "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "one__hub__up",
+      "onId": "one",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "one__hub__down",
+      "onId": "one",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__left",
+      "onId": "meets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__right",
+      "onId": "meets",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__up",
+      "onId": "meets",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "meets__hub__down",
+      "onId": "meets",
+      "edge": "down",
       "along": 50,
       "type": "percentage"
     }
