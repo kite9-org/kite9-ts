@@ -27,6 +27,7 @@ export {
   hasYi,
   hubAnchorPoint,
   initContentSpans,
+  orthogonalElbow,
   orthogonalPathD,
   placementCellRect,
   resolveRouteToPoints,

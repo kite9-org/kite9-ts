@@ -164,8 +164,41 @@ export function simplifyPoints(points: readonly Point2D[]): Point2D[] {
 }
 
 /**
+ * Orthogonal stubs from `from` to `to` when both axes differ.
+ * `lastAxis` is the axis of the track we are leaving (`"x"` = vertical track
+ * / last `{xi}`, `"y"` = horizontal track / last `{yi}`): stay on that track
+ * until aligned with the terminal, then approach it.
+ */
+export function orthogonalElbow(
+  from: Point2D,
+  to: Point2D,
+  lastAxis: "x" | "y" | null = null,
+): Point2D[] {
+  if (from.x === to.x && from.y === to.y) return [];
+  if (from.x === to.x || from.y === to.y) return [{ ...to }];
+  if (lastAxis === "x") {
+    return [
+      { x: from.x, y: to.y },
+      { ...to },
+    ];
+  }
+  if (lastAxis === "y") {
+    return [
+      { x: to.x, y: from.y },
+      { ...to },
+    ];
+  }
+  // Default: arrive horizontally (typical left/right hub).
+  return [
+    { x: from.x, y: to.y },
+    { ...to },
+  ];
+}
+
+/**
  * Resolve single-axis track targets to a pixel polyline.
- * Seed at `start`, move perpendicular onto each vertex, then finish at `end`.
+ * Seed at `start`, move perpendicular onto each vertex, then finish at `end`
+ * with an orthogonal elbow (never a diagonal stub).
  */
 export function resolveRouteToPoints(
   grid: GridLayout,
@@ -175,14 +208,18 @@ export function resolveRouteToPoints(
 ): Point2D[] {
   const pts: Point2D[] = [{ ...start }];
   let cur = { ...start };
+  let lastAxis: "x" | "y" | null = null;
   for (const v of vertices) {
     const next = applyVertex(grid, v, cur);
     if (next.x !== cur.x || next.y !== cur.y) {
+      lastAxis = hasXi(v) ? "x" : "y";
       pts.push(next);
       cur = next;
     }
   }
-  if (cur.x !== end.x || cur.y !== end.y) pts.push({ ...end });
+  for (const p of orthogonalElbow(cur, end, lastAxis)) {
+    pts.push(p);
+  }
   return simplifyPoints(pts);
 }
 

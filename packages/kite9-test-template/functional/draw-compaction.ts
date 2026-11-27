@@ -250,8 +250,9 @@ export function drawTrackGraphPng(input: DrawCompactionInput): string {
     ctx.strokeStyle = ROUTE_PASTELS[routeIndex % ROUTE_PASTELS.length]!;
     routeIndex += 1;
     ctx.lineWidth = 6;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "miter";
+    ctx.miterLimit = 2;
     ctx.setLineDash([]);
     ctx.beginPath();
     ctx.moveTo(ox + pts[0]!.x * scale, oy + pts[0]!.y * scale);

@@ -90,6 +90,37 @@ describe("route-path", () => {
     expect(pts.every((p) => p.y === midY)).toBe(true);
   });
 
+  it("resolveRouteToPoints: end stub is orthogonal when hub is off the last track", () => {
+    const grid: GridLayout = {
+      contentCols: 3,
+      contentRows: 3,
+      gutter: 0,
+      minCol: 40,
+      minRow: 40,
+      contentColSizes: [100, 40, 100],
+      contentRowSizes: [20, 20, 60],
+      colSizes: [100, 40, 100],
+      rowSizes: [20, 20, 60],
+    };
+    // Leave vertical track at xi=1 (x=100), horizontal at yi=1 (y=20), then
+    // drop to a right-edge hub at (90, 70) — must elbow, not diagonal.
+    const start = { x: 200, y: 70 };
+    const end = { x: 90, y: 70 };
+    const pts = resolveRouteToPoints(
+      grid,
+      [{ xi: 1 }, { yi: 1 }, { xi: 1 }],
+      start,
+      end,
+    );
+    expect(pts[0]).toEqual(start);
+    expect(pts[pts.length - 1]).toEqual(end);
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1]!;
+      const b = pts[i]!;
+      expect(a.x === b.x || a.y === b.y).toBe(true);
+    }
+  });
+
   it("anchorOnBox uses the measured host box (not the cell)", () => {
     const p = anchorOnBox(
       { x: 20, y: 15, w: 50, h: 40 },
