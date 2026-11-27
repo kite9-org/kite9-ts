@@ -15,7 +15,7 @@ export function CardDiagram({ id = "card", mode }: CardDiagramOptions) {
 
       <kite9-container id="c1" label="Context">
         <kite9-glyph id="g2" label="Nested">
-          <kite9-socket id="s1" direction="left" />
+          <kite9-socket id="s1" slot="port" direction="left" />
         </kite9-glyph>
       </kite9-container>
 

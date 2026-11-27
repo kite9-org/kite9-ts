@@ -93,9 +93,17 @@ aside h2 {
   letter-spacing: 0.04em;
 }
 
-#json {
+aside h2 + pre {
+  margin-bottom: 1.25rem;
+}
+
+aside h2:last-of-type + pre {
+  margin-bottom: 0;
+}
+
+aside pre {
   margin: 0;
-  max-height: 70vh;
+  max-height: 40vh;
   overflow: auto;
   font: 11px / 1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
   white-space: pre;

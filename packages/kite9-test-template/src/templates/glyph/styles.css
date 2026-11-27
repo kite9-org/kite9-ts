@@ -27,7 +27,10 @@
 }
 
 /* Body only exists when the host has light-DOM children for the slot. */
-:host(:has(> *)) .card {
+/* Prefer `:host:has(...)` over `:host(:has(...))` — the latter does not
+   match light-DOM children in Chromium. Ignore port-slotted sockets so a
+   socket-only glyph does not open an empty .body. */
+:host:has(> :not([slot="port"])) .card {
   gap: 0.35rem;
 }
 
@@ -43,7 +46,7 @@
   text-align: center;
 }
 
-:host(:has(> *)) .body {
+:host:has(> :not([slot="port"])) .body {
   display: block;
   flex: 1 1 auto;
 }

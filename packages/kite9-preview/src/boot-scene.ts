@@ -17,13 +17,23 @@ export function bootScene(layoutSource: LayoutData): void {
 
   const diagram = createDiagram(root, testTemplatePack);
   const layout = AdjustableLayout.from(layoutSource);
-  const paint = () => applyLayout(root, layout, testTemplatePack);
-  paint();
-
   const jsonOut = document.querySelector("#json");
-  if (jsonOut) {
-    jsonOut.textContent = JSON.stringify(serializeDiagram(diagram), null, 2);
-  }
+  const layoutOut = document.querySelector("#layout-json");
+
+  const refreshJson = () => {
+    if (jsonOut) {
+      jsonOut.textContent = JSON.stringify(serializeDiagram(diagram), null, 2);
+    }
+    if (layoutOut) {
+      layoutOut.textContent = JSON.stringify(layout.toJSON(), null, 2);
+    }
+  };
+
+  const paint = () => {
+    applyLayout(root, layout, testTemplatePack);
+    refreshJson();
+  };
+  paint();
 
   let disposeBehaviours: (() => void) | null = null;
 
@@ -47,9 +57,7 @@ export function bootScene(layoutSource: LayoutData): void {
   const mo = new MutationObserver((records) => {
     if (records.some((r) => r.attributeName === "mode")) {
       syncBehaviours();
-      if (jsonOut) {
-        jsonOut.textContent = JSON.stringify(serializeDiagram(diagram), null, 2);
-      }
+      refreshJson();
     }
   });
   mo.observe(root, { attributes: true, attributeFilter: ["mode"] });

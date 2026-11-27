@@ -143,11 +143,13 @@ function registerLayoutTest(
   const suite = options.suite ?? suiteFromCaller();
   const kind = options.kind ?? kindFromCaller();
   const compareExpected =
-    options.compareExpected ?? (kind === "display" || kind === "grid");
+    options.compareExpected ??
+    (kind === "display" || kind === "grid" || kind === "routes");
   const checks = { ...defaultLayoutChecks(kind), ...options.checks };
   const paths: ArtifactPaths = {
     packageRoot: options.packageRoot,
-    nestKindInOutputs: options.nestKindInOutputs ?? kind !== "grid",
+    nestKindInOutputs:
+      options.nestKindInOutputs ?? (kind !== "grid" && kind !== "routes"),
   };
   const expectedRoot = expectedDir(paths);
 

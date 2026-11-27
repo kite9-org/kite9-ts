@@ -21,9 +21,12 @@ export function GlyphChrome({ title }: GlyphChromeProps) {
       <div class="card" part="card">
         <header part="title">{title}</header>
         <div class="body" part="body">
+          {/* Content children only — sockets use slot="port". */}
           <slot />
         </div>
       </div>
+      {/* Always visible: absolute ports must not sit under display:none .body. */}
+      <slot name="port" part="ports" />
     </>
   );
 }

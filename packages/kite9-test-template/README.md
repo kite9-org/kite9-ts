@@ -14,6 +14,7 @@ pnpm --filter @kite9/preview start
 | `fixtures/json/` | Expected `serializeDiagram` snapshots for unit tests |
 | `fixtures/e2e/` | Playwright helpers + shared Vite e2e config factory |
 | `src/fixtures/card-diagram.tsx` | Canonical card light-DOM markup (`mountCardDiagram`) |
+| `src/fixtures/simple-diagram.tsx` | Two glyphs + arrow (`mountSimpleDiagram`, Test02) |
 | `src/fixtures/empty-diagram.tsx` | Canonical empty light-DOM markup (`mountEmptyDiagram`) |
 | `src/fixtures/boot-card-edit.ts` | Card + behaviours boot for e2e |
 | `src/templates/` | Per-tag chrome (`index.tsx` + `styles.css`) |

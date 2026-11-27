@@ -14,40 +14,51 @@ export type BoxInsets = {
   left: number;
 };
 
+export type RectangularConnectedLayoutPlacement = {
+  id: string
+  col: number;
+  row: number;
+  colEnd?: number;
+  rowEnd?: number;
+  size?: Size;
+  margin?: BoxInsets;
+};
+
+export type PortOrHubLayoutPlacement = {
+  id: string  // for hubs (default ports that aren't declared in the template) an id is generated
+  onId: string // the ID of the element that this port is on
+  edge: Direction;
+  along: number;
+  type: "pixels" | "percentage";
+};
+
+
 /** Where an element sits after layout — content cell, edge track, or host-side anchor. */
 export type LayoutPlacement =
-  | {
-      col: number;
-      row: number;
-      colEnd?: number;
-      rowEnd?: number;
-      /**
-       * Only when the element authors CSS `width` / `height` (not content-sized).
-       * Track sizes live on {@link GridLayout}; omit for minimize/auto boxes.
-       */
-      size?: Size;
-      /** Outside content `size`; included in track occupancy. */
-      margin?: BoxInsets;
-    }
-  /** Port/socket on the start/end of a content row (`LEFT`/`RIGHT`) or column (`UP`/`DOWN`). `along` is 1-based. */
-  | { edge: Direction; along: number; size?: Size }
-  | { anchor: string; side: Direction };
+  | RectangularConnectedLayoutPlacement
+  | PortOrHubLayoutPlacement
 
 /**
- * Intersection of a vertical grid edge (`xi`) and a horizontal grid edge (`yi`).
- * `xi` ∈ `0..colSizes.length`, `yi` ∈ `0..rowSizes.length`.
+ * Target a single grid track. Paint moves perpendicular onto it from the
+ * current point (hub or previous vertex).
+ * - `{ xi }` — vertical edge index ∈ `0..colSizes.length`
+ * - `{ yi }` — horizontal edge index ∈ `0..rowSizes.length`
  */
-export type GridVertex = { xi: number; yi: number };
+export type GridVertex =
+  | { xi: number; yi?: never }
+  | { yi: number; xi?: never };
 
 /**
  * Connection route in diagram pixel space (orthogonal polyline).
  * Prefer compaction RI waypoints remapped into the painted grid.
  */
 export type RouteLayout = {
-  points: Point2D[];
+  startId: string // port or hub id
+  endId: string // port or hub id
   /** Paint corner radius in px; consumers may default when omitted. */
   cornerRadius?: number;
-  labels: Record<string, Point2D>;
+  route: GridVertex[];
+  //labels: Record<string, Point2D>;
 };
 
 export type GridLayout = {
@@ -62,24 +73,12 @@ export type GridLayout = {
   rowSizes: number[];
   minWidth?: number;
   minHeight?: number;
-  /**
-   * Physical 0-based start index into {@link colSizes} for each content column.
-   * Omitted → legacy `2 * (col)` (1-based col). Raised when connection lanes
-   * split a content track.
-   */
-  contentColStarts?: number[];
-  /** Physical track counts per content column (default 1). */
-  contentColCounts?: number[];
-  /** Physical 0-based start index into {@link rowSizes} for each content row. */
-  contentRowStarts?: number[];
-  /** Physical track counts per content row (default 1). */
-  contentRowCounts?: number[];
 };
 
 /** Serializable layout snapshot: sized grid, element placements, and connection routes. */
 export type LayoutData = {
   grid: GridLayout;
-  placements: Record<string, LayoutPlacement>;
+  placements: LayoutPlacement[];
   /** Omitted by grid-only placers (`@kite9/grid`); always set by `@kite9/layout`. */
   routes?: Record<string, RouteLayout>;
 };

@@ -21,7 +21,8 @@ export function outputsDir(
   suite: string,
   name: string,
 ): string {
-  const nest = paths.nestKindInOutputs ?? kind !== "grid";
+  const nest =
+    paths.nestKindInOutputs ?? (kind !== "grid" && kind !== "routes");
   return nest
     ? path.join(paths.packageRoot, "outputs", kind, suite, name)
     : path.join(paths.packageRoot, "outputs", suite, name);

@@ -21,12 +21,18 @@ export type LayoutChecks = {
 };
 
 export function defaultLayoutChecks(
-  kind: "display" | "layout" | "thorough" | "performance" | "grid" = "grid",
+  kind:
+    | "display"
+    | "layout"
+    | "thorough"
+    | "performance"
+    | "grid"
+    | "routes" = "grid",
 ): LayoutChecks {
   return {
     checkLayout: true,
     checkOcclusion: true,
-    allowContainedOverlap: kind === "grid",
+    allowContainedOverlap: kind === "grid" || kind === "routes",
   };
 }
 
@@ -39,14 +45,14 @@ export class LayoutCheckError extends Error {
 
 function hasCell(
   p: LayoutPlacement,
-): p is {
-  col: number;
-  row: number;
-  colEnd?: number;
-  rowEnd?: number;
-  size?: { w: number; h: number };
-} {
+): p is Extract<LayoutPlacement, { col: number; row: number }> {
   return "col" in p && "row" in p;
+}
+
+function placementEntries(
+  layout: LayoutData,
+): [string, LayoutPlacement][] {
+  return layout.placements.map((p) => [p.id, p]);
 }
 
 function cellSpan(p: {
@@ -96,7 +102,7 @@ function assertLayoutData(layout: LayoutData, checks: LayoutChecks): void {
         `contentRowSizes length ${contentRowSizes.length} != contentRows ${contentRows}`,
       );
     }
-    for (const [id, p] of Object.entries(layout.placements)) {
+    for (const [id, p] of placementEntries(layout)) {
       if (!hasCell(p)) continue;
       if (p.size && !(p.size.w > 0 && p.size.h > 0)) {
         throw new LayoutCheckError(
@@ -118,7 +124,7 @@ function assertLayoutData(layout: LayoutData, checks: LayoutChecks): void {
   }
 
   if (checks.checkOcclusion) {
-    const cells = Object.entries(layout.placements).filter(([, p]) =>
+    const cells = placementEntries(layout).filter(([, p]) =>
       hasCell(p),
     ) as [string, Extract<LayoutPlacement, { col: number }>][];
     for (let i = 0; i < cells.length; i++) {
@@ -279,7 +285,7 @@ function assertPlacementsFitCells(
     ys.push(sy);
   }
 
-  for (const [id, p] of Object.entries(layoutData.placements)) {
+  for (const [id, p] of placementEntries(layoutData)) {
     if (!hasCell(p)) continue;
     const de = diagram.getElementById?.(id) ?? findById(diagram, id);
     if (!de) continue;
@@ -290,20 +296,11 @@ function assertPlacementsFitCells(
     const col1 = (p.colEnd ?? p.col) - 1;
     const row0 = p.row - 1;
     const row1 = (p.rowEnd ?? p.row) - 1;
-    const startCol =
-      grid.contentColStarts?.[col0] ??
-      (grid.gutter > 0 ? 2 * p.col : col0);
-    const endCol =
-      (grid.contentColStarts?.[col1] ??
-        (grid.gutter > 0 ? 2 * (p.colEnd ?? p.col) : col1)) +
-      (grid.contentColCounts?.[col1] ?? 1);
-    const startRow =
-      grid.contentRowStarts?.[row0] ??
-      (grid.gutter > 0 ? 2 * p.row : row0);
-    const endRow =
-      (grid.contentRowStarts?.[row1] ??
-        (grid.gutter > 0 ? 2 * (p.rowEnd ?? p.row) : row1)) +
-      (grid.contentRowCounts?.[row1] ?? 1);
+    // 1:1 content → physical tracks (no pad lattice / contentColStarts).
+    const startCol = col0;
+    const endCol = col1 + 1;
+    const startRow = row0;
+    const endRow = row1 + 1;
 
     const cell = {
       x: origin.x + (xs[startCol] ?? 0),

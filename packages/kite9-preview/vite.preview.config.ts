@@ -42,6 +42,7 @@ export default defineConfig({
       input: {
         index: path.resolve(rootDir, "preview/index.html"),
         empty: path.resolve(rootDir, "fixtures/html/empty.html"),
+        simple: path.resolve(rootDir, "fixtures/html/simple.html"),
         card: path.resolve(rootDir, "fixtures/html/card.html"),
       },
     },
@@ -53,6 +54,13 @@ export default defineConfig({
         replacement: path.resolve(
           packages,
           "kite9-test-template/fixtures/grid/card.json",
+        ),
+      },
+      {
+        find: "@kite9/test-template/fixtures/grid/simple.json",
+        replacement: path.resolve(
+          packages,
+          "kite9-test-template/fixtures/grid/simple.json",
         ),
       },
       {

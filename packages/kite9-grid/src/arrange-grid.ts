@@ -607,10 +607,6 @@ function buildPhysicalGrid(
     { length: contentRows },
     (_, i) => contentRowSizes[i] ?? DEFAULT_MIN,
   );
-  const contentColStarts = Array.from({ length: contentCols }, (_, i) => i);
-  const contentRowStarts = Array.from({ length: contentRows }, (_, i) => i);
-  const contentColCounts = Array.from({ length: contentCols }, () => 1);
-  const contentRowCounts = Array.from({ length: contentRows }, () => 1);
 
   return {
     contentCols,
@@ -622,10 +618,6 @@ function buildPhysicalGrid(
     contentRowSizes: [...rowSizes],
     colSizes,
     rowSizes,
-    contentColStarts,
-    contentRowStarts,
-    contentColCounts,
-    contentRowCounts,
   };
 }
 
@@ -676,10 +668,17 @@ export function arrangeGrid(
     unsupported(rootLayout, diagram.getID());
   }
 
-  const placements: Record<string, LayoutPlacement> = {};
-  for (const [id, p] of Object.entries(block.placements)) {
-    placements[id] = p;
-  }
+  const placements: LayoutPlacement[] = Object.entries(block.placements).map(
+    ([id, p]) => ({
+      id,
+      col: p.col,
+      row: p.row,
+      ...(p.colEnd != null ? { colEnd: p.colEnd } : {}),
+      ...(p.rowEnd != null ? { rowEnd: p.rowEnd } : {}),
+      ...(p.size ? { size: p.size } : {}),
+      ...(p.margin ? { margin: p.margin } : {}),
+    }),
+  );
 
   // Prefer CSS min-width/min-height (floor); fall back to definite width/height.
   // No pad/gutter frame — mins apply directly to the sum of content tracks.

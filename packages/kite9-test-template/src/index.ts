@@ -21,6 +21,12 @@ export {
   type EmptyDiagramOptions,
 } from "./fixtures/empty-diagram.js";
 export {
+  SimpleDiagram,
+  createSimpleDiagram,
+  mountSimpleDiagram,
+  type SimpleDiagramOptions,
+} from "./fixtures/simple-diagram.js";
+export {
   bootCardEditScene,
   markCardEditReady,
   type BootCardEditOptions,

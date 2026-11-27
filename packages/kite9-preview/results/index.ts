@@ -5,7 +5,8 @@ type FunctionalKind =
   | "layout"
   | "thorough"
   | "performance"
-  | "grid";
+  | "grid"
+  | "routes";
 
 type ResultRow = {
   kind: FunctionalKind;
@@ -38,6 +39,7 @@ const KINDS: FunctionalKind[] = [
   "thorough",
   "performance",
   "grid",
+  "routes",
 ];
 const allowed = new Set(["name", "status", "at", "failSummary"]);
 

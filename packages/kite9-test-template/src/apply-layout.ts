@@ -65,63 +65,18 @@ function contentGridPlacement(
 
 function hasCell(
   p: LayoutPlacement,
-): p is {
-  col: number;
-  row: number;
-  colEnd?: number;
-  rowEnd?: number;
-  size?: Size;
-  margin?: BoxInsets;
-} {
+): p is Extract<LayoutPlacement, { col: number; row: number }> {
   return "col" in p && "row" in p;
 }
 
-function hasEdge(
+function hasPortOrHub(
   p: LayoutPlacement,
-): p is { edge: Direction; along: number; size?: Size } {
-  return "edge" in p && "along" in p;
-}
-
-function hasAnchor(
-  p: LayoutPlacement,
-): p is { anchor: string; side: Direction } {
-  return "anchor" in p && "side" in p;
+): p is Extract<LayoutPlacement, { onId: string; edge: Direction }> {
+  return "onId" in p && "edge" in p;
 }
 
 /** Default socket/port size when mounted on a host edge. */
 const ANCHOR_SIZE = 12;
-
-/** Place a port/socket on the start/end track of a content row or column. */
-function edgeGridPlacement(
-  grid: GridLayout,
-  p: { edge: Direction; along: number },
-  trackCounts: { cols: number; rows: number },
-): { gridColumn: string; gridRow: string } {
-  const row = contentRowSpan(grid, p.along);
-  const col = contentColSpan(grid, p.along);
-  switch (p.edge) {
-    case Direction.LEFT:
-      return {
-        gridColumn: "1 / 2",
-        gridRow: `${trackStartLine(row.start)} / ${trackStartLine(row.start + row.count)}`,
-      };
-    case Direction.RIGHT:
-      return {
-        gridColumn: `${trackCounts.cols} / ${trackCounts.cols + 1}`,
-        gridRow: `${trackStartLine(row.start)} / ${trackStartLine(row.start + row.count)}`,
-      };
-    case Direction.UP:
-      return {
-        gridColumn: `${trackStartLine(col.start)} / ${trackStartLine(col.start + col.count)}`,
-        gridRow: "1 / 2",
-      };
-    case Direction.DOWN:
-      return {
-        gridColumn: `${trackStartLine(col.start)} / ${trackStartLine(col.start + col.count)}`,
-        gridRow: `${trackCounts.rows} / ${trackCounts.rows + 1}`,
-      };
-  }
-}
 
 /** Pixel origin + size of a content cell span in the physical track lattice. */
 function cellPixelRect(
@@ -302,14 +257,14 @@ function placeSized(
   el.style.zIndex = el.localName === "kite9-container" ? "0" : "1";
 }
 
-/** Mount a port/socket on the mid-edge of its anchor host. */
-function placeOnAnchor(
+/** Mount a port/hub on the mid-edge of its host (`onId`). */
+function placeOnHostEdge(
   el: HTMLElement,
-  placement: { anchor: string; side: Direction },
+  placement: { onId: string; edge: Direction },
   diagram: Element,
 ): void {
   const host = diagram.querySelector(
-    `#${CSS.escape(placement.anchor)}`,
+    `#${CSS.escape(placement.onId)}`,
   ) as HTMLElement | null;
   if (!host) return;
 
@@ -328,7 +283,7 @@ function placeOnAnchor(
   el.style.top = "";
   el.style.bottom = "";
 
-  switch (placement.side) {
+  switch (placement.edge) {
     case Direction.LEFT:
       el.style.left = "0";
       el.style.top = "50%";
@@ -443,8 +398,10 @@ function linkEndRef(linkEl: Element, end: "from" | "to"): string | null {
 }
 
 /**
- * Snap route terminals onto painted connected borders (Java: terminals on
- * rect-edge slideables). Writes back into `adj.routes` and optional `sink`.
+ * Snap route terminals onto painted hub/port (preferred) or connected borders.
+ * Prefers `startId`/`endId` when those elements exist in the DOM. When the
+ * layout already resolved synthetic hub anchors (no DOM node), leave points
+ * alone so mid-edge side links stay straight.
  */
 function attachRoutesToConnectedBorders(
   diagram: Element,
@@ -453,40 +410,83 @@ function attachRoutesToConnectedBorders(
   sink?: LayoutData,
 ): void {
   for (const [id, route] of Object.entries(adj.routes)) {
-    const pts = route.points;
-    if (!pts || pts.length < 2) continue;
+    let pts = route.points;
+    if (!pts || pts.length === 0) continue;
+    // Zero-length / single-point side seams still need two paint points.
+    if (pts.length === 1) {
+      pts = [pts[0]!, { ...pts[0]! }];
+    }
     const linkEl = diagram.querySelector(`#${CSS.escape(id)}`);
     if (!linkEl) continue;
+
+    const startId = (route as { startId?: string }).startId;
+    const endId = (route as { endId?: string }).endId;
+
+    const startEl = startId
+      ? (diagram.querySelector(`#${CSS.escape(startId)}`) as HTMLElement | null)
+      : null;
+    const endEl = endId
+      ? (diagram.querySelector(`#${CSS.escape(endId)}`) as HTMLElement | null)
+      : null;
+
+    const startPainted =
+      !!startEl && startEl.getBoundingClientRect().width > 0;
+    const endPainted = !!endEl && endEl.getBoundingClientRect().width > 0;
+
+    // Layout already placed terminals on synthetic hubs — don't re-snap to
+    // parent glyph corners (that introduced the mid-edge jog).
+    if (startId && endId && !startPainted && !endPainted) {
+      adj.routes[id] = {
+        ...route,
+        points: orthogonalizePaintedRoute(pts.map((p) => ({ ...p }))),
+      };
+      continue;
+    }
+
     const fromId = linkEndRef(linkEl, "from");
     const toId = linkEndRef(linkEl, "to");
-    const fromEl = fromId
-      ? (diagram.querySelector(`#${CSS.escape(fromId)}`) as HTMLElement | null)
-      : null;
-    const toEl = toId
-      ? (diagram.querySelector(`#${CSS.escape(toId)}`) as HTMLElement | null)
-      : null;
+    const fromEl = startPainted
+      ? startEl
+      : fromId
+        ? (diagram.querySelector(
+            `#${CSS.escape(fromId)}`,
+          ) as HTMLElement | null)
+        : null;
+    const toEl = endPainted
+      ? endEl
+      : toId
+        ? (diagram.querySelector(`#${CSS.escape(toId)}`) as HTMLElement | null)
+        : null;
+
     const next = pts.map((p) => ({ ...p }));
+
     if (fromEl && fromEl.getBoundingClientRect().width > 0) {
-      next[0] = projectOntoBorder(
-        next[0]!,
-        next[1]!,
-        stageBox(fromEl, stage),
-      );
+      const box = stageBox(fromEl, stage);
+      if (startPainted) {
+        next[0] = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+      } else {
+        next[0] = projectOntoBorder(next[0]!, next[1]!, box);
+      }
     }
     if (toEl && toEl.getBoundingClientRect().width > 0) {
       const last = next.length - 1;
-      next[last] = projectOntoBorder(
-        next[last]!,
-        next[last - 1]!,
-        stageBox(toEl, stage),
-      );
+      const box = stageBox(toEl, stage);
+      if (endPainted) {
+        next[last] = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+      } else {
+        next[last] = projectOntoBorder(
+          next[last]!,
+          next[last - 1]!,
+          box,
+        );
+      }
     }
-    const updated = { ...route, points: orthogonalizePaintedRoute(next) };
-    adj.routes[id] = updated;
-    if (sink) {
-      sink.routes ??= {};
-      sink.routes[id] = updated;
-    }
+    // Paint polyline only — model `sink.routes` keeps GridVertex `route`.
+    adj.routes[id] = {
+      ...route,
+      points: orthogonalizePaintedRoute(next),
+    };
+    void sink;
   }
 }
 
@@ -541,11 +541,6 @@ export function applyLayout(
     (link as HTMLElement).style.display = "none";
   }
 
-  const trackCounts = {
-    cols: colSizes.length,
-    rows: rowSizes.length,
-  };
-
   const keepMargins = adj.grid.gutter === 0;
 
   for (const [id, placement] of Object.entries(adj.placements)) {
@@ -570,15 +565,8 @@ export function applyLayout(
       } else {
         placeNestedInAncestor(el, placement, adj, diagram);
       }
-    } else if (hasEdge(placement)) {
-      placeSized(
-        el,
-        edgeGridPlacement(adj.grid, placement, trackCounts),
-        placement.size,
-        { keepMargins: false },
-      );
-    } else if (hasAnchor(placement)) {
-      placeOnAnchor(el, placement, diagram);
+    } else if (hasPortOrHub(placement)) {
+      placeOnHostEdge(el, placement, diagram);
     }
   }
 

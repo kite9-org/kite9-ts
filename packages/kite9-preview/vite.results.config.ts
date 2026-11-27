@@ -27,8 +27,12 @@ const layoutExpectedRoot = path.join(layoutPkg, "test/functional/expected");
 const gridPkg = path.resolve(packages, "kite9-grid");
 const gridOutputsRoot = path.join(gridPkg, "outputs");
 const gridExpectedRoot = path.join(gridPkg, "test/functional/expected");
+/** Routes functional outputs (flat `outputs/{suite}/{name}/`). */
+const routesPkg = path.resolve(packages, "kite9-routes");
+const routesOutputsRoot = path.join(routesPkg, "outputs");
+const routesExpectedRoot = path.join(routesPkg, "test/functional/expected");
 
-const KINDS = ["display", "layout", "thorough", "performance", "grid"] as const;
+const KINDS = ["display", "layout", "thorough", "performance", "grid", "routes"] as const;
 type FunctionalKind = (typeof KINDS)[number];
 
 function isKind(s: string): s is FunctionalKind {
@@ -36,7 +40,9 @@ function isKind(s: string): s is FunctionalKind {
 }
 
 function expectedRootFor(kind: FunctionalKind): string {
-  return kind === "grid" ? gridExpectedRoot : layoutExpectedRoot;
+  if (kind === "grid") return gridExpectedRoot;
+  if (kind === "routes") return routesExpectedRoot;
+  return layoutExpectedRoot;
 }
 
 /** Absolute dir for a result: layout nests kind; grid does not. */
@@ -45,9 +51,9 @@ function resultDir(
   suite: string,
   name: string,
 ): string {
-  return kind === "grid"
-    ? path.join(gridOutputsRoot, suite, name)
-    : path.join(layoutOutputsRoot, kind, suite, name);
+  if (kind === "grid") return path.join(gridOutputsRoot, suite, name);
+  if (kind === "routes") return path.join(routesOutputsRoot, suite, name);
+  return path.join(layoutOutputsRoot, kind, suite, name);
 }
 
 /** Public URL prefix for artifacts. */
@@ -56,9 +62,9 @@ function publicBase(
   suite: string,
   name: string,
 ): string {
-  return kind === "grid"
-    ? `/grid-outputs/${suite}/${name}/${name}`
-    : `/outputs/${kind}/${suite}/${name}/${name}`;
+  if (kind === "grid") return `/grid-outputs/${suite}/${name}/${name}`;
+  if (kind === "routes") return `/routes-outputs/${suite}/${name}/${name}`;
+  return `/outputs/${kind}/${suite}/${name}/${name}`;
 }
 
 type ResultRow = {
@@ -106,7 +112,7 @@ function canAcceptLayout(
   suite: string,
   name: string,
 ): boolean {
-  if (kind !== "display" && kind !== "grid") return false;
+  if (kind !== "display" && kind !== "grid" && kind !== "routes") return false;
   const actualPath = actualLayoutPath(kind, suite, name);
   if (!existsSync(actualPath)) return false;
   const expectedPath = expectedLayoutPath(kind, name);
@@ -212,6 +218,14 @@ function scanResults(): ResultRow[] {
     }
   }
 
+  if (existsSync(routesOutputsRoot)) {
+    for (const suite of readdirSync(routesOutputsRoot)) {
+      const suiteDir = path.join(routesOutputsRoot, suite);
+      if (!statSync(suiteDir).isDirectory() || suite.startsWith(".")) continue;
+      scanKindSuite("routes", suite, suiteDir, rows);
+    }
+  }
+
   rows.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
   return rows;
 }
@@ -237,8 +251,8 @@ function acceptLayout(
   suite: string,
   name: string,
 ): { ok: true } | { error: string } {
-  if (kind !== "display" && kind !== "grid") {
-    return { error: "Accept is only for display and grid baselines" };
+  if (kind !== "display" && kind !== "grid" && kind !== "routes") {
+    return { error: "Accept is only for display, grid, and routes baselines" };
   }
   if (!isSafeSegment(suite) || !isSafeSegment(name)) {
     return { error: "Invalid suite or name" };
@@ -441,6 +455,52 @@ export default defineConfig({
             return;
           }
           // JSON/PNG/etc. — let Vite serve via /@fs (JSON imports need this).
+          req.url = `/@fs${filePath}${search}`;
+          next();
+        });
+      },
+    },
+
+    {
+      name: "kite9-routes-outputs",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          const raw = req.url ?? "";
+          const q = raw.indexOf("?");
+          const pathname = q >= 0 ? raw.slice(0, q) : raw;
+          const search = q >= 0 ? raw.slice(q) : "";
+          if (!pathname.startsWith("/routes-outputs/")) {
+            next();
+            return;
+          }
+          const rel = decodeURIComponent(pathname.slice("/routes-outputs/".length));
+          if (rel.includes("..")) {
+            res.statusCode = 400;
+            res.end("Bad path");
+            return;
+          }
+          const filePath = path.join(routesOutputsRoot, rel);
+          if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+            res.statusCode = 404;
+            res.end("Not found");
+            return;
+          }
+          const ext = path.extname(filePath).toLowerCase();
+          if (ext === ".html") {
+            try {
+              const html = readFileSync(filePath, "utf8");
+              const transformed = await server.transformIndexHtml(
+                pathname,
+                html,
+              );
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              res.end(transformed);
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(e instanceof Error ? e.message : String(e));
+            }
+            return;
+          }
           req.url = `/@fs${filePath}${search}`;
           next();
         });

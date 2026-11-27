@@ -6,6 +6,7 @@ export const FUNCTIONAL_KINDS = [
   "thorough",
   "performance",
   "grid",
+  "routes",
 ] as const;
 
 export type FunctionalKind = (typeof FUNCTIONAL_KINDS)[number];

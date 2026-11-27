@@ -197,6 +197,46 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/node@22.20.7)(happy-dom@17.6.3)
 
+  packages/kite9-routes:
+    dependencies:
+      '@kite9/css':
+        specifier: workspace:*
+        version: link:../kite9-css
+      '@kite9/grid':
+        specifier: workspace:*
+        version: link:../kite9-grid
+      '@kite9/model':
+        specifier: workspace:*
+        version: link:../kite9-model
+      '@kite9/templating':
+        specifier: workspace:*
+        version: link:../kite9-templating
+    devDependencies:
+      '@kite9/test-template':
+        specifier: workspace:*
+        version: link:../kite9-test-template
+      '@kite9/ui':
+        specifier: workspace:*
+        version: link:../kite9-ui
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.65.1
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.7
+      happy-dom:
+        specifier: ^17.1.0
+        version: 17.6.3
+      preact:
+        specifier: ^10.25.0
+        version: 10.29.8
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.3
+        version: 6.4.6(@types/node@22.20.7)
+
   packages/kite9-templating:
     dependencies:
       '@kite9/css':

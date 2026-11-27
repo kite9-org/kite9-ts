@@ -1,6 +1,14 @@
 /** Grid-edge polylines → SVG path `d` with optional corner radius (RoutePainter-style). */
 
-import { Direction, type GridLayout, type GridVertex, type Point2D } from "@kite9/model";
+import {
+  Direction,
+  type GridLayout,
+  type GridVertex,
+  type LayoutPlacement,
+  type Point2D,
+  type PortOrHubLayoutPlacement,
+  type RectangularConnectedLayoutPlacement,
+} from "@kite9/model";
 
 export const DEFAULT_CORNER_RADIUS = 8;
 
@@ -15,26 +23,20 @@ export function edgeCoords(trackSizes: readonly number[]): number[] {
   return out;
 }
 
-/** Physical span of content column `col` (1-based) in `colSizes`. */
+/** Physical span of content column `col` (1-based) in `colSizes` (1:1). */
 export function contentColSpan(
-  grid: GridLayout,
+  _grid: GridLayout,
   col: number,
 ): { start: number; count: number } {
-  const i = col - 1;
-  const start = grid.contentColStarts?.[i] ?? 2 * col;
-  const count = grid.contentColCounts?.[i] ?? 1;
-  return { start, count: Math.max(1, count) };
+  return { start: col - 1, count: 1 };
 }
 
-/** Physical span of content row `row` (1-based) in `rowSizes`. */
+/** Physical span of content row `row` (1-based) in `rowSizes` (1:1). */
 export function contentRowSpan(
-  grid: GridLayout,
+  _grid: GridLayout,
   row: number,
 ): { start: number; count: number } {
-  const i = row - 1;
-  const start = grid.contentRowStarts?.[i] ?? 2 * row;
-  const count = grid.contentRowCounts?.[i] ?? 1;
-  return { start, count: Math.max(1, count) };
+  return { start: row - 1, count: 1 };
 }
 
 /**
@@ -90,77 +92,198 @@ function bumpContentSpansAfterSplit(
   axis: "col" | "row",
   splitTrack: number,
 ): void {
-  const n = axis === "col" ? grid.contentCols : grid.contentRows;
-  const startsKey = axis === "col" ? "contentColStarts" : "contentRowStarts";
-  const countsKey = axis === "col" ? "contentColCounts" : "contentRowCounts";
-
-  if (!grid[startsKey] || !grid[countsKey]) {
-    const starts: number[] = [];
-    const counts: number[] = [];
-    for (let i = 1; i <= n; i++) {
-      const span =
-        axis === "col" ? contentColSpan(grid, i) : contentRowSpan(grid, i);
-      starts.push(span.start);
-      counts.push(span.count);
-    }
-    grid[startsKey] = starts;
-    grid[countsKey] = counts;
-  }
-
-  const starts = grid[startsKey]!;
-  const counts = grid[countsKey]!;
-  for (let i = 0; i < n; i++) {
-    const start = starts[i]!;
-    const end = start + counts[i]! - 1;
-    if (splitTrack >= start && splitTrack <= end) {
-      counts[i] = counts[i]! + 1;
-      for (let j = i + 1; j < n; j++) starts[j] = starts[j]! + 1;
-      return;
-    }
-    if (splitTrack < start) {
-      for (let j = i; j < n; j++) starts[j] = starts[j]! + 1;
-      return;
-    }
-  }
-  // Split after all content (in trailing pads) — shift nothing content-side.
+  // Content tracks are 1:1 with physical tracks; splitting a physical track
+  // inserts a lane without separate contentColStarts metadata.
+  void grid;
+  void axis;
+  void splitTrack;
 }
 
-/** Seed span arrays for the standard doubled-pad + gutter track pattern. */
-export function initContentSpans(grid: GridLayout): void {
-  const colStarts: number[] = [];
-  const colCounts: number[] = [];
-  for (let c = 1; c <= grid.contentCols; c++) {
-    colStarts.push(2 * c);
-    colCounts.push(1);
-  }
-  const rowStarts: number[] = [];
-  const rowCounts: number[] = [];
-  for (let r = 1; r <= grid.contentRows; r++) {
-    rowStarts.push(2 * r);
-    rowCounts.push(1);
-  }
-  grid.contentColStarts = colStarts;
-  grid.contentColCounts = colCounts;
-  grid.contentRowStarts = rowStarts;
-  grid.contentRowCounts = rowCounts;
+/** No-op: content spans are 1:1 with physical tracks. */
+export function initContentSpans(_grid: GridLayout): void {}
+
+export function hasXi(
+  v: GridVertex,
+): v is { xi: number; yi?: never } {
+  return "xi" in v && typeof (v as { xi?: number }).xi === "number";
 }
 
-export function vertexPoint(
+export function hasYi(
+  v: GridVertex,
+): v is { yi: number; xi?: never } {
+  return "yi" in v && typeof (v as { yi?: number }).yi === "number";
+}
+
+/** Move `prev` perpendicular onto track `v`. */
+export function applyVertex(
   grid: GridLayout,
   v: GridVertex,
+  prev: Point2D,
 ): Point2D {
   const xs = edgeCoords(grid.colSizes);
   const ys = edgeCoords(grid.rowSizes);
-  const xi = Math.max(0, Math.min(v.xi, xs.length - 1));
+  if (hasXi(v)) {
+    const xi = Math.max(0, Math.min(v.xi, xs.length - 1));
+    return { x: xs[xi]!, y: prev.y };
+  }
   const yi = Math.max(0, Math.min(v.yi, ys.length - 1));
-  return { x: xs[xi]!, y: ys[yi]! };
+  return { x: prev.x, y: ys[yi]! };
 }
 
+/**
+ * @deprecated Single-axis vertices need a prior point — use {@link applyVertex}
+ * or {@link resolveRouteToPoints}. Falls back to the opposite-axis origin (0).
+ */
+export function vertexPoint(
+  grid: GridLayout,
+  v: GridVertex,
+  prev: Point2D = { x: 0, y: 0 },
+): Point2D {
+  return applyVertex(grid, v, prev);
+}
+
+/** Drop consecutive duplicates; collapse middle points on a straight run. */
+export function simplifyPoints(points: readonly Point2D[]): Point2D[] {
+  if (points.length <= 2) return points.map((p) => ({ ...p }));
+  const out: Point2D[] = [{ ...points[0]! }];
+  for (let i = 1; i < points.length - 1; i++) {
+    const prev = out[out.length - 1]!;
+    const cur = points[i]!;
+    const next = points[i + 1]!;
+    if (cur.x === prev.x && cur.y === prev.y) continue;
+    const colinear =
+      (cur.x === prev.x && next.x === cur.x) ||
+      (cur.y === prev.y && next.y === cur.y);
+    if (colinear) continue;
+    out.push({ ...cur });
+  }
+  const last = points[points.length - 1]!;
+  const tip = out[out.length - 1]!;
+  if (last.x !== tip.x || last.y !== tip.y) out.push({ ...last });
+  return out;
+}
+
+/**
+ * Resolve single-axis track targets to a pixel polyline.
+ * Seed at `start`, move perpendicular onto each vertex, then finish at `end`.
+ */
+export function resolveRouteToPoints(
+  grid: GridLayout,
+  vertices: readonly GridVertex[],
+  start: Point2D,
+  end: Point2D,
+): Point2D[] {
+  const pts: Point2D[] = [{ ...start }];
+  let cur = { ...start };
+  for (const v of vertices) {
+    const next = applyVertex(grid, v, cur);
+    if (next.x !== cur.x || next.y !== cur.y) {
+      pts.push(next);
+      cur = next;
+    }
+  }
+  if (cur.x !== end.x || cur.y !== end.y) pts.push({ ...end });
+  return simplifyPoints(pts);
+}
+
+/**
+ * Legacy helper: resolve without terminals by starting at the origin.
+ * Prefer {@link resolveRouteToPoints} with hub anchors.
+ */
 export function verticesToPoints(
   grid: GridLayout,
   vertices: readonly GridVertex[],
 ): Point2D[] {
-  return vertices.map((v) => vertexPoint(grid, v));
+  if (vertices.length === 0) return [];
+  let cur = { x: 0, y: 0 };
+  const pts: Point2D[] = [];
+  for (const v of vertices) {
+    cur = applyVertex(grid, v, cur);
+    pts.push({ ...cur });
+  }
+  return simplifyPoints(pts);
+}
+
+function isRectPlacement(
+  p: LayoutPlacement,
+): p is RectangularConnectedLayoutPlacement {
+  return "col" in p && "row" in p;
+}
+
+function isPortOrHub(
+  p: LayoutPlacement,
+): p is PortOrHubLayoutPlacement {
+  return "onId" in p && "edge" in p;
+}
+
+/** Pixel rect of a content-cell placement in the physical track lattice. */
+export function placementCellRect(
+  grid: GridLayout,
+  p: RectangularConnectedLayoutPlacement,
+): { x: number; y: number; w: number; h: number } {
+  const xs = edgeCoords(grid.colSizes);
+  const ys = edgeCoords(grid.rowSizes);
+  const c0 = p.col - 1;
+  const c1 = (p.colEnd ?? p.col) - 1;
+  const r0 = p.row - 1;
+  const r1 = (p.rowEnd ?? p.row) - 1;
+  const x0 = xs[c0] ?? 0;
+  const x1 = xs[c1 + 1] ?? x0;
+  const y0 = ys[r0] ?? 0;
+  const y1 = ys[r1 + 1] ?? y0;
+  return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+}
+
+/**
+ * Pixel position of a port/hub on its host **content** edge (`along` % or px),
+ * inset by placement margin so adjacent side hubs are not coincident on a
+ * shared cell seam.
+ */
+export function hubAnchorPoint(
+  grid: GridLayout,
+  placements: Readonly<Record<string, LayoutPlacement>>,
+  id: string,
+): Point2D | null {
+  const p = placements[id];
+  if (!p || !isPortOrHub(p)) return null;
+  const host = placements[p.onId];
+  if (!host || !isRectPlacement(host)) return null;
+  const full = placementCellRect(grid, host);
+  const m = host.margin;
+  const left = Math.max(0, m?.left ?? 0);
+  const right = Math.max(0, m?.right ?? 0);
+  const top = Math.max(0, m?.top ?? 0);
+  const bottom = Math.max(0, m?.bottom ?? 0);
+  const box = {
+    x: full.x + left,
+    y: full.y + top,
+    w: Math.max(0, full.w - left - right),
+    h: Math.max(0, full.h - top - bottom),
+  };
+  const alongFrac =
+    p.type === "percentage"
+      ? Math.min(1, Math.max(0, p.along / 100))
+      : null;
+  const alongY =
+    alongFrac != null
+      ? box.y + box.h * alongFrac
+      : box.y + Math.min(box.h, Math.max(0, p.along));
+  const alongX =
+    alongFrac != null
+      ? box.x + box.w * alongFrac
+      : box.x + Math.min(box.w, Math.max(0, p.along));
+  switch (p.edge) {
+    case Direction.LEFT:
+      return { x: box.x, y: alongY };
+    case Direction.RIGHT:
+      return { x: box.x + box.w, y: alongY };
+    case Direction.UP:
+      return { x: alongX, y: box.y };
+    case Direction.DOWN:
+      return { x: alongX, y: box.y + box.h };
+    default:
+      return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  }
 }
 
 type Move = {
@@ -402,23 +525,27 @@ export function ceilEdgeIndex(
   );
 }
 
-/** Snap a pixel point to the nearest grid edge intersection. */
+/**
+ * Snap a pixel point to the nearer axis as a single-track vertex
+ * (vertical vs horizontal distance to the nearest edge).
+ */
 export function snapToGridVertex(
   grid: GridLayout,
   p: Point2D,
 ): GridVertex {
   const xs = edgeCoords(grid.colSizes);
   const ys = edgeCoords(grid.rowSizes);
-  return {
-    xi: nearestEdgeIndex(xs, p.x),
-    yi: nearestEdgeIndex(ys, p.y),
-  };
+  const xi = nearestEdgeIndex(xs, p.x);
+  const yi = nearestEdgeIndex(ys, p.y);
+  const dx = Math.abs((xs[xi] ?? 0) - p.x);
+  const dy = Math.abs((ys[yi] ?? 0) - p.y);
+  return dx <= dy ? { xi } : { yi };
 }
 
 /**
- * Orthogonal grid vertices covering a pixel polyline: nearest edge on the
- * constant axis, floor/ceil edges on the span of the varying axis so short
- * channels inside a track still produce a non-degenerate segment.
+ * Orthogonal single-axis track targets covering a pixel polyline.
+ * Horizontal runs → `{ xi }` visits (y carried from terminals);
+ * vertical runs → `{ yi }` visits.
  */
 export function snapPolylineToVertices(
   grid: GridLayout,
@@ -437,81 +564,69 @@ export function snapPolylineToVertices(
   const dy = maxY - minY;
 
   if (dx >= dy) {
-    const yi = nearestEdgeIndex(edgeCoords(grid.rowSizes), (minY + maxY) / 2);
     const xi0 = floorEdgeIndex(grid.colSizes, minX);
     const xi1 = ceilEdgeIndex(grid.colSizes, maxX);
     const lo = Math.min(xi0, xi1);
     const hi = Math.max(xi0, xi1);
     if (lo === hi) {
-      return simplifyVertices([
-        { xi: lo, yi },
-        { xi: Math.min(lo + 1, grid.colSizes.length), yi },
-      ]);
+      return [{ xi: lo }];
     }
-    // Preserve polyline order (left→right vs right→left).
     const startX = points[0]!.x;
     const endX = points[points.length - 1]!.x;
     return startX <= endX
-      ? [
-          { xi: lo, yi },
-          { xi: hi, yi },
-        ]
-      : [
-          { xi: hi, yi },
-          { xi: lo, yi },
-        ];
+      ? [{ xi: lo }, { xi: hi }]
+      : [{ xi: hi }, { xi: lo }];
   }
 
-  const xi = nearestEdgeIndex(edgeCoords(grid.colSizes), (minX + maxX) / 2);
   const yi0 = floorEdgeIndex(grid.rowSizes, minY);
   const yi1 = ceilEdgeIndex(grid.rowSizes, maxY);
   const lo = Math.min(yi0, yi1);
   const hi = Math.max(yi0, yi1);
   if (lo === hi) {
-    return simplifyVertices([
-      { xi, yi: lo },
-      { xi, yi: Math.min(lo + 1, grid.rowSizes.length) },
-    ]);
+    return [{ yi: lo }];
   }
   const startY = points[0]!.y;
   const endY = points[points.length - 1]!.y;
   return startY <= endY
-    ? [
-        { xi, yi: lo },
-        { xi, yi: hi },
-      ]
-    : [
-        { xi, yi: hi },
-        { xi, yi: lo },
-      ];
+    ? [{ yi: lo }, { yi: hi }]
+    : [{ yi: hi }, { yi: lo }];
+}
+
+function vertexKey(v: GridVertex): string {
+  return hasXi(v) ? `x:${v.xi}` : `y:${v.yi}`;
 }
 
 /**
- * Collapse consecutive vertices that continue in the same axis direction
- * (C2Route.simplifyRoute).
+ * Collapse consecutive duplicate single-axis vertices; drop intermediate
+ * same-axis steps that continue in one direction.
  */
 export function simplifyVertices(
   vertices: readonly GridVertex[],
 ): GridVertex[] {
-  if (vertices.length <= 2) return [...vertices];
+  if (vertices.length <= 1) return [...vertices];
   const out: GridVertex[] = [vertices[0]!];
-  for (let i = 1; i < vertices.length - 1; i++) {
-    const prev = out[out.length - 1]!;
+  for (let i = 1; i < vertices.length; i++) {
     const cur = vertices[i]!;
-    const next = vertices[i + 1]!;
-    const dx1 = cur.xi - prev.xi;
-    const dy1 = cur.yi - prev.yi;
-    const dx2 = next.xi - cur.xi;
-    const dy2 = next.yi - cur.yi;
-    const sameDir =
-      (dx1 === 0 && dx2 === 0 && Math.sign(dy1) === Math.sign(dy2) && dy1 !== 0) ||
-      (dy1 === 0 && dy2 === 0 && Math.sign(dx1) === Math.sign(dx2) && dx1 !== 0);
-    if (sameDir) continue;
-    if (cur.xi === prev.xi && cur.yi === prev.yi) continue;
+    const prev = out[out.length - 1]!;
+    if (vertexKey(cur) === vertexKey(prev)) continue;
+    // Same axis: keep only the latest (skip intermediate).
+    if (hasXi(cur) && hasXi(prev) && i < vertices.length - 1) {
+      const next = vertices[i + 1]!;
+      if (hasXi(next)) {
+        const d1 = cur.xi - prev.xi;
+        const d2 = next.xi - cur.xi;
+        if (Math.sign(d1) === Math.sign(d2) && d1 !== 0) continue;
+      }
+    }
+    if (hasYi(cur) && hasYi(prev) && i < vertices.length - 1) {
+      const next = vertices[i + 1]!;
+      if (hasYi(next)) {
+        const d1 = cur.yi - prev.yi;
+        const d2 = next.yi - cur.yi;
+        if (Math.sign(d1) === Math.sign(d2) && d1 !== 0) continue;
+      }
+    }
     out.push(cur);
   }
-  const last = vertices[vertices.length - 1]!;
-  const tail = out[out.length - 1]!;
-  if (last.xi !== tail.xi || last.yi !== tail.yi) out.push(last);
   return out;
 }

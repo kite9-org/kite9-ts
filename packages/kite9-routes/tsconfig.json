@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../kite9-model" },
+    { "path": "../kite9-css" },
+    { "path": "../kite9-templating" },
+    { "path": "../kite9-grid" }
+  ]
+}

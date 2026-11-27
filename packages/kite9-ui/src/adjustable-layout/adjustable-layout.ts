@@ -14,7 +14,9 @@ import {
   DEFAULT_CORNER_RADIUS,
   contentColSpan,
   contentRowSpan,
+  hubAnchorPoint,
   orthogonalPathD,
+  resolveRouteToPoints,
   vertexPoint as gridVertexPoint,
   verticesToPoints,
 } from "./route-path.js";
@@ -27,13 +29,44 @@ type LegacyRoute = {
   labels?: Record<string, Point2D>;
 };
 
-/** Prefer `points`; upgrade legacy `vertices` against the current grid. */
+/** Internal paint shape: pixel polyline (+ optional labels). */
+type PaintRoute = {
+  points: Point2D[];
+  cornerRadius?: number;
+  labels: Record<string, Point2D>;
+  startId?: string;
+  endId?: string;
+};
+
+/**
+ * Prefer model `route: GridVertex[]`; also accept legacy `points` / `vertices`.
+ * Stored as pixel polylines for SVG paint. Single-axis vertices resolve from
+ * `startId`/`endId` hub anchors when present.
+ */
 function normalizeRoutes(
   grid: GridLayout,
   routes: Record<string, RouteLayout | LegacyRoute>,
-): Record<string, RouteLayout> {
-  const out: Record<string, RouteLayout> = {};
+  placements: Record<string, LayoutPlacement>,
+): Record<string, PaintRoute> {
+  const out: Record<string, PaintRoute> = {};
   for (const [id, raw] of Object.entries(routes)) {
+    const model = raw as RouteLayout;
+    if (model.route && model.route.length >= 1) {
+      const start =
+        hubAnchorPoint(grid, placements, model.startId) ?? { x: 0, y: 0 };
+      const end =
+        hubAnchorPoint(grid, placements, model.endId) ?? { ...start };
+      out[id] = {
+        points: resolveRouteToPoints(grid, model.route, start, end),
+        ...(model.cornerRadius !== undefined
+          ? { cornerRadius: model.cornerRadius }
+          : {}),
+        labels: {},
+        startId: model.startId,
+        endId: model.endId,
+      };
+      continue;
+    }
     const route = raw as LegacyRoute;
     if (route.points && route.points.length >= 2) {
       out[id] = {
@@ -45,7 +78,7 @@ function normalizeRoutes(
       };
       continue;
     }
-    if (route.vertices && route.vertices.length >= 2) {
+    if (route.vertices && route.vertices.length >= 1) {
       out[id] = {
         points: verticesToPoints(grid, route.vertices),
         ...(route.cornerRadius !== undefined
@@ -63,6 +96,21 @@ type CellPlacement = Extract<LayoutPlacement, { col: number; row: number }>;
 
 function isCellPlacement(p: LayoutPlacement): p is CellPlacement {
   return "col" in p && "row" in p;
+}
+
+/** Normalize LayoutData.placements (array) into an id→placement map for editing. */
+function placementsToMap(
+  placements: LayoutData["placements"],
+): Record<string, LayoutPlacement> {
+  const out: Record<string, LayoutPlacement> = {};
+  for (const p of placements) out[p.id] = p;
+  return out;
+}
+
+function mapToPlacements(
+  map: Record<string, LayoutPlacement>,
+): LayoutPlacement[] {
+  return Object.values(map);
 }
 
 function colSpan(p: CellPlacement): { start: number; end: number; count: number } {
@@ -139,13 +187,22 @@ function syncContentAxis(
  */
 export class AdjustableLayout {
   grid: GridLayout;
+  /** Mutable id→placement map (serialized back to an array in {@link toJSON}). */
   placements: Record<string, LayoutPlacement>;
-  routes: Record<string, RouteLayout>;
+  /** Pixel polylines for paint (from GridVertex routes or legacy points). */
+  routes: Record<string, PaintRoute>;
+  /** Original model routes (preserved on round-trip). */
+  private modelRoutes: Record<string, RouteLayout>;
 
   private constructor(data: LayoutData) {
     this.grid = data.grid;
-    this.placements = data.placements;
-    this.routes = normalizeRoutes(data.grid, data.routes ?? {});
+    this.placements = placementsToMap(data.placements);
+    this.modelRoutes = data.routes ?? {};
+    this.routes = normalizeRoutes(
+      data.grid,
+      data.routes ?? {},
+      this.placements,
+    );
   }
 
   /** Deep-clone `data` into a mutable session layout. */
@@ -162,8 +219,10 @@ export class AdjustableLayout {
     return JSON.parse(
       JSON.stringify({
         grid: this.grid,
-        placements: this.placements,
-        ...(Object.keys(this.routes).length > 0 ? { routes: this.routes } : {}),
+        placements: mapToPlacements(this.placements),
+        ...(Object.keys(this.modelRoutes).length > 0
+          ? { routes: this.modelRoutes }
+          : {}),
       }),
     ) as LayoutData;
   }

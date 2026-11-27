@@ -2,41 +2,61 @@
   "grid": {
     "contentCols": 3,
     "contentRows": 2,
-    "gutter": 64,
+    "gutter": 0,
     "minCol": 80,
     "minRow": 80,
     "contentColSizes": [120, 80, 140],
     "contentRowSizes": [110, 72],
-    "colSizes": [16, 16, 120, 64, 80, 64, 140, 16, 16],
-    "rowSizes": [16, 16, 110, 16, 72, 16, 16]
+    "colSizes": [120, 80, 140],
+    "rowSizes": [110, 72]
   },
-  "placements": {
-    "g1": { "col": 1, "row": 1, "size": { "w": 120, "h": 80 } },
-    "a1": { "col": 2, "row": 1, "size": { "w": 64, "h": 40 } },
-    "c1": { "col": 3, "row": 1, "size": { "w": 140, "h": 110 } },
-    "g2": { "col": 3, "row": 1, "size": { "w": 100, "h": 72 } },
-    "k1": { "col": 1, "row": 2, "size": { "w": 100, "h": 56 } },
-    "s1": { "anchor": "g2", "side": "left" }
-  },
+  "placements": [
+    { "id": "g1", "col": 1, "row": 1, "size": { "w": 120, "h": 80 } },
+    { "id": "a1", "col": 2, "row": 1, "size": { "w": 64, "h": 40 } },
+    { "id": "c1", "col": 3, "row": 1, "size": { "w": 140, "h": 110 } },
+    { "id": "g2", "col": 3, "row": 1, "size": { "w": 100, "h": 72 } },
+    { "id": "k1", "col": 1, "row": 2, "size": { "w": 100, "h": 56 } },
+    {
+      "id": "s1",
+      "onId": "g2",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "a1__hub__right",
+      "onId": "a1",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "c1__hub__left",
+      "onId": "c1",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "g2__hub__left",
+      "onId": "g2",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
   "routes": {
     "l1": {
-      "vertices": [
-        { "xi": 3, "yi": 2 },
-        { "xi": 4, "yi": 2 }
-      ],
+      "startId": "s1",
+      "endId": "a1__hub__right",
       "cornerRadius": 8,
-      "labels": {
-        "fl1": { "x": 158, "y": 68 },
-        "tl1": { "x": 198, "y": 68 }
-      }
+      "route": [{ "yi": 0 }]
     },
     "l2": {
-      "vertices": [
-        { "xi": 5, "yi": 2 },
-        { "xi": 6, "yi": 2 }
-      ],
+      "startId": "c1__hub__left",
+      "endId": "g2__hub__left",
       "cornerRadius": 8,
-      "labels": {}
+      "route": [{ "yi": 0 }]
     }
   }
 }

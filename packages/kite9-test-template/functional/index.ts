@@ -31,3 +31,9 @@ export {
   createFunctionalViteConfig,
   type FunctionalViteOptions,
 } from "./create-functional-vite-config.ts";
+export {
+  drawTrackGraphPng,
+  type DrawCompactionInput,
+  type DrawTrack,
+  type DrawIntersection,
+} from "./draw-compaction.ts";

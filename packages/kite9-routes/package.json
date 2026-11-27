@@ -1,0 +1,38 @@
+{
+  "name": "@kite9/routes",
+  "version": "0.1.0",
+  "description": "Route connections over a placed grid → LayoutData with routes + inflated lanes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "playwright test",
+    "test:functional": "playwright test",
+    "test:results": "pnpm --filter @kite9/preview test:results"
+  },
+  "dependencies": {
+    "@kite9/css": "workspace:*",
+    "@kite9/grid": "workspace:*",
+    "@kite9/model": "workspace:*",
+    "@kite9/templating": "workspace:*"
+  },
+  "devDependencies": {
+    "@kite9/test-template": "workspace:*",
+    "@kite9/ui": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@types/node": "^22.10.0",
+    "happy-dom": "^17.1.0",
+    "preact": "^10.25.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
+  }
+}
