@@ -123,6 +123,11 @@ function covers(
 /**
  * Break a full-span segment wherever it coincides with a container edge
  * (route would run on top of the container border).
+ *
+ * Perimeter seams (`after` 0 / `afterMax`) stay continuous — hubs and
+ * around-the-outside routes need them. Along a non-perimeter container edge,
+ * keep indices where a non-container rect abuts the seam (shared glyph/
+ * container boundary) so mid-edge hubs still get intersections.
  */
 function breakAgainstContainerEdges(
   axis: TrackAxis,
@@ -131,9 +136,35 @@ function breakAgainstContainerEdges(
   fullTo: number,
   rects: Iterable<RectangularConnectedLayoutPlacement>,
   containerIds: Set<string>,
+  /** Max seam `after` on this axis (`contentCols` for v, `contentRows` for h). */
+  afterMax: number,
 ): TrackSegment[] {
+  if (after === 0 || after === afterMax) {
+    return [{ from: fullFrom, to: fullTo }];
+  }
+
+  const rectList = [...rects];
+  const abuttedByNonContainer = (along: number): boolean => {
+    for (const p of rectList) {
+      if (containerIds.has(p.id)) continue;
+      const c0 = p.col;
+      const c1 = p.colEnd ?? p.col;
+      const r0 = p.row;
+      const r1 = p.rowEnd ?? p.row;
+      if (axis === "v") {
+        if (along < r0 || along > r1) continue;
+        // Glyph right edge or left edge sits on this vertical seam.
+        if (after === c1 || after === c0 - 1) return true;
+      } else {
+        if (along < c0 || along > c1) continue;
+        if (after === r1 || after === r0 - 1) return true;
+      }
+    }
+    return false;
+  };
+
   const breaks = new Set<number>();
-  for (const r of rects) {
+  for (const r of rectList) {
     if (!containerIds.has(r.id)) continue;
     const c0 = r.col;
     const c1 = r.colEnd ?? r.col;
@@ -142,12 +173,13 @@ function breakAgainstContainerEdges(
     if (axis === "v") {
       // Vertical track at after=c0-1 (left edge) or after=c1 (right edge)
       if (after === c0 - 1 || after === c1) {
-        // Exclude the rows this container occupies on that edge
-        for (let row = r0; row <= r1; row++) breaks.add(row);
+        for (let row = r0; row <= r1; row++) {
+          if (!abuttedByNonContainer(row)) breaks.add(row);
+        }
       }
-    } else {
-      if (after === r0 - 1 || after === r1) {
-        for (let col = c0; col <= c1; col++) breaks.add(col);
+    } else if (after === r0 - 1 || after === r1) {
+      for (let col = c0; col <= c1; col++) {
+        if (!abuttedByNonContainer(col)) breaks.add(col);
       }
     }
   }
@@ -209,7 +241,9 @@ export function buildTrackGraph(
   const containerIds = collectContainerIds(diagram);
   const tracks: Track[] = [];
 
-  // Vertical seams: after 0..contentCols (between / outside content cols)
+  // Vertical seams: after 0..contentCols (between / outside content cols).
+  // Keep tracks even when segments are empty (fully broken on container
+  // borders) so compaction can still draw every row/column seam.
   for (let after = 0; after <= contentCols; after++) {
     const segments = breakAgainstContainerEdges(
       "v",
@@ -218,8 +252,8 @@ export function buildTrackGraph(
       contentRows,
       rects.values(),
       containerIds,
+      contentCols,
     );
-    if (segments.length === 0) continue;
     tracks.push({
       id: `v-seam-${after}`,
       axis: "v",
@@ -230,7 +264,7 @@ export function buildTrackGraph(
     });
   }
 
-  // Horizontal seams
+  // Horizontal seams: after 0..contentRows → contentRows+1 tracks
   for (let after = 0; after <= contentRows; after++) {
     const segments = breakAgainstContainerEdges(
       "h",
@@ -239,8 +273,8 @@ export function buildTrackGraph(
       contentCols,
       rects.values(),
       containerIds,
+      contentRows,
     );
-    if (segments.length === 0) continue;
     tracks.push({
       id: `h-seam-${after}`,
       axis: "h",

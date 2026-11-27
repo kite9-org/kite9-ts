@@ -273,8 +273,10 @@ function buildSeamRemap(
     } else {
       const edgePx =
         xs[Math.max(0, Math.min(leftEdge, xs.length - 1))] ?? 0;
+      // Only push true outer seams outside the diagram; internal unused
+      // seams stay on the grid edge (padding / cell boundaries).
       const outward =
-        after === 0 ? -clear : after === originalCols ? clear : -clear;
+        after === 0 ? -clear : after === originalCols ? clear : 0;
       vPx.set(after, edgePx + outward);
     }
   }
@@ -293,7 +295,7 @@ function buildSeamRemap(
       const edgePx =
         ys[Math.max(0, Math.min(topEdge, ys.length - 1))] ?? 0;
       const outward =
-        after === 0 ? -clear : after === originalRows ? clear : -clear;
+        after === 0 ? -clear : after === originalRows ? clear : 0;
       hPx.set(after, edgePx + outward);
     }
   }

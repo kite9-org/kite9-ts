@@ -45,16 +45,10 @@ window.__runFunctionalLayout = (
     testTemplatePack,
   );
 
-  // Used routing lanes + diagram outer perimeter (4 seams around content).
-  const { contentCols, contentRows } = graph.layout.grid;
-  const perimeterIds = new Set([
-    `v-seam-0`,
-    `v-seam-${contentCols}`,
-    `h-seam-0`,
-    `h-seam-${contentRows}`,
-  ]);
+  // All row/column seams (so padding + routing boundaries show), plus any
+  // used inner-circuit tracks. Pre-inflate R rows → R+1 horizontal seams.
   const visibleTracks = graph.tracks.filter(
-    (t) => t.usedBy.size > 0 || perimeterIds.has(t.id),
+    (t) => t.kind === "seam" || t.usedBy.size > 0,
   );
   const visibleIds = new Set(visibleTracks.map((t) => t.id));
   const visibleIntersections = graph.intersections
@@ -75,8 +69,10 @@ window.__runFunctionalLayout = (
         t.axis === "v" ? i.vId === t.id : i.hId === t.id,
       );
       const along = onTrack.map((i) => (t.axis === "v" ? i.y : i.x));
-      const alongFrom = along.length > 0 ? Math.min(...along) : undefined;
-      const alongTo = along.length > 0 ? Math.max(...along) : undefined;
+      const lo = along.length > 0 ? Math.min(...along) : undefined;
+      const hi = along.length > 0 ? Math.max(...along) : undefined;
+      // A single intersection collapses to zero length — keep full span then.
+      const span = lo != null && hi != null && hi > lo;
       return {
         id: t.id,
         axis: t.axis,
@@ -84,8 +80,8 @@ window.__runFunctionalLayout = (
           (t.axis === "v" ? remap.vPx.get(t.after) : remap.hPx.get(t.after)) ??
           0,
         after: t.after,
-        alongFrom,
-        alongTo,
+        alongFrom: span ? lo : undefined,
+        alongTo: span ? hi : undefined,
         used: t.usedBy.size > 0,
         kind: t.kind,
       };
