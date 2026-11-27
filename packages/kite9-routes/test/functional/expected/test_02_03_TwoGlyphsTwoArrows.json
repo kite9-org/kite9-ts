@@ -1,0 +1,168 @@
+{
+  "grid": {
+    "contentCols": 7,
+    "contentRows": 2,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      72,
+      40,
+      73,
+      40,
+      75,
+      40,
+      63
+    ],
+    "contentRowSizes": [
+      40,
+      66
+    ],
+    "colSizes": [
+      72,
+      40,
+      73,
+      40,
+      75,
+      40,
+      63
+    ],
+    "rowSizes": [
+      40,
+      66
+    ]
+  },
+  "placements": [
+    {
+      "id": "One",
+      "col": 1,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "Two",
+      "col": 3,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets",
+      "col": 5,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "eats",
+      "col": 7,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets__hub__left",
+      "onId": "meets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__right",
+      "onId": "One",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__right",
+      "onId": "Two",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "eats__hub__left",
+      "onId": "eats",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l1": {
+      "startId": "meets__hub__left",
+      "endId": "One__hub__right",
+      "route": [
+        {
+          "xi": 3
+        },
+        {
+          "yi": 0
+        },
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "l2": {
+      "startId": "meets__hub__left",
+      "endId": "Two__hub__right",
+      "route": [
+        {
+          "xi": 3
+        }
+      ]
+    },
+    "l3": {
+      "startId": "eats__hub__left",
+      "endId": "One__hub__right",
+      "route": [
+        {
+          "xi": 5
+        },
+        {
+          "yi": 0
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "l4": {
+      "startId": "eats__hub__left",
+      "endId": "Two__hub__right",
+      "route": [
+        {
+          "xi": 5
+        },
+        {
+          "yi": 0
+        },
+        {
+          "xi": 3
+        }
+      ]
+    }
+  }
+}

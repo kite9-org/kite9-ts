@@ -48,7 +48,11 @@ export type SeamRemap = {
   hPx: Map<number, number>;
 };
 
-/** Bump rectangular placements after inserting `count` tracks at `after`. */
+/**
+ * Bump rectangular placements after inserting `count` tracks at `after`.
+ * Spanning rects (`colEnd`/`rowEnd`) grow once when the insert sits inside
+ * or before their end — do not also re-apply a contained-span bump.
+ */
 function bumpPlacementsAfterInsert(
   placements: LayoutPlacement[],
   axis: "col" | "row",
@@ -60,15 +64,9 @@ function bumpPlacementsAfterInsert(
     if (axis === "col") {
       if (p.col > after) p.col += count;
       if (p.colEnd != null && p.colEnd > after) p.colEnd += count;
-      if (p.col <= after && (p.colEnd ?? p.col) > after) {
-        p.colEnd = (p.colEnd ?? p.col) + count;
-      }
     } else {
       if (p.row > after) p.row += count;
       if (p.rowEnd != null && p.rowEnd > after) p.rowEnd += count;
-      if (p.row <= after && (p.rowEnd ?? p.row) > after) {
-        p.rowEnd = (p.rowEnd ?? p.row) + count;
-      }
     }
   }
 }

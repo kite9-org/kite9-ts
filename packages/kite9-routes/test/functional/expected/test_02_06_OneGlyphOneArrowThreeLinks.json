@@ -1,0 +1,92 @@
+{
+  "grid": {
+    "contentCols": 3,
+    "contentRows": 1,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      72,
+      40,
+      75
+    ],
+    "contentRowSizes": [
+      66
+    ],
+    "colSizes": [
+      72,
+      40,
+      75
+    ],
+    "rowSizes": [
+      66
+    ]
+  },
+  "placements": [
+    {
+      "id": "one",
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets",
+      "col": 3,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets__hub__left",
+      "onId": "meets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "one__hub__right",
+      "onId": "one",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "tl1": {
+      "startId": "meets__hub__left",
+      "endId": "one__hub__right",
+      "route": [
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "tl2": {
+      "startId": "meets__hub__left",
+      "endId": "one__hub__right",
+      "route": [
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "tl3": {
+      "startId": "meets__hub__left",
+      "endId": "one__hub__right",
+      "route": [
+        {
+          "xi": 1
+        }
+      ]
+    }
+  }
+}

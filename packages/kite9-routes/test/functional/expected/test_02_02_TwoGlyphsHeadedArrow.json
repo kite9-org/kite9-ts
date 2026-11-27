@@ -1,0 +1,113 @@
+{
+  "grid": {
+    "contentCols": 5,
+    "contentRows": 2,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      72,
+      40,
+      73,
+      40,
+      75
+    ],
+    "contentRowSizes": [
+      40,
+      66
+    ],
+    "colSizes": [
+      72,
+      40,
+      73,
+      40,
+      75
+    ],
+    "rowSizes": [
+      40,
+      66
+    ]
+  },
+  "placements": [
+    {
+      "id": "one",
+      "col": 1,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "two",
+      "col": 3,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets",
+      "col": 5,
+      "row": 2,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "meets__hub__left",
+      "onId": "meets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "one__hub__right",
+      "onId": "one",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "two__hub__right",
+      "onId": "two",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l1": {
+      "startId": "meets__hub__left",
+      "endId": "one__hub__right",
+      "route": [
+        {
+          "xi": 3
+        },
+        {
+          "yi": 0
+        },
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "l2": {
+      "startId": "meets__hub__left",
+      "endId": "two__hub__right",
+      "route": [
+        {
+          "xi": 3
+        }
+      ]
+    }
+  }
+}
