@@ -45,7 +45,7 @@ export enum Direction {
   RIGHT = "right",
 }
 
-/** Link end attachment — lowercase CSS wire format (`--kite9-link-end`). */
+/** Link end attachment (`from` / `to`). */
 export enum End {
   FROM = "from",
   TO = "to",

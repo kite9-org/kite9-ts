@@ -10,7 +10,6 @@ import {
   type LayoutData,
   type LayoutPlacement,
   type Size,
-  type TerminatorRenderLayout,
 } from "@kite9/model";
 import {
   AdjustableLayout,
@@ -353,13 +352,6 @@ function placeOnAnchor(
   }
 }
 
-function decorationStyle(linkEl: Element, tag: string): string {
-  const el = Array.from(linkEl.children).find(
-    (c) => c.localName.toLowerCase() === tag.toLowerCase(),
-  );
-  return (el?.textContent ?? "").replace(/\s+/g, " ").trim() || "NONE";
-}
-
 type StageBox = { x: number; y: number; w: number; h: number };
 
 function stageBox(el: Element, stage: Element): StageBox {
@@ -613,12 +605,9 @@ export function applyLayout(
     const linkEl = diagram.querySelector(`#${CSS.escape(id)}`);
     const linkEntry = linkEl ? pack.resolve(localTag(linkEl)) : null;
 
-    const fromStyle = linkEl ? decorationStyle(linkEl, "fromDecoration") : "NONE";
-    const toStyle = linkEl ? decorationStyle(linkEl, "toDecoration") : "NONE";
-
     const d = adj.routePathD(id);
     const poly = adj.routePolyline(id);
-    if (d && poly.length >= 2) {
+    if (d && poly.length >= 2 && linkEl) {
       const fromPoint = poly[0]!;
       const toPoint = poly[poly.length - 1]!;
       const connection: ConnectionRenderLayout = {
@@ -626,23 +615,9 @@ export function applyLayout(
         d,
         fromPoint,
         toPoint,
-        fromStyle,
-        toStyle,
       };
-      linkEntry?.renderSvg?.(g, connection);
-
-      const fromLayout: TerminatorRenderLayout = {
-        style: fromStyle,
-        end: End.FROM,
-        point: fromPoint,
-      };
-      const toLayout: TerminatorRenderLayout = {
-        style: toStyle,
-        end: End.TO,
-        point: toPoint,
-      };
-      linkEntry?.renderDefs?.(linksSvg, fromLayout);
-      linkEntry?.renderDefs?.(linksSvg, toLayout);
+      // Link template parses fromDecoration / toDecoration from the host.
+      linkEntry?.renderSvg?.(g, connection, linkEl);
     }
 
     for (const [labelId, pos] of Object.entries(route.labels)) {

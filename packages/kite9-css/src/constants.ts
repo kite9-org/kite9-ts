@@ -4,33 +4,14 @@ export const LEFT = "left";
 export const RIGHT = "right";
 export const TOP = "top";
 export const BOTTOM = "bottom";
-export const WIDTH = "width";
-export const HEIGHT = "height";
-export const SIZE = "size";
 
 export const KITE9_CSS_PROPERTY_PREFIX = "--kite9-";
 
 export const ELEMENT_TYPE_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}type`;
 export const ELEMENT_USAGE_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}usage`;
 export const CONTENT_TRANSFORM = `${KITE9_CSS_PROPERTY_PREFIX}transform`;
-export const ELEMENT_SIZING_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}sizing`;
-export const ELEMENT_HORIZONTAL_SIZING_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}horizontal-sizing`;
-export const ELEMENT_VERTICAL_SIZING_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}vertical-sizing`;
 
 export const LAYOUT_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}layout`;
-
-/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
-export const GRID_OCCUPIES_X_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies-x`;
-/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
-export const GRID_OCCUPIES_Y_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies-y`;
-/** @deprecated Prefer CSS `grid-template-rows`. */
-export const GRID_ROWS_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-rows`;
-/** @deprecated Prefer CSS `grid-template-columns`. */
-export const GRID_COLUMNS_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-columns`;
-/** @deprecated Prefer CSS `grid-template-columns` / `grid-template-rows`. */
-export const GRID_SIZE_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}grid-size`;
-/** @deprecated Prefer CSS `grid-column` / `grid-row`. */
-export const GRID_OCCUPIES_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}occupies`;
 
 export const KITE9_CSS_TRAVERSAL_PROPERTY_PREFIX = `${KITE9_CSS_PROPERTY_PREFIX}traversal-`;
 export const TRAVERSAL_PROPERTY = `${KITE9_CSS_PROPERTY_PREFIX}traversal`;
@@ -46,49 +27,17 @@ export const PORT_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}port-position`;
 
 export const MARKER_RESERVE = `${KITE9_CSS_PROPERTY_PREFIX}marker-reserve`;
 
-/** @deprecated Prefer CSS `align-self` / `place-self`. */
-export const VERTICAL_ALIGN_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}vertical-align-position`;
-/** @deprecated Prefer CSS `justify-self` / `place-self`. */
-export const HORIZONTAL_ALIGN_POSITION = `${KITE9_CSS_PROPERTY_PREFIX}horizontal-align-position`;
-
-/** @deprecated Prefer CSS `align-self` / `align-items`. */
-export const VERTICAL_ALIGNMENT = `${KITE9_CSS_PROPERTY_PREFIX}vertical-align`;
-/** @deprecated Prefer CSS `justify-self` / `justify-items`. */
-export const HORIZONTAL_ALIGNMENT = `${KITE9_CSS_PROPERTY_PREFIX}horizontal-align`;
-
 export const LINK_INSET = `${KITE9_CSS_PROPERTY_PREFIX}link-inset`;
 export const LINK_GUTTER = `${KITE9_CSS_PROPERTY_PREFIX}link-gutter`;
 export const LINK_MINIMUM_LENGTH = `${KITE9_CSS_PROPERTY_PREFIX}link-minimum-length`;
 export const LINK_CORNER_RADIUS = `${KITE9_CSS_PROPERTY_PREFIX}link-corner-radius`;
-
-export const RECT_MINIMUM_SIZE = `${KITE9_CSS_PROPERTY_PREFIX}min-${SIZE}`;
-export const RECT_MINIMUM_WIDTH = `${KITE9_CSS_PROPERTY_PREFIX}min-${WIDTH}`;
-export const RECT_MINIMUM_HEIGHT = `${KITE9_CSS_PROPERTY_PREFIX}min-${HEIGHT}`;
-
-export const LINK_FROM_XPATH = `${KITE9_CSS_PROPERTY_PREFIX}link-from-xpath`;
-export const LINK_TO_XPATH = `${KITE9_CSS_PROPERTY_PREFIX}link-to-xpath`;
-export const LINK_END = `${KITE9_CSS_PROPERTY_PREFIX}link-end`;
-
-export const TEXT_BOUNDS_SIZE = `${KITE9_CSS_PROPERTY_PREFIX}text-bounds-${SIZE}`;
-export const TEXT_BOUNDS_WIDTH = `${KITE9_CSS_PROPERTY_PREFIX}text-bounds-${WIDTH}`;
-export const TEXT_BOUNDS_HEIGHT = `${KITE9_CSS_PROPERTY_PREFIX}text-bounds-${HEIGHT}`;
-export const TEXT_ALIGN = "text-align";
 
 /** All registered Kite9 custom property names (for iteration / tests). */
 export const KITE9_CUSTOM_PROPERTIES: readonly string[] = [
   ELEMENT_TYPE_PROPERTY,
   ELEMENT_USAGE_PROPERTY,
   CONTENT_TRANSFORM,
-  ELEMENT_SIZING_PROPERTY,
-  ELEMENT_HORIZONTAL_SIZING_PROPERTY,
-  ELEMENT_VERTICAL_SIZING_PROPERTY,
   LAYOUT_PROPERTY,
-  GRID_OCCUPIES_X_PROPERTY,
-  GRID_OCCUPIES_Y_PROPERTY,
-  GRID_ROWS_PROPERTY,
-  GRID_COLUMNS_PROPERTY,
-  GRID_SIZE_PROPERTY,
-  GRID_OCCUPIES_PROPERTY,
   TRAVERSAL_PROPERTY,
   TRAVERSAL_BOTTOM_PROPERTY,
   TRAVERSAL_TOP_PROPERTY,
@@ -98,21 +47,8 @@ export const KITE9_CUSTOM_PROPERTIES: readonly string[] = [
   DIRECTION,
   PORT_POSITION,
   MARKER_RESERVE,
-  VERTICAL_ALIGN_POSITION,
-  HORIZONTAL_ALIGN_POSITION,
-  VERTICAL_ALIGNMENT,
-  HORIZONTAL_ALIGNMENT,
   LINK_INSET,
   LINK_GUTTER,
   LINK_MINIMUM_LENGTH,
   LINK_CORNER_RADIUS,
-  RECT_MINIMUM_SIZE,
-  RECT_MINIMUM_WIDTH,
-  RECT_MINIMUM_HEIGHT,
-  LINK_FROM_XPATH,
-  LINK_TO_XPATH,
-  LINK_END,
-  TEXT_BOUNDS_SIZE,
-  TEXT_BOUNDS_WIDTH,
-  TEXT_BOUNDS_HEIGHT,
 ];

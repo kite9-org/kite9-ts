@@ -40,7 +40,7 @@ export interface CommandContext {
   
   getStyleValue(e: Element | null | undefined, name: string): string | null;
   
-  /** Parse `--kite9-occupies-*` style values like `"1 1"`. */
+  /** Parse a space-separated integer range style value like `"1 1"`. */
   getStyleRangeValue(el: Element, name: string): IntegerRange | null;
   
   /** If `value` is null, removes the property. */

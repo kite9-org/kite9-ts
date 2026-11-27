@@ -15,10 +15,12 @@ export type RenderHtmlFn = (host: Element, shadow: ShadowRoot) => void;
 /**
  * Paint into the SVG scene under a link `<g>`
  * (connection path, hit-boxes, etc.).
+ * `host` is the light-DOM link — source of end/decoration markup.
  */
 export type RenderSvgFn = (
   parent: SVGGElement,
   layout: ConnectionRenderLayout,
+  host: Element,
 ) => void;
 
 /**

@@ -12,10 +12,12 @@ export type ConnectionRenderLayout = {
   fromPoint: Point2D;
   /** To-end tip (terminator / marker). */
   toPoint: Point2D;
-  /** Decoration style at the from end (`ARROW` / `NONE`) — drives `marker-start`. */
-  fromStyle: string;
-  /** Decoration style at the to end — drives `marker-end`. */
-  toStyle: string;
+  /**
+   * Optional decoration styles — prefer reading from the link host in
+   * {@link RenderSvgFn}. Kept for callers that already resolved styles.
+   */
+  fromStyle?: string;
+  toStyle?: string;
 };
 
 /** Terminator pose + decoration style at a link end (hit-box + marker def). */

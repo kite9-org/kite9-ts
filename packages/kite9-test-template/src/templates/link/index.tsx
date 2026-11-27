@@ -9,7 +9,11 @@ import {
 import { render } from "preact";
 import { METROPOLIS_FACE } from "../../fonts/metropolis.js";
 import styles from "./styles.css?inline";
-import { markerId, TerminatorHit } from "../terminator/index.js";
+import {
+  ensureMarkerDef,
+  markerId,
+  TerminatorHit,
+} from "../terminator/index.js";
 
 /** Links paint into an SVG layer; HTML host chrome is a minimal marker. */
 export const LINK_STYLES = METROPOLIS_FACE + styles;
@@ -43,7 +47,30 @@ export const renderLinkChrome: RenderHtmlFn = (host, shadow) => {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-export type ConnectionSvgProps = ConnectionRenderLayout;
+function childByLocalName(host: Element, name: string): Element | undefined {
+  const want = name.toLowerCase();
+  return Array.from(host.children).find(
+    (c) => c.localName.toLowerCase() === want,
+  );
+}
+
+/** Decoration style from `<fromDecoration>` / `<toDecoration>` text (default NONE). */
+export function decorationStyleFromHost(
+  host: Element,
+  end: End,
+): string {
+  const tag = end === End.FROM ? "fromDecoration" : "toDecoration";
+  const el = childByLocalName(host, tag);
+  return (el?.textContent ?? "").replace(/\s+/g, " ").trim() || "NONE";
+}
+
+export type ConnectionSvgProps = Omit<
+  ConnectionRenderLayout,
+  "fromStyle" | "toStyle"
+> & {
+  fromStyle: string;
+  toStyle: string;
+};
 
 /**
  * SVG scene for a connection: path (with marker refs) + terminator hit-boxes.
@@ -76,9 +103,22 @@ export function ConnectionSvg({
 
 /**
  * Paint the connection into the links-layer link `<g>` (SVG scene).
- * Uses a dedicated mount child so Preact does not replace label siblings.
+ * Reads decoration styles from the light-DOM link host and ensures marker defs
+ * on the owning SVG. Uses a dedicated mount child so Preact does not replace
+ * label siblings.
  */
-export const renderSvg: RenderSvgFn = (parent, layout) => {
+export const renderSvg: RenderSvgFn = (parent, layout, host) => {
+  const fromStyle =
+    decorationStyleFromHost(host, End.FROM) || layout.fromStyle || "NONE";
+  const toStyle =
+    decorationStyleFromHost(host, End.TO) || layout.toStyle || "NONE";
+
+  const svg = parent.ownerSVGElement;
+  if (svg) {
+    ensureMarkerDef(svg, fromStyle, End.FROM);
+    ensureMarkerDef(svg, toStyle, End.TO);
+  }
+
   let mount = parent.querySelector(
     ":scope > [data-connection-mount]",
   ) as SVGGElement | null;
@@ -88,5 +128,15 @@ export const renderSvg: RenderSvgFn = (parent, layout) => {
     parent.appendChild(mount);
   }
 
-  render(<ConnectionSvg {...layout} />, mount);
+  render(
+    <ConnectionSvg
+      id={layout.id}
+      d={layout.d}
+      fromPoint={layout.fromPoint}
+      toPoint={layout.toPoint}
+      fromStyle={fromStyle}
+      toStyle={toStyle}
+    />,
+    mount,
+  );
 };

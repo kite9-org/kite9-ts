@@ -3,14 +3,10 @@ import {
   BorderTraversal,
   ConnectionsSeparation,
   ContentTransform,
-  DiagramElementSizing,
   DiagramElementType,
   Direction,
-  End,
-  HorizontalAlignment,
   Layout,
   RectangularElementUsage,
-  VerticalAlignment,
 } from "./enums.js";
 import { enumSyntax, toCssValue } from "./values.js";
 
@@ -38,14 +34,10 @@ export function kite9PropertyDefs(): CSSPropertyDef[] {
   const usageSyntax = enumSyntax(RectangularElementUsage);
   const layoutSyntax = enumSyntax(Layout, ["none"]);
   const transformSyntax = enumSyntax(ContentTransform);
-  const sizingSyntax = enumSyntax(DiagramElementSizing);
   const traversalSyntax = enumSyntax(BorderTraversal);
   const traversalSide = `${enumSyntax(BorderTraversal)} | none`;
   const connectionsSyntax = enumSyntax(ConnectionsSeparation);
-  const vAlign = enumSyntax(VerticalAlignment);
-  const hAlign = enumSyntax(HorizontalAlignment);
   const directionSyntax = enumSyntax(Direction, ["none"]);
-  const endSyntax = enumSyntax(End, ["none"]);
 
   return [
     {
@@ -69,24 +61,6 @@ export function kite9PropertyDefs(): CSSPropertyDef[] {
     },
 
     {
-      name: C.ELEMENT_HORIZONTAL_SIZING_PROPERTY,
-      syntax: sizingSyntax,
-      initialValue: lower(DiagramElementSizing.MINIMIZE),
-      inherits: false,
-    },
-    {
-      name: C.ELEMENT_VERTICAL_SIZING_PROPERTY,
-      syntax: sizingSyntax,
-      initialValue: lower(DiagramElementSizing.MINIMIZE),
-      inherits: false,
-    },
-
-    { name: C.GRID_OCCUPIES_X_PROPERTY, syntax: "<integer>+", initialValue: "0", inherits: false },
-    { name: C.GRID_OCCUPIES_Y_PROPERTY, syntax: "<integer>+", initialValue: "0", inherits: false },
-    { name: C.GRID_ROWS_PROPERTY, syntax: "<integer>", initialValue: "0", inherits: false },
-    { name: C.GRID_COLUMNS_PROPERTY, syntax: "<integer>", initialValue: "0", inherits: false },
-
-    {
       name: C.TRAVERSAL_PROPERTY,
       syntax: traversalSyntax,
       initialValue: lower(BorderTraversal.LEAVING),
@@ -104,31 +78,6 @@ export function kite9PropertyDefs(): CSSPropertyDef[] {
       inherits: false,
     },
 
-    {
-      name: C.VERTICAL_ALIGNMENT,
-      syntax: vAlign,
-      initialValue: lower(VerticalAlignment.CENTER),
-      inherits: false,
-    },
-    {
-      name: C.HORIZONTAL_ALIGNMENT,
-      syntax: hAlign,
-      initialValue: lower(HorizontalAlignment.CENTER),
-      inherits: false,
-    },
-    {
-      name: C.VERTICAL_ALIGN_POSITION,
-      syntax: "<length-percentage>",
-      initialValue: "50%",
-      inherits: false,
-    },
-    {
-      name: C.HORIZONTAL_ALIGN_POSITION,
-      syntax: "<length-percentage>",
-      initialValue: "50%",
-      inherits: false,
-    },
-
     { name: C.DIRECTION, syntax: directionSyntax, initialValue: "none", inherits: true },
 
     { name: C.LINK_INSET, syntax: "<length>", initialValue: "0", inherits: false },
@@ -136,29 +85,7 @@ export function kite9PropertyDefs(): CSSPropertyDef[] {
     { name: C.LINK_GUTTER, syntax: "<length>", initialValue: "0", inherits: false },
     { name: C.LINK_CORNER_RADIUS, syntax: "<length>", initialValue: "0", inherits: false },
 
-    {
-      name: C.LINK_FROM_XPATH,
-      syntax: "*",
-      initialValue: "\"descendant::*[@k9-elem='from']/@reference\"",
-      inherits: true,
-    },
-    {
-      name: C.LINK_TO_XPATH,
-      syntax: "*",
-      initialValue: "\"descendant::*[@k9-elem='to']/@reference\"",
-      inherits: true,
-    },
-    { name: C.LINK_END, syntax: endSyntax, initialValue: "none", inherits: false },
-
     { name: C.MARKER_RESERVE, syntax: "<length>", initialValue: "0", inherits: false },
-
-    { name: C.RECT_MINIMUM_SIZE, syntax: "<length>+", initialValue: "0 0", inherits: false },
-    { name: C.RECT_MINIMUM_WIDTH, syntax: "<length> | none", initialValue: "none", inherits: false },
-    { name: C.RECT_MINIMUM_HEIGHT, syntax: "<length> | none", initialValue: "none", inherits: false },
-
-    { name: C.TEXT_BOUNDS_SIZE, syntax: "<length>+", initialValue: "10000px 10000px", inherits: true },
-    { name: C.TEXT_BOUNDS_WIDTH, syntax: "<length>", initialValue: "10000px", inherits: true },
-    { name: C.TEXT_BOUNDS_HEIGHT, syntax: "<length>", initialValue: "10000px", inherits: true },
 
     { name: C.PORT_POSITION, syntax: "<length-percentage>", initialValue: "50%", inherits: false },
   ];
