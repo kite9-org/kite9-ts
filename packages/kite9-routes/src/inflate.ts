@@ -14,8 +14,9 @@ import type { RouteStep } from "./routing/ssp.js";
 import type { HubTerminal, TrackGraph } from "./track-graph.js";
 
 /**
- * Minimum inserted routing-lane width (px). Track is drawn at the lane centre,
- * so clearance from each neighbouring content-cell edge is ~half of this.
+ * Minimum inserted routing-lane width (px). Track is drawn / painted at the
+ * lane centre, so clearance from each neighbouring content-cell edge is ~half
+ * of this.
  */
 export const DEFAULT_LANE_PX = 40;
 
@@ -36,10 +37,9 @@ export type RoutedConnection = {
 
 /**
  * Maps pre-inflate seam `after` into the inflated grid.
- * - `*Edge`: grid-edge index for {@link GridVertex} (lane **centre** when used)
+ * - `*Edge`: grid-edge / track index for {@link GridVertex} (left of the
+ *   single inserted lane when used — paint uses that track’s **centre**)
  * - `*Px`: pixel position for debug draw (lane **centre** when used, else edge)
- *
- * Used seams insert two half-lanes so the centre is a real grid edge.
  */
 export type SeamRemap = {
   vEdge: Map<number, number>;
@@ -47,14 +47,6 @@ export type SeamRemap = {
   vPx: Map<number, number>;
   hPx: Map<number, number>;
 };
-
-/** Physical columns/rows inserted per used seam (two halves → centre edge). */
-const LANE_TRACKS = 2;
-
-function halfLaneSizes(px: number): [number, number] {
-  const a = Math.floor(px / 2);
-  return [a, px - a];
-}
 
 /** Bump rectangular placements after inserting `count` tracks at `after`. */
 function bumpPlacementsAfterInsert(
@@ -99,6 +91,9 @@ function edgeCoords(sizes: readonly number[]): number[] {
 /**
  * Insert used routing lanes into the grid (≥10px or route margin), renumber
  * placements, append hubs, write GridVertex routes.
+ *
+ * Each used seam inserts **one** column/row (the track channel). Paint treats
+ * `{xi}`/`{yi}` as that track’s centre line.
  */
 export function inflateLayout(
   graph: TrackGraph,
@@ -130,23 +125,20 @@ export function inflateLayout(
   }
 
   // Insert high→low so earlier indices stay stable while splicing.
-  // Two half-lanes per used seam → centre is a grid edge for {xi}/{yi}.
   const vInserts = [...usedV.entries()].sort((a, b) => b[0] - a[0]);
   for (const [after, px] of vInserts) {
-    const [left, right] = halfLaneSizes(px);
-    grid.colSizes.splice(after, 0, left, right);
-    grid.contentColSizes.splice(after, 0, left, right);
-    grid.contentCols += LANE_TRACKS;
-    bumpPlacementsAfterInsert(layout.placements, "col", after, LANE_TRACKS);
+    grid.colSizes.splice(after, 0, px);
+    grid.contentColSizes.splice(after, 0, px);
+    grid.contentCols += 1;
+    bumpPlacementsAfterInsert(layout.placements, "col", after, 1);
   }
 
   const hInserts = [...usedH.entries()].sort((a, b) => b[0] - a[0]);
   for (const [after, px] of hInserts) {
-    const [top, bottom] = halfLaneSizes(px);
-    grid.rowSizes.splice(after, 0, top, bottom);
-    grid.contentRowSizes.splice(after, 0, top, bottom);
-    grid.contentRows += LANE_TRACKS;
-    bumpPlacementsAfterInsert(layout.placements, "row", after, LANE_TRACKS);
+    grid.rowSizes.splice(after, 0, px);
+    grid.contentRowSizes.splice(after, 0, px);
+    grid.contentRows += 1;
+    bumpPlacementsAfterInsert(layout.placements, "row", after, 1);
   }
 
   const remap = buildSeamRemap(
@@ -252,8 +244,8 @@ function clearanceForSeam(
 }
 
 /**
- * Pre-inflate seam `after` → inflated edge index + draw pixel.
- * Used seams: two half-lanes; edge + pixel = lane **centre**.
+ * Pre-inflate seam `after` → inflated edge/track index + draw pixel.
+ * Used seams: one lane; edge = left of lane; pixel = lane centre.
  * Unused seams: edge = content boundary; pixel nudged **outward** by
  * half {@link DEFAULT_LANE_PX} so unused debug tracks stay off glyph borders.
  */
@@ -274,14 +266,13 @@ function buildSeamRemap(
   const vPx = new Map<number, number>();
   for (let after = 0; after <= originalCols; after++) {
     const before = vSorted.filter((a) => a < after).length;
-    // Left edge of this seam's slot (or content boundary if unused).
-    const leftEdge = after + before * LANE_TRACKS;
+    const leftEdge = after + before;
+    vEdge.set(after, leftEdge);
     if (usedV.has(after)) {
-      const centre = leftEdge + 1;
-      vEdge.set(after, centre);
-      vPx.set(after, xs[centre] ?? 0);
+      const left = xs[leftEdge] ?? 0;
+      const size = inflated.colSizes[leftEdge] ?? 0;
+      vPx.set(after, left + size / 2);
     } else {
-      vEdge.set(after, leftEdge);
       const edgePx =
         xs[Math.max(0, Math.min(leftEdge, xs.length - 1))] ?? 0;
       const outward =
@@ -294,13 +285,13 @@ function buildSeamRemap(
   const hPx = new Map<number, number>();
   for (let after = 0; after <= originalRows; after++) {
     const before = hSorted.filter((a) => a < after).length;
-    const topEdge = after + before * LANE_TRACKS;
+    const topEdge = after + before;
+    hEdge.set(after, topEdge);
     if (usedH.has(after)) {
-      const centre = topEdge + 1;
-      hEdge.set(after, centre);
-      hPx.set(after, ys[centre] ?? 0);
+      const top = ys[topEdge] ?? 0;
+      const size = inflated.rowSizes[topEdge] ?? 0;
+      hPx.set(after, top + size / 2);
     } else {
-      hEdge.set(after, topEdge);
       const edgePx =
         ys[Math.max(0, Math.min(topEdge, ys.length - 1))] ?? 0;
       const outward =

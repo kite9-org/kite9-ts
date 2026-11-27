@@ -115,7 +115,7 @@ export function routeConnectionsWithGraph(
     const ends = terminalsForConnected(graph, conn.getTo());
     const path = shortestPath(starts, ends);
     if (!path) continue;
-    markTracksUsed(path.steps, conn.getID());
+    markTracksUsed(path.steps, conn.getID(), path.start, path.end);
     routed.push({
       id: conn.getID(),
       start: path.start,

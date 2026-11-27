@@ -41,8 +41,10 @@ export type LayoutPlacement =
 /**
  * Target a single grid track. Paint moves perpendicular onto it from the
  * current point (hub or previous vertex).
- * - `{ xi }` — vertical edge index ∈ `0..colSizes.length`
- * - `{ yi }` — horizontal edge index ∈ `0..rowSizes.length`
+ * - `{ xi }` — column index ∈ `0..colSizes.length-1` (paint at **column centre**),
+ *   or `colSizes.length` for the rightmost edge
+ * - `{ yi }` — row index ∈ `0..rowSizes.length-1` (paint at **row centre**),
+ *   or `rowSizes.length` for the bottom edge
  */
 export type GridVertex =
   | { xi: number; yi?: never }

@@ -1,6 +1,9 @@
 /** Dijkstra successive-shortest-path over track intersections. */
 
-import type { Direction } from "@kite9/model";
+import {
+  isHorizontalDirection,
+  type Direction,
+} from "@kite9/model";
 import type { HubTerminal, Intersection, Track } from "../track-graph.js";
 
 export type RouteStep = {
@@ -113,23 +116,30 @@ export function shortestPath(
   return { steps, start: found.start, end: endHub };
 }
 
-/** Mark tracks used by a routed path. */
+/**
+ * Facing track at a hub: left/right sit on the vertical seam; up/down on the
+ * horizontal. Do not mark the unused cross-axis (e.g. top h-seam for a
+ * left↔right hop).
+ */
+function facingTrack(hub: HubTerminal, ix: Intersection): Track {
+  return isHorizontalDirection(hub.edge) ? ix.v : ix.h;
+}
+
+/** Mark tracks used by a routed path (travelled + facing terminal seams only). */
 export function markTracksUsed(
   steps: RouteStep[],
   connectionId: string,
+  start: HubTerminal,
+  end: HubTerminal,
 ): void {
   for (const s of steps) {
     if (s.along) s.along.usedBy.add(connectionId);
   }
-  // Also mark the terminal tracks (hub sits on both h and v of the intersection)
-  if (steps.length > 0) {
-    const first = steps[0]!;
-    first.intersection.h.usedBy.add(connectionId);
-    first.intersection.v.usedBy.add(connectionId);
-    const last = steps[steps.length - 1]!;
-    last.intersection.h.usedBy.add(connectionId);
-    last.intersection.v.usedBy.add(connectionId);
-  }
+  if (steps.length === 0) return;
+  facingTrack(start, steps[0]!.intersection).usedBy.add(connectionId);
+  facingTrack(end, steps[steps.length - 1]!.intersection).usedBy.add(
+    connectionId,
+  );
 }
 
 export type { Direction, Path };

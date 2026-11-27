@@ -69,24 +69,23 @@ describe("route-path", () => {
       gutter: 0,
       minCol: 40,
       minRow: 40,
-      contentColSizes: [100, 90, 100],
+      contentColSizes: [100, 40, 100],
       contentRowSizes: [70],
-      colSizes: [100, 90, 100],
+      colSizes: [100, 40, 100],
       rowSizes: [70],
     };
-    const xs = edgeCoords(grid.colSizes);
     const midY = 35;
+    // Hubs on either side of the mid routing lane; {xi:1} → lane centre (120).
     const start = { x: 90, y: midY };
-    const end = { x: 110, y: midY };
+    const end = { x: 150, y: midY };
     const pts = resolveRouteToPoints(grid, [{ xi: 1 }], start, end);
     expect(pts.length).toBeGreaterThanOrEqual(2);
     expect(pts[0]).toEqual(start);
     expect(pts[pts.length - 1]).toEqual(end);
-    // Colinear mid track point may be collapsed; the segment still crosses xs[1].
-    const trackX = xs[1]!;
-    expect(Math.min(start.x, end.x)).toBeLessThanOrEqual(trackX);
-    expect(Math.max(start.x, end.x)).toBeGreaterThanOrEqual(trackX);
-    // Entire polyline stays on midY (straight)
+    // Colinear mid may be simplified away; segment still crosses lane centre.
+    const laneCentre = 100 + 40 / 2;
+    expect(Math.min(start.x, end.x)).toBeLessThanOrEqual(laneCentre);
+    expect(Math.max(start.x, end.x)).toBeGreaterThanOrEqual(laneCentre);
     expect(pts.every((p) => p.y === midY)).toBe(true);
   });
 
@@ -98,17 +97,17 @@ describe("route-path", () => {
       minCol: 40,
       minRow: 40,
       contentColSizes: [100, 40, 100],
-      contentRowSizes: [20, 20, 60],
+      contentRowSizes: [40, 60],
       colSizes: [100, 40, 100],
-      rowSizes: [20, 20, 60],
+      rowSizes: [40, 60],
     };
-    // Leave vertical track at xi=1 (x=100), horizontal at yi=1 (y=20), then
-    // drop to a right-edge hub at (90, 70) — must elbow, not diagonal.
+    // Vertical lane xi=1 (centre x=120), horizontal lane yi=0 (centre y=20),
+    // then elbow to a right-edge hub — must stay orthogonal.
     const start = { x: 200, y: 70 };
     const end = { x: 90, y: 70 };
     const pts = resolveRouteToPoints(
       grid,
-      [{ xi: 1 }, { yi: 1 }, { xi: 1 }],
+      [{ xi: 1 }, { yi: 0 }, { xi: 1 }],
       start,
       end,
     );

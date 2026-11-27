@@ -114,7 +114,12 @@ export function hasYi(
   return "yi" in v && typeof (v as { yi?: number }).yi === "number";
 }
 
-/** Move `prev` perpendicular onto track `v`. */
+/**
+ * Move `prev` perpendicular onto track `v`.
+ * - `{xi}` with `0..colSizes.length-1` → **centre** of that column (routing lane)
+ * - `{xi}` with `colSizes.length` → rightmost grid edge
+ * - same for `{yi}` / rows
+ */
 export function applyVertex(
   grid: GridLayout,
   v: GridVertex,
@@ -124,9 +129,15 @@ export function applyVertex(
   const ys = edgeCoords(grid.rowSizes);
   if (hasXi(v)) {
     const xi = Math.max(0, Math.min(v.xi, xs.length - 1));
+    if (xi < grid.colSizes.length) {
+      return { x: xs[xi]! + grid.colSizes[xi]! / 2, y: prev.y };
+    }
     return { x: xs[xi]!, y: prev.y };
   }
   const yi = Math.max(0, Math.min(v.yi, ys.length - 1));
+  if (yi < grid.rowSizes.length) {
+    return { x: prev.x, y: ys[yi]! + grid.rowSizes[yi]! / 2 };
+  }
   return { x: prev.x, y: ys[yi]! };
 }
 
