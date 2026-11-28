@@ -76,6 +76,9 @@ importers:
         specifier: workspace:*
         version: link:../kite9-templating
     devDependencies:
+      '@kite9/preview':
+        specifier: workspace:*
+        version: link:../kite9-preview
       '@kite9/test-template':
         specifier: workspace:*
         version: link:../kite9-test-template
@@ -113,6 +116,9 @@ importers:
         specifier: workspace:*
         version: link:../kite9-ui
     devDependencies:
+      '@kite9/preview':
+        specifier: workspace:*
+        version: link:../kite9-preview
       '@kite9/templating':
         specifier: workspace:*
         version: link:../kite9-templating
@@ -212,6 +218,9 @@ importers:
         specifier: workspace:*
         version: link:../kite9-templating
     devDependencies:
+      '@kite9/preview':
+        specifier: workspace:*
+        version: link:../kite9-preview
       '@kite9/test-template':
         specifier: workspace:*
         version: link:../kite9-test-template
@@ -327,6 +336,9 @@ importers:
         specifier: workspace:*
         version: link:../kite9-ui
     devDependencies:
+      '@kite9/preview':
+        specifier: workspace:*
+        version: link:../kite9-preview
       '@kite9/templating':
         specifier: workspace:*
         version: link:../kite9-templating

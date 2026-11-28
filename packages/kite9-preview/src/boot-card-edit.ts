@@ -2,13 +2,16 @@ import { LocalCommandContext } from "@kite9/command";
 import type { LayoutData } from "@kite9/model";
 import { createDiagram } from "@kite9/templating";
 import {
+  mountCardDiagram,
+  testTemplatePack,
+  type CardDiagramOptions,
+} from "@kite9/test-template";
+import {
   AdjustableLayout,
   applyBehaviourPack,
   type Behaviour,
 } from "@kite9/ui";
-import { applyLayout } from "../apply-layout.js";
-import { testTemplatePack } from "../pack.js";
-import { mountCardDiagram, type CardDiagramOptions } from "./card-diagram.js";
+import { applyLayout } from "./apply-layout.js";
 
 export type BootCardEditOptions = CardDiagramOptions & {
   /** BehaviourPack id (default `"editable"`). */

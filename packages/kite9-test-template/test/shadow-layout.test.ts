@@ -1,6 +1,6 @@
 import { createDiagram } from "@kite9/templating";
 import { afterEach, describe, expect, it } from "vitest";
-import { applyLayout } from "../src/apply-layout.js";
+import { applyLayout } from "@kite9/preview";
 import { testTemplatePack } from "../src/pack.js";
 import { loadGridFixture, mountScene } from "./helpers.js";
 

@@ -1,0 +1,182 @@
+{
+  "grid": {
+    "contentCols": 5,
+    "contentRows": 1,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      67,
+      40,
+      55,
+      40,
+      75
+    ],
+    "contentRowSizes": [
+      85
+    ],
+    "colSizes": [
+      67,
+      40,
+      55,
+      40,
+      75
+    ],
+    "rowSizes": [
+      85
+    ]
+  },
+  "placements": [
+    {
+      "id": "left",
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "g",
+      "col": 3,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "right",
+      "col": 5,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "left__hub__left",
+      "onId": "left",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "left__hub__right",
+      "onId": "left",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "left__hub__up",
+      "onId": "left",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "left__hub__down",
+      "onId": "left",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "g__hub__left",
+      "onId": "g",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "g__hub__right",
+      "onId": "g",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "g__hub__up",
+      "onId": "g",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "g__hub__down",
+      "onId": "g",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "right__hub__left",
+      "onId": "right",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "right__hub__right",
+      "onId": "right",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "right__hub__up",
+      "onId": "right",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "right__hub__down",
+      "onId": "right",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "in",
+      "onId": "g",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "out",
+      "onId": "g",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l1": {
+      "startId": "left__hub__right",
+      "endId": "in",
+      "route": [
+        {
+          "xi": 1
+        }
+      ]
+    },
+    "l2": {
+      "startId": "out",
+      "endId": "right__hub__left",
+      "route": [
+        {
+          "xi": 3
+        }
+      ]
+    }
+  }
+}

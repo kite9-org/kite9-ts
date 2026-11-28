@@ -86,6 +86,10 @@ export function createBehaviourE2eViteConfig(
           replacement: path.resolve(testTemplateRoot, "src/index.ts"),
         },
         {
+          find: "@kite9/preview",
+          replacement: path.resolve(packagesRoot, "kite9-preview/src/index.ts"),
+        },
+        {
           find: "@kite9/ui",
           replacement: path.resolve(packagesRoot, "kite9-ui/src/index.ts"),
         },

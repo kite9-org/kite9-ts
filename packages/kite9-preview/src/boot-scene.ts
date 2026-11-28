@@ -1,8 +1,9 @@
 import { LocalCommandContext } from "@kite9/command";
 import type { LayoutData } from "@kite9/model";
 import { createDiagram, serializeDiagram } from "@kite9/templating";
-import { applyLayout, testTemplatePack } from "@kite9/test-template";
+import { testTemplatePack } from "@kite9/test-template";
 import { AdjustableLayout, applyBehaviourPack } from "@kite9/ui";
+import { applyLayout } from "./apply-layout.js";
 import { editablePack } from "./editable-pack.js";
 
 /**

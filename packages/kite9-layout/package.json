@@ -35,6 +35,7 @@
     "@kite9/ui": "workspace:*"
   },
   "devDependencies": {
+    "@kite9/preview": "workspace:*",
     "@kite9/templating": "workspace:*",
     "@kite9/test-template": "workspace:*",
     "@playwright/test": "catalog:",

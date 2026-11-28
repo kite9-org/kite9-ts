@@ -1,6 +1,6 @@
 # `@kite9/preview`
 
-Scene demos + functional test results in one Vite app.
+Scene demos + functional test results in one Vite app. Also owns `applyLayout` (paint `LayoutData` onto a diagram) and `bootCardEditScene` for behaviour e2e.
 
 ```bash
 pnpm --filter @kite9/preview start

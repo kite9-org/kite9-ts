@@ -61,7 +61,7 @@ flowchart TB
 
 ## Layout data (`src/layout.ts`)
 
-**`LayoutData`** is the serializable arrangement of a diagram: grid tracks, element placements, and link routes. Fixtures and layout algorithms produce it; renderers (e.g. `@kite9/test-template` `applyLayout`) consume it.
+**`LayoutData`** is the serializable arrangement of a diagram: grid tracks, element placements, and link routes. Fixtures and layout algorithms produce it; renderers (e.g. `@kite9/preview` `applyLayout`) consume it.
 
 ```mermaid
 flowchart LR

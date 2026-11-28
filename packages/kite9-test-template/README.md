@@ -16,12 +16,12 @@ pnpm --filter @kite9/preview start
 | `src/fixtures/card-diagram.tsx` | Canonical card light-DOM markup (`mountCardDiagram`) |
 | `src/fixtures/simple-diagram.tsx` | Two glyphs + arrow (`mountSimpleDiagram`, Test02) |
 | `src/fixtures/empty-diagram.tsx` | Canonical empty light-DOM markup (`mountEmptyDiagram`) |
-| `src/fixtures/boot-card-edit.ts` | Card + behaviours boot for e2e |
 | `src/templates/` | Per-tag chrome (`index.tsx` + `styles.css`) |
 | `src/pack.ts` | `testTemplatePack` — tag → type + HTML / SVG / defs painters |
-| `src/apply-layout.ts` | `applyLayout` — paint grid + routes onto a scene |
 | `test/model-from-html.test.ts` | HTML light DOM → model JSON |
 | `test/shadow-layout.test.ts` | HTML + grid → shadow chrome + layout |
+
+Layout paint (`applyLayout`) and card e2e boot (`bootCardEditScene`) live in `@kite9/preview`.
 
 Tag coverage (`card`): `kite9-diagram`, `kite9-glyph`, `kite9-container`, `kite9-arrow`, `kite9-key`, `kite9-link`, `kite9-from-label` / `kite9-to-label`, `kite9-socket`. Host `label` attributes are chrome-only, not model `Label`s.
 
@@ -29,7 +29,7 @@ Tag coverage (`card`): `kite9-diagram`, `kite9-glyph`, `kite9-container`, `kite9
 
 Shared harness (no HTML files in behaviour packages):
 
-1. `bootCardEditScene` + `markCardEditReady` — mount card, paint, layout, apply behaviours
+1. `@kite9/preview` — `bootCardEditScene` + `markCardEditReady`
 2. `@kite9/test-template/e2e` — `openCardEdit` (optional `query`, e.g. `behaviours=…`)
 3. `@kite9/test-template/e2e/vite` — `createBehaviourE2eViteConfig` serves virtual `/e2e`
 

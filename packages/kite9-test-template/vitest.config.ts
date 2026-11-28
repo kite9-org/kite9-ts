@@ -15,6 +15,10 @@ export default defineConfig({
         packagesDir,
         "kite9-templating/src/index.ts",
       ),
+      "@kite9/preview": path.resolve(packagesDir, "kite9-preview/src/index.ts"),
+      "@kite9/ui": path.resolve(packagesDir, "kite9-ui/src/index.ts"),
+      "@kite9/command": path.resolve(packagesDir, "kite9-command/src/index.ts"),
+      "@kite9/test-template": path.resolve(rootDir, "src/index.ts"),
     },
   },
   test: {

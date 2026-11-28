@@ -70,6 +70,10 @@ export default defineConfig({
         replacement: path.resolve(packages, "kite9-test-template/src/index.ts"),
       },
       {
+        find: "@kite9/preview",
+        replacement: path.resolve(packages, "kite9-preview/src/index.ts"),
+      },
+      {
         find: "@kite9/templating",
         replacement: path.resolve(packages, "kite9-templating/src/index.ts"),
       },

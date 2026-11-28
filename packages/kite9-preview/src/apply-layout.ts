@@ -19,7 +19,7 @@ import {
   edgeCoords,
 } from "@kite9/ui";
 import { localTag, type TemplatePack } from "@kite9/templating";
-import { testTemplatePack } from "./pack.js";
+import { testTemplatePack } from "@kite9/test-template";
 
 export type { AdjustableLayout, LayoutData, LayoutPlacement, Size };
 
@@ -157,6 +157,9 @@ function placeNestedInAncestor(
       : { top: 0, right: 0, bottom: 0, left: 0 };
   if (el.localName === "kite9-container" && !placement.size) {
     // Structural frames fill the cell so absolute children stay in cell space.
+    // Clear host padding — pad tracks already provide the inset; keeping CSS
+    // padding would shift the absolute containing block inward.
+    el.style.padding = "0";
     el.style.width = `${Math.max(0, selfRect.w - m.left - m.right)}px`;
     el.style.height = `${Math.max(0, selfRect.h - m.top - m.bottom)}px`;
     el.style.left = `${selfRect.x - parentRect.x + m.left}px`;
@@ -515,6 +518,9 @@ export function applyLayout(
           margin: placement.margin,
           keepMargins: keepMargins && !isContainer,
         });
+        // Pad tracks already encode container padding — clear host padding so
+        // the card fills the cell and absolute kids share cell coordinates.
+        if (isContainer) el.style.padding = "0";
       } else {
         placeNestedInAncestor(el, placement, adj, diagram);
       }

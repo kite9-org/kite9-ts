@@ -1,7 +1,8 @@
 /** Chromium boot for `@kite9/grid` functional tests. */
 
 import { createDiagram } from "@kite9/templating";
-import { applyLayout, testTemplatePack } from "@kite9/test-template";
+import { applyLayout } from "@kite9/preview";
+import { testTemplatePack } from "@kite9/test-template";
 import type { FunctionalLayoutRun } from "@kite9/test-template/functional/functional-layout-run.ts";
 import {
   defaultLayoutChecks,

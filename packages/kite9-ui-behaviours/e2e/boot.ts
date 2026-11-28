@@ -1,8 +1,5 @@
 import type { LayoutData } from "@kite9/model";
-import {
-  bootCardEditScene,
-  markCardEditReady,
-} from "@kite9/test-template";
+import { bootCardEditScene, markCardEditReady } from "@kite9/preview";
 import cardLayout from "@kite9/test-template/fixtures/grid/card.json";
 import type { Behaviour } from "@kite9/ui";
 import {

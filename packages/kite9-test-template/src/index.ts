@@ -1,14 +1,6 @@
 export { testTemplatePack } from "./pack.js";
 export * from "./templates/index.js";
 export {
-  applyLayout,
-  type AdjustableLayout,
-  type LayoutData,
-  type LayoutPlacement,
-  type LayoutSource,
-  type Size,
-} from "./apply-layout.js";
-export {
   CardDiagram,
   createCardDiagram,
   mountCardDiagram,
@@ -26,8 +18,3 @@ export {
   mountSimpleDiagram,
   type SimpleDiagramOptions,
 } from "./fixtures/simple-diagram.js";
-export {
-  bootCardEditScene,
-  markCardEditReady,
-  type BootCardEditOptions,
-} from "./fixtures/boot-card-edit.js";

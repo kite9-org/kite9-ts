@@ -1,7 +1,8 @@
 /** Chromium boot for functional layout: measure + arrange in a real browser. */
 
 import { createDiagram } from "@kite9/templating";
-import { applyLayout, testTemplatePack } from "@kite9/test-template";
+import { applyLayout } from "@kite9/preview";
+import { testTemplatePack } from "@kite9/test-template";
 import { DomElementSizer, layout } from "@kite9/layout";
 import {
   drawCompactionPng,

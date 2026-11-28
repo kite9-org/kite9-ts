@@ -9,3 +9,4 @@ Diagram Element Factory should go?  -- All elements involved in connections shou
 fanning
 Type Guards stuff.
 Callbacks for setting route / building the diagram.
+Code smell in apply-layout (moved to @kite9/preview; still tags kite9-container).
