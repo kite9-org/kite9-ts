@@ -1,0 +1,392 @@
+{
+  "grid": {
+    "contentCols": 8,
+    "contentRows": 8,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      70,
+      40,
+      10,
+      12,
+      40,
+      60,
+      12,
+      10
+    ],
+    "contentRowSizes": [
+      73,
+      12,
+      61,
+      61,
+      61,
+      61,
+      12,
+      10
+    ],
+    "colSizes": [
+      70,
+      40,
+      10,
+      12,
+      40,
+      60,
+      12,
+      10
+    ],
+    "rowSizes": [
+      73,
+      12,
+      61,
+      61,
+      61,
+      61,
+      12,
+      10
+    ]
+  },
+  "placements": [
+    {
+      "id": "hub",
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "t0",
+      "col": 6,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "t1",
+      "col": 6,
+      "row": 4,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "t2",
+      "col": 6,
+      "row": 5,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "t3",
+      "col": 6,
+      "row": 6,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "box",
+      "col": 4,
+      "row": 2,
+      "colEnd": 7,
+      "rowEnd": 7
+    },
+    {
+      "id": "hub__hub__left",
+      "onId": "hub",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "hub__hub__right",
+      "onId": "hub",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "hub__hub__up",
+      "onId": "hub",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "hub__hub__down",
+      "onId": "hub",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t0__hub__left",
+      "onId": "t0",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t0__hub__right",
+      "onId": "t0",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t0__hub__up",
+      "onId": "t0",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t0__hub__down",
+      "onId": "t0",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t1__hub__left",
+      "onId": "t1",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t1__hub__right",
+      "onId": "t1",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t1__hub__up",
+      "onId": "t1",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t1__hub__down",
+      "onId": "t1",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t2__hub__left",
+      "onId": "t2",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t2__hub__right",
+      "onId": "t2",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t2__hub__up",
+      "onId": "t2",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t2__hub__down",
+      "onId": "t2",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t3__hub__left",
+      "onId": "t3",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t3__hub__right",
+      "onId": "t3",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t3__hub__up",
+      "onId": "t3",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "t3__hub__down",
+      "onId": "t3",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "box__hub__left",
+      "onId": "box",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "box__hub__right",
+      "onId": "box",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "box__hub__up",
+      "onId": "box",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "box__hub__down",
+      "onId": "box",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "p",
+      "onId": "hub",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l0": {
+      "startId": "p",
+      "endId": "t0__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    },
+    "l1": {
+      "startId": "p",
+      "endId": "t1__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "yi": 3
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    },
+    "l2": {
+      "startId": "p",
+      "endId": "t2__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "yi": 3
+        },
+        {
+          "yi": 4
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    },
+    "l3": {
+      "startId": "p",
+      "endId": "t3__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "yi": 3
+        },
+        {
+          "yi": 4
+        },
+        {
+          "yi": 5
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    }
+  }
+}

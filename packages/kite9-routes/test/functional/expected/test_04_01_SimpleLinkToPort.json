@@ -11,7 +11,7 @@
       73
     ],
     "contentRowSizes": [
-      78
+      73
     ],
     "colSizes": [
       72,
@@ -19,7 +19,7 @@
       73
     ],
     "rowSizes": [
-      78
+      73
     ]
   },
   "placements": [
@@ -44,6 +44,62 @@
         "bottom": 10,
         "left": 10
       }
+    },
+    {
+      "id": "One__hub__left",
+      "onId": "One",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__right",
+      "onId": "One",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__up",
+      "onId": "One",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__down",
+      "onId": "One",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__left",
+      "onId": "Two",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__right",
+      "onId": "Two",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__up",
+      "onId": "Two",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__down",
+      "onId": "Two",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
     },
     {
       "id": "port1",

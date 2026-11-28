@@ -113,6 +113,20 @@ window.__runFunctionalLayout = (
           vId: i.v.id,
         };
       }
+      // Stub×stub: both axes are stubs — place at remapped hub midlines.
+      if (i.h.kind === "stub" && i.v.kind === "stub") {
+        const hOwner = graph.hubs.find((h) => h.stub === i.h);
+        const vOwner = graph.hubs.find((h) => h.stub === i.v);
+        return {
+          id: i.id,
+          x: (vOwner && hubPts.get(vOwner.id)?.x) ?? i.x,
+          y: (hOwner && hubPts.get(hOwner.id)?.y) ?? i.y,
+          vAfter: -1,
+          hAfter: -1,
+          hId: i.h.id,
+          vId: i.v.id,
+        };
+      }
       return {
         id: i.id,
         x: remap.vPx.get(i.v.after) ?? i.x,
@@ -167,11 +181,21 @@ window.__runFunctionalLayout = (
 
   const stubTracks = graph.hubs.flatMap((hub) => {
     const pt = hubPts.get(hub.id)!;
-    const main = facingMain(hub);
+    // Span hub → farthest stub intersection (propagation may extend past facing seam).
+    const onStub = graph.intersections.filter(
+      (i) => i.h === hub.stub || i.v === hub.stub,
+    );
     if (isHorizontalDirection(hub.edge)) {
-      const jx = remap.vPx.get(main.after) ?? hub.intersection.x;
-      const lo = Math.min(pt.x, jx);
-      const hi = Math.max(pt.x, jx);
+      let lo = pt.x;
+      let hi = pt.x;
+      for (const i of onStub) {
+        const px =
+          i.v.kind !== "stub" && i.v.after >= 0
+            ? (remap.vPx.get(i.v.after) ?? i.x)
+            : i.x;
+        lo = Math.min(lo, px);
+        hi = Math.max(hi, px);
+      }
       if (hi - lo < 0.5) return [];
       return [
         {
@@ -185,9 +209,16 @@ window.__runFunctionalLayout = (
         },
       ];
     }
-    const jy = remap.hPx.get(main.after) ?? hub.intersection.y;
-    const lo = Math.min(pt.y, jy);
-    const hi = Math.max(pt.y, jy);
+    let lo = pt.y;
+    let hi = pt.y;
+    for (const i of onStub) {
+      const py =
+        i.h.kind !== "stub" && i.h.after >= 0
+          ? (remap.hPx.get(i.h.after) ?? i.y)
+          : i.y;
+      lo = Math.min(lo, py);
+      hi = Math.max(hi, py);
+    }
     if (hi - lo < 0.5) return [];
     return [
       {

@@ -27,6 +27,13 @@ import {
   type Temporary,
   gridContainerPosition,
 } from "@kite9/model";
+import {
+  TRAVERSAL_BOTTOM_PROPERTY,
+  TRAVERSAL_LEFT_PROPERTY,
+  TRAVERSAL_PROPERTY,
+  TRAVERSAL_RIGHT_PROPERTY,
+  TRAVERSAL_TOP_PROPERTY,
+} from "@kite9/css";
 import { createRectangleRI, createRouteRI, StubDimension2D } from "./rendering-stubs.js";
 import {
   localTag,
@@ -66,6 +73,11 @@ function parseDirection(raw: string | null): Direction | null {
   if (!raw) return null;
   const key = raw.trim().toUpperCase().replace(/-/g, "_");
   return (Direction as Record<string, Direction>)[key] ?? null;
+}
+
+function parseBorderTraversal(raw: string): BorderTraversal | null {
+  const key = raw.trim().toUpperCase();
+  return (BorderTraversal as Record<string, BorderTraversal>)[key] ?? null;
 }
 
 /** Count tracks in a computed `grid-template-*` value (`none` / `auto` → 0). */
@@ -229,8 +241,22 @@ export class RectangularAdapter extends BaseElement implements Rectangular, Conn
     this.temporary.push(t);
   }
 
-  getTraversalRule(_d: Direction): BorderTraversal {
-    return BorderTraversal.LEAVING;
+  getTraversalRule(d: Direction): BorderTraversal {
+    const cs = getComputedStyle(this.el as Element);
+    const sideProp =
+      d === Direction.UP
+        ? TRAVERSAL_TOP_PROPERTY
+        : d === Direction.DOWN
+          ? TRAVERSAL_BOTTOM_PROPERTY
+          : d === Direction.LEFT
+            ? TRAVERSAL_LEFT_PROPERTY
+            : TRAVERSAL_RIGHT_PROPERTY;
+    const sideRaw = cs.getPropertyValue(sideProp).trim().toLowerCase();
+    if (sideRaw && sideRaw !== "none") {
+      return parseBorderTraversal(sideRaw) ?? BorderTraversal.LEAVING;
+    }
+    const mainRaw = cs.getPropertyValue(TRAVERSAL_PROPERTY).trim().toLowerCase();
+    return parseBorderTraversal(mainRaw) ?? BorderTraversal.LEAVING;
   }
 
   getLayout(): Layout | null {

@@ -11,6 +11,12 @@ import {
   type Rectangular,
   type RectangularConnectedLayoutPlacement,
 } from "@kite9/model";
+import {
+  buildTraversalTables,
+  canTraverseHorizontal,
+  canTraverseVertical,
+  type TraversalTables,
+} from "./traversal-tables.js";
 
 export type TrackAxis = "h" | "v";
 
@@ -284,7 +290,7 @@ export function buildTrackGraph(
     hubs: [],
     rects,
   };
-  attachAllHubs(graph);
+  attachAllHubs(graph, diagram);
   return graph;
 }
 
@@ -508,9 +514,9 @@ export function hubsOnRectangular(
 
 /**
  * Create left/right/up/down hubs for every rectangular, with stub spurs to the
- * facing main seams. Rewires neighbour lists so T-junctions sit on the graph.
+ * facing main seams. Propagate stubs through traversable cells, then rewire.
  */
-function attachAllHubs(graph: TrackGraph): void {
+function attachAllHubs(graph: TrackGraph, diagram: Diagram): void {
   const hubs: HubTerminal[] = [];
   for (const rect of graph.rects.values()) {
     for (const edge of [
@@ -524,7 +530,307 @@ function attachAllHubs(graph: TrackGraph): void {
     }
   }
   graph.hubs = hubs;
+  const tables = buildTraversalTables(diagram, graph.layout);
+  const cellsByHub = propagateStubs(graph, tables);
+  intersectOrthogonalPropagatedStubs(graph, cellsByHub);
   wireIntersectionNeighbours(graph.intersections);
+  linkColocatedStubJunctions(graph.intersections);
+}
+
+/** Content row (1-based) under a left/right hub’s along%. */
+function hubContentRow(
+  rect: RectangularConnectedLayoutPlacement,
+  along: number,
+): number {
+  const r0 = rect.row;
+  const r1 = rect.rowEnd ?? rect.row;
+  const frac = r0 - 1 + (along / 100) * (r1 - r0 + 1);
+  return Math.min(r1, Math.max(r0, Math.floor(frac) + 1));
+}
+
+/** Content col (1-based) under an up/down hub’s along%. */
+function hubContentCol(
+  rect: RectangularConnectedLayoutPlacement,
+  along: number,
+): number {
+  const c0 = rect.col;
+  const c1 = rect.colEnd ?? rect.col;
+  const frac = c0 - 1 + (along / 100) * (c1 - c0 + 1);
+  return Math.min(c1, Math.max(c0, Math.floor(frac) + 1));
+}
+
+function addStubCrossing(
+  graph: TrackGraph,
+  hub: HubTerminal,
+  main: Track,
+  alongKeyH: number,
+  alongKeyV: number,
+  x: number,
+  y: number,
+): void {
+  const stub = hub.stub;
+  const already = graph.intersections.some(
+    (i) =>
+      (stub.axis === "h" ? i.h === stub && i.v === main : i.v === stub && i.h === main) &&
+      Math.abs(i.alongKeyH - alongKeyH) < 1e-9 &&
+      Math.abs(i.alongKeyV - alongKeyV) < 1e-9,
+  );
+  if (already) return;
+
+  const hTrack = stub.axis === "h" ? stub : main;
+  const vTrack = stub.axis === "v" ? stub : main;
+  graph.intersections.push({
+    id: `${hub.id}|${main.id}|${alongKeyH},${alongKeyV}`,
+    h: hTrack,
+    v: vTrack,
+    alongH: [],
+    alongV: [],
+    alongKeyV,
+    alongKeyH,
+    x,
+    y,
+  });
+}
+
+function vTracksAt(graph: TrackGraph, after: number, alongRow: number): Track[] {
+  return graph.tracks.filter(
+    (t) =>
+      t.axis === "v" &&
+      t.after === after &&
+      t.kind !== "stub" &&
+      trackCoversAlong(t, alongRow),
+  );
+}
+
+function hTracksAt(graph: TrackGraph, after: number, alongCol: number): Track[] {
+  return graph.tracks.filter(
+    (t) =>
+      t.axis === "h" &&
+      t.after === after &&
+      t.kind !== "stub" &&
+      trackCoversAlong(t, alongCol),
+  );
+}
+
+function cellKey(col: number, row: number): string {
+  return `${col},${row}`;
+}
+
+/**
+ * Extend each hub stub through traversable cells, adding intersections with
+ * every perpendicular main track crossed. Returns the content cells each stub
+ * entered (for orthogonal stub×stub crossings).
+ */
+export function propagateStubs(
+  graph: TrackGraph,
+  tables: TraversalTables,
+): Map<HubTerminal, Set<string>> {
+  const { contentCols, contentRows } = graph.layout.grid;
+  const xs = edgeCoords(graph.layout.grid.colSizes);
+  const ys = edgeCoords(graph.layout.grid.rowSizes);
+  const cellsByHub = new Map<HubTerminal, Set<string>>();
+
+  const mark = (hub: HubTerminal, col: number, row: number) => {
+    let set = cellsByHub.get(hub);
+    if (!set) {
+      set = new Set();
+      cellsByHub.set(hub, set);
+    }
+    set.add(cellKey(col, row));
+  };
+
+  for (const hub of graph.hubs) {
+    const rect = graph.rects.get(hub.onId);
+    if (!rect) continue;
+    const alongKeyV = hub.intersection.alongKeyV;
+    const alongKeyH = hub.intersection.alongKeyH;
+
+    switch (hub.edge) {
+      case Direction.RIGHT: {
+        const row = hubContentRow(rect, hub.along);
+        const c1 = rect.colEnd ?? rect.col;
+        for (let col = c1 + 1; col <= contentCols; col++) {
+          if (!canTraverseHorizontal(tables, col, row)) break;
+          mark(hub, col, row);
+          const after = col;
+          for (const main of vTracksAt(graph, after, row)) {
+            addStubCrossing(
+              graph,
+              hub,
+              main,
+              after,
+              alongKeyV,
+              xs[after] ?? hub.intersection.x,
+              hub.y,
+            );
+          }
+        }
+        break;
+      }
+      case Direction.LEFT: {
+        const row = hubContentRow(rect, hub.along);
+        const c0 = rect.col;
+        for (let col = c0 - 1; col >= 1; col--) {
+          if (!canTraverseHorizontal(tables, col, row)) break;
+          mark(hub, col, row);
+          const after = col - 1;
+          for (const main of vTracksAt(graph, after, row)) {
+            addStubCrossing(
+              graph,
+              hub,
+              main,
+              after,
+              alongKeyV,
+              xs[after] ?? hub.intersection.x,
+              hub.y,
+            );
+          }
+        }
+        break;
+      }
+      case Direction.DOWN: {
+        const col = hubContentCol(rect, hub.along);
+        const r1 = rect.rowEnd ?? rect.row;
+        for (let row = r1 + 1; row <= contentRows; row++) {
+          if (!canTraverseVertical(tables, col, row)) break;
+          mark(hub, col, row);
+          const after = row;
+          for (const main of hTracksAt(graph, after, col)) {
+            addStubCrossing(
+              graph,
+              hub,
+              main,
+              alongKeyH,
+              after,
+              hub.x,
+              ys[after] ?? hub.intersection.y,
+            );
+          }
+        }
+        break;
+      }
+      case Direction.UP: {
+        const col = hubContentCol(rect, hub.along);
+        const r0 = rect.row;
+        for (let row = r0 - 1; row >= 1; row--) {
+          if (!canTraverseVertical(tables, col, row)) break;
+          mark(hub, col, row);
+          const after = row - 1;
+          for (const main of hTracksAt(graph, after, col)) {
+            addStubCrossing(
+              graph,
+              hub,
+              main,
+              alongKeyH,
+              after,
+              hub.x,
+              ys[after] ?? hub.intersection.y,
+            );
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return cellsByHub;
+}
+
+/**
+ * When an H stub and a V stub both propagate into the same content cell,
+ * add a stub×stub intersection at their crossing `(v.x, h.y)`.
+ */
+export function intersectOrthogonalPropagatedStubs(
+  graph: TrackGraph,
+  cellsByHub: Map<HubTerminal, Set<string>>,
+): void {
+  const hHubs = graph.hubs.filter(
+    (h) => h.edge === Direction.LEFT || h.edge === Direction.RIGHT,
+  );
+  const vHubs = graph.hubs.filter(
+    (h) => h.edge === Direction.UP || h.edge === Direction.DOWN,
+  );
+
+  for (const hHub of hHubs) {
+    const hCells = cellsByHub.get(hHub);
+    if (!hCells || hCells.size === 0) continue;
+    for (const vHub of vHubs) {
+      const vCells = cellsByHub.get(vHub);
+      if (!vCells || vCells.size === 0) continue;
+
+      let share = false;
+      for (const key of hCells) {
+        if (vCells.has(key)) {
+          share = true;
+          break;
+        }
+      }
+      if (!share) continue;
+
+      const alongKeyH = vHub.intersection.alongKeyH;
+      const alongKeyV = hHub.intersection.alongKeyV;
+      const already = graph.intersections.some(
+        (i) =>
+          i.h === hHub.stub &&
+          i.v === vHub.stub &&
+          Math.abs(i.alongKeyH - alongKeyH) < 1e-9 &&
+          Math.abs(i.alongKeyV - alongKeyV) < 1e-9,
+      );
+      if (already) continue;
+
+      graph.intersections.push({
+        id: `${hHub.id}×${vHub.id}`,
+        h: hHub.stub,
+        v: vHub.stub,
+        alongH: [],
+        alongV: [],
+        alongKeyV,
+        alongKeyH,
+        x: vHub.x,
+        y: hHub.y,
+      });
+    }
+  }
+}
+
+/**
+ * Connect stub junctions that land on the same main track at the same along
+ * key so SSP can hop between stubs without travelling the seam.
+ */
+export function linkColocatedStubJunctions(
+  intersections: Intersection[],
+): void {
+  const eps = 1e-6;
+
+  const hStubIx = intersections.filter(
+    (i) => i.h.kind === "stub" && i.v.kind !== "stub",
+  );
+  for (let i = 0; i < hStubIx.length; i++) {
+    const a = hStubIx[i]!;
+    for (let j = i + 1; j < hStubIx.length; j++) {
+      const b = hStubIx[j]!;
+      if (a.v !== b.v) continue;
+      if (Math.abs(a.alongKeyV - b.alongKeyV) > eps) continue;
+      if (!a.alongH.includes(b)) a.alongH.push(b);
+      if (!b.alongH.includes(a)) b.alongH.push(a);
+    }
+  }
+
+  const vStubIx = intersections.filter(
+    (i) => i.v.kind === "stub" && i.h.kind !== "stub",
+  );
+  for (let i = 0; i < vStubIx.length; i++) {
+    const a = vStubIx[i]!;
+    for (let j = i + 1; j < vStubIx.length; j++) {
+      const b = vStubIx[j]!;
+      if (a.h !== b.h) continue;
+      if (Math.abs(a.alongKeyH - b.alongKeyH) > eps) continue;
+      if (!a.alongV.includes(b)) a.alongV.push(b);
+      if (!b.alongV.includes(a)) b.alongV.push(a);
+    }
+  }
 }
 
 export { covers, edgeCoords };

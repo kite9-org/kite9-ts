@@ -1,5 +1,6 @@
 :host {
   --kite9-type: connected-rectangular;
+  --kite9-traversal: prevent;
   display: block;
   position: relative;
   font: 500 12px/1.35 Metropolis, system-ui, sans-serif;

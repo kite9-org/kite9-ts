@@ -1,0 +1,260 @@
+{
+  "grid": {
+    "contentCols": 8,
+    "contentRows": 6,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      54,
+      40,
+      10,
+      12,
+      40,
+      55,
+      12,
+      10
+    ],
+    "contentRowSizes": [
+      85,
+      12,
+      61,
+      61,
+      12,
+      10
+    ],
+    "colSizes": [
+      54,
+      40,
+      10,
+      12,
+      40,
+      55,
+      12,
+      10
+    ],
+    "rowSizes": [
+      85,
+      12,
+      61,
+      61,
+      12,
+      10
+    ]
+  },
+  "placements": [
+    {
+      "id": "a",
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "b",
+      "col": 6,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "c",
+      "col": 6,
+      "row": 4,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "targets",
+      "col": 4,
+      "row": 2,
+      "colEnd": 7,
+      "rowEnd": 5
+    },
+    {
+      "id": "a__hub__left",
+      "onId": "a",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "a__hub__right",
+      "onId": "a",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "a__hub__up",
+      "onId": "a",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "a__hub__down",
+      "onId": "a",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "b__hub__left",
+      "onId": "b",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "b__hub__right",
+      "onId": "b",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "b__hub__up",
+      "onId": "b",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "b__hub__down",
+      "onId": "b",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "c__hub__left",
+      "onId": "c",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "c__hub__right",
+      "onId": "c",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "c__hub__up",
+      "onId": "c",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "c__hub__down",
+      "onId": "c",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__left",
+      "onId": "targets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__right",
+      "onId": "targets",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__up",
+      "onId": "targets",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__down",
+      "onId": "targets",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "p1",
+      "onId": "a",
+      "edge": "right",
+      "along": 20,
+      "type": "percentage"
+    },
+    {
+      "id": "p2",
+      "onId": "a",
+      "edge": "right",
+      "along": 80,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l1": {
+      "startId": "p1",
+      "endId": "b__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    },
+    "l2": {
+      "startId": "p2",
+      "endId": "c__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "yi": 3
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    }
+  }
+}

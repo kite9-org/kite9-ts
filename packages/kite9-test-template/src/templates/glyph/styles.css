@@ -1,5 +1,6 @@
 :host {
   --kite9-type: connected-rectangular;
+  --kite9-traversal: prevent;
   display: block;
   position: relative;
   justify-self: center;

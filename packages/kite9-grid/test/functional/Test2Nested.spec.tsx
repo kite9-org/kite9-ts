@@ -94,3 +94,20 @@ checkLayout(
     </kite9-container>
   </kite9-diagram>,
 );
+
+/** Two double-nested stacks side by side in the diagram. */
+checkLayout(
+  "test_2_06_TwoDoubleNests",
+  <kite9-diagram id="diagram" layout="left">
+    <kite9-container id="outer1" label="" layout="down">
+      <kite9-container id="inner1" label="" layout="down">
+        <kite9-glyph id="a" label="a" />
+      </kite9-container>
+    </kite9-container>
+    <kite9-container id="outer2" label="" layout="down">
+      <kite9-container id="inner2" label="" layout="down">
+        <kite9-glyph id="b" label="b" />
+      </kite9-container>
+    </kite9-container>
+  </kite9-diagram>,
+);

@@ -10,6 +10,9 @@ export {
   hubId,
   cellPixelRect,
   wireIntersectionNeighbours,
+  propagateStubs,
+  intersectOrthogonalPropagatedStubs,
+  linkColocatedStubJunctions,
   type Track,
   type TrackGraph,
   type TrackSegment,
@@ -26,3 +29,10 @@ export {
   type InflateResult,
 } from "./inflate.js";
 export { shortestPath, markTracksUsed, type RouteStep } from "./routing/ssp.js";
+export {
+  buildTraversalTables,
+  canTraverseHorizontal,
+  canTraverseVertical,
+  indexRectangulars,
+  type TraversalTables,
+} from "./traversal-tables.js";

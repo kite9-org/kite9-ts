@@ -1,0 +1,253 @@
+{
+  "grid": {
+    "contentCols": 8,
+    "contentRows": 6,
+    "gutter": 0,
+    "minCol": 40,
+    "minRow": 40,
+    "contentColSizes": [
+      72,
+      40,
+      10,
+      12,
+      40,
+      83,
+      12,
+      10
+    ],
+    "contentRowSizes": [
+      73,
+      12,
+      61,
+      61,
+      12,
+      10
+    ],
+    "colSizes": [
+      72,
+      40,
+      10,
+      12,
+      40,
+      83,
+      12,
+      10
+    ],
+    "rowSizes": [
+      73,
+      12,
+      61,
+      61,
+      12,
+      10
+    ]
+  },
+  "placements": [
+    {
+      "id": "One",
+      "col": 1,
+      "row": 1,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "Two",
+      "col": 6,
+      "row": 3,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "Three",
+      "col": 6,
+      "row": 4,
+      "margin": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      }
+    },
+    {
+      "id": "targets",
+      "col": 4,
+      "row": 2,
+      "colEnd": 7,
+      "rowEnd": 5
+    },
+    {
+      "id": "One__hub__left",
+      "onId": "One",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__right",
+      "onId": "One",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__up",
+      "onId": "One",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "One__hub__down",
+      "onId": "One",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__left",
+      "onId": "Two",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__right",
+      "onId": "Two",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__up",
+      "onId": "Two",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Two__hub__down",
+      "onId": "Two",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Three__hub__left",
+      "onId": "Three",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Three__hub__right",
+      "onId": "Three",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Three__hub__up",
+      "onId": "Three",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "Three__hub__down",
+      "onId": "Three",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__left",
+      "onId": "targets",
+      "edge": "left",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__right",
+      "onId": "targets",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__up",
+      "onId": "targets",
+      "edge": "up",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "targets__hub__down",
+      "onId": "targets",
+      "edge": "down",
+      "along": 50,
+      "type": "percentage"
+    },
+    {
+      "id": "sock1",
+      "onId": "One",
+      "edge": "right",
+      "along": 50,
+      "type": "percentage"
+    }
+  ],
+  "routes": {
+    "l1": {
+      "startId": "sock1",
+      "endId": "Two__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    },
+    "l2": {
+      "startId": "sock1",
+      "endId": "Three__hub__left",
+      "route": [
+        {
+          "xi": 1
+        },
+        {
+          "yi": 1
+        },
+        {
+          "yi": 2
+        },
+        {
+          "yi": 3
+        },
+        {
+          "xi": 3
+        },
+        {
+          "xi": 4
+        }
+      ]
+    }
+  }
+}
